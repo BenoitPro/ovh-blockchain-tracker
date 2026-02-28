@@ -1,0 +1,26 @@
+# Documentation
+*.md
+!README.md
+
+# Development files
+.env.local
+.env.*.local
+logs/
+test-*.js
+
+# Data files (not needed for deployment)
+data/*.mmdb
+data/*.tar.gz
+
+# Scripts
+scripts/worker.ts
+download-maxmind-simple.sh
+ecosystem.config.js
+
+# Assets sources
+Carte monde/
+Photo team/
+Logo/
+
+# Docs
+docs/

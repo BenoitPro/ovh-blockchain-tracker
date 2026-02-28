@@ -1,0 +1,282 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+
+    <title>OVH Solana Tracker - Codebase Architecture</title>
+
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5.0.4/dist/reset.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5.0.4/dist/reveal.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5.0.4/dist/theme/night.css">
+
+    <!-- Theme used for syntax highlighted code -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5.0.4/plugin/highlight/monokai.css">
+
+    <style>
+        .reveal h1,
+        .reveal h2,
+        .reveal h3 {
+            color: #00f0ff;
+            text-transform: none;
+        }
+
+        .reveal section {
+            text-align: left;
+        }
+
+        .mermaid {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+        }
+
+        .code-wrapper {
+            display: flex;
+            gap: 20px;
+            font-size: 0.5em;
+        }
+
+        .highlight-red {
+            color: #ff6b6b;
+            font-weight: bold;
+        }
+
+        .highlight-green {
+            color: #51cf66;
+            font-weight: bold;
+        }
+
+        .center-slide {
+            text-align: center !important;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="reveal">
+        <div class="slides">
+
+            <!-- Slide 1: Title -->
+            <section class="center-slide">
+                <h1>OVH Solana Tracker</h1>
+                <h3>Codebase Architecture Deep Dive</h3>
+                <p>Solana Node Fetching | MaxMind ASN | Metrics | Map Visualization</p>
+                <small>Created by Antigravity</small>
+            </section>
+
+            <!-- Slide 2: High Level Architecture -->
+            <section>
+                <h2>High-Level Architecture</h2>
+                <div class="mermaid">
+                    graph LR
+                    Worker[Worker Script<br>scripts/worker.ts] -->|1. Fetch Nodes| RPC[Solana RPC]
+                    Worker -->|2. Lookup ASN| MaxMind[MaxMind DB<br>Local .mmdb]
+                    Worker -->|3. Filter OVH| Filter[Filter Logic]
+                    Worker -->|4. Calc Metrics| Metrics[Metrics Engine]
+                    Worker -->|5. Save Data| Cache[JSON Cache] & DB[SQLite DB]
+                    Frontend[Next.js App] -->|Read| Cache & DB
+                </div>
+                <ul>
+                    <li><strong>Worker-First Approach</strong>: Data is pre-fetched to avoid API slowness.</li>
+                    <li><strong>Local MaxMind DB</strong>: 150x faster than external APIs.</li>
+                    <li><strong>Static Cache</strong>: Frontend reads pre-calculated JSON for speed.</li>
+                </ul>
+            </section>
+
+            <!-- Slide 3: Solana Node Fetching -->
+            <section>
+                <h2>1. Fetching Solana Nodes</h2>
+                <p>Located in <code>src/lib/solana/fetchNodes.ts</code></p>
+                <pre><code class="typescript" data-trim data-line-numbers="4-10|14-25">
+// Uses standard Solana JSON RPC
+const SOLANA_RPC_ENDPOINT = 'https://api.mainnet-beta.solana.com';
+
+export async function fetchSolanaNodes(limit?: number) {
+    // Standard RPC call 'getClusterNodes'
+    const response = await fetch(SOLANA_RPC_ENDPOINT, {
+        body: JSON.stringify({
+            method: 'getClusterNodes',
+            // ...
+        }),
+        next: { revalidate: 300 }, // Cached for 5 mins
+    });
+    
+    // Returns array of { pubkey, gossip, tpu, ... }
+    const nodes = data.result || [];
+    return nodes; // No limit needed thanks to efficient processing
+}
+          </code></pre>
+                <p class="fragment fade-in">Key Insight: We fetch <strong>ALL</strong> nodes because our local
+                    processing is fast enough to handle thousands of records effortlessly.</p>
+            </section>
+
+            <!-- Slide 4: MaxMind ASN Lookup Flow -->
+            <section>
+                <h2>2. MaxMind ASN Lookup</h2>
+                <p>Why move from API to Local DB?</p>
+                <div class="mermaid">
+                    sequenceDiagram
+                    participant W as Worker
+                    participant M as MaxMind Lib
+                    participant D as GeoLite2.mmdb
+
+                    W->>M: initMaxMind()
+                    M->>D: Load DB into RAM
+
+                    loop For Each Node IP
+                    W->>M: getASNFromMaxMind(ip)
+                    M->>D: Binary Search
+                    D-->>M: ASN Info (Instant)
+                    M-->>W: { asn: "AS16276", org: "OVH SAS" }
+                    end
+                </div>
+                <div style="font-size: 0.7em; margin-top: 20px;">
+                    <p><span class="highlight-green">✔ Speed:</span> &lt;1ms per lookup (vs 1500ms API)</p>
+                    <p><span class="highlight-green">✔ Reliability:</span> No rate limits, works offline</p>
+                    <p><span class="highlight-green">✔ Privacy:</span> No external tracking of IP queries</p>
+                </div>
+            </section>
+
+            <!-- Slide 5: The filtering Logic -->
+            <section>
+                <h2>Filtering OVH Nodes</h2>
+                <p>Located in <code>src/lib/solana/filterOVH.ts</code></p>
+                <pre><code class="typescript" data-trim data-line-numbers="1-8|12-21">
+// Exhaustive list of OVH ASNs
+export const OVH_ASN_LIST = [
+    'AS16276', // OVH SAS (Main)
+    'AS35540', // OVH Managed
+    'AS21351', // OVH Public Cloud
+    // ... others
+];
+
+// Hybrid Approach:
+// 1. MaxMind for fast filtering (finding the needle in haystack)
+// 2. IP-API.com ONLY for the final ~25 OVH nodes (precision city data)
+export async function filterOVHNodes(nodes: SolanaNode[]) {
+    // ...
+    if (isOVHIP(ip, OVH_ASN_LIST)) {
+         // Found one! 
+         // Now fetch detailed city/lat/long for JUST this node
+    }
+}
+           </code></pre>
+            </section>
+
+            <!-- Slide 6: Metrics Calculation -->
+            <section>
+                <h2>3. Metrics Logic</h2>
+                <p>Located in <code>src/lib/solana/calculateMetrics.ts</code></p>
+                <pre><code class="typescript" data-trim>
+export function calculateMetrics(allNodes, ovhNodes, providerDist) {
+    const totalNodes = allNodes.length;
+    const ovhNodeCount = ovhNodes.length;
+
+    // 1. Market Share
+    const marketShare = (ovhNodeCount / totalNodes) * 100;
+
+    // 2. Revenue Estimation
+    // CONSTANT: MONTHLY_COST_PER_NODE = 150 (EUR)
+    const estimatedRevenue = ovhNodeCount * MONTHLY_COST_PER_NODE;
+
+    // 3. Top Countries
+    const geoDistribution = {}; 
+    // ... aggregation logic ...
+
+    return { marketShare, estimatedRevenue, ... };
+}
+          </code></pre>
+            </section>
+
+            <!-- Slide 7: Interactive Map Implementation -->
+            <section>
+                <h2>4. Responsive World Map</h2>
+                <p>How it distributes nodes beautifully (<code>WorldMap.tsx</code>)</p>
+                <div style="display: flex; gap: 20px;">
+                    <div style="width: 50%;">
+                        <pre><code class="typescript" style="font-size: 0.6em; line-height: 1.2;">
+// Manual calibration for perfect aesthetic placement
+// x, y are percentages of container width/height
+const COUNTRY_COORDS = {
+    'France': { x: 49, y: 42 },
+    'Germany': { x: 51, y: 38 },
+    'Singapore': { x: 76, y: 54 },
+    'Finland': { x: 58, y: 25 },
+    // ...
+};
+                </code></pre>
+                    </div>
+                    <div style="width: 50%; font-size: 0.8em;">
+                        <p><strong>The "Heat" Algorithm:</strong></p>
+                        <ol>
+                            <li>Find <code>maxNodes</code> (country with most nodes).</li>
+                            <li>Calculate <code>intensity = count / maxNodes</code>.</li>
+                            <li><strong>Radius Calculation:</strong><br>
+                                <code>radius = 6px + (intensity * 11px)</code><br>
+                                <em>Ensures small nodes are visible, big nodes don't overlap too much.</em>
+                            </li>
+                        </ol>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Slide 8: Map Visual Effects -->
+            <section>
+                <h2>Map Visuals (Tailwind + CSS)</h2>
+                <pre><code class="html" data-trim>
+<!-- The Glowing Ring Effect -->
+<div 
+  class="radius-full"
+  style="
+    background: radial-gradient(circle, 
+       rgba(0, 240, 255, 0.4) 0%, 
+       transparent 70%);
+    box-shadow: 0 0 10px rgba(0, 240, 255, 0.8);
+  "
+>
+  <!-- Inner white core -->
+  <div class="bg-white rounded-full ..."></div>
+</div>
+             </code></pre>
+                <ul>
+                    <li>Uses <strong>Percent-based positioning</strong> (<code>left: 49%</code>) for responsiveness.
+                    </li>
+                    <li><strong>Backdrop-blur</strong> for the "Glassmorphism" look.</li>
+                    <li><strong>Inverted World Map</strong> image as background for dark mode data viz.</li>
+                </ul>
+            </section>
+
+            <!-- Slide 9: Conclusion -->
+            <section class="center-slide">
+                <h2>Summary</h2>
+                <ul>
+                    <li><strong>Worker</strong> extracts raw blockchain data.</li>
+                    <li><strong>MaxMind</strong> provides instant infrastructure intelligence.</li>
+                    <li><strong>Metrics</strong> aggregates business value.</li>
+                    <li><strong>WorldMap</strong> renders data with curated aesthetics.</li>
+                </ul>
+                <p style="margin-top: 40px; color: #00f0ff;">Questions?</p>
+            </section>
+
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/reveal.js@5.0.4/dist/reveal.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/reveal.js@5.0.4/plugin/highlight/highlight.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@10.6.1/dist/mermaid.min.js"></script>
+    <script>
+        // Initialize Reveal.js
+        Reveal.initialize({
+            hash: true,
+            plugins: [RevealHighlight],
+            slideNumber: true,
+        });
+
+        // Initialize Mermaid
+        mermaid.initialize({ startOnLoad: true, theme: 'dark' });
+    </script>
+</body>
+
+</html>

@@ -1,36 +1,126 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# 🌐 OVHcloud Blockchain Infrastructure Monitor - V1
 
-## Getting Started
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/VOTRE-USERNAME/ovh-solana-tracker)
 
-First, run the development server:
+## 📊 Vue d'ensemble
 
+Tableau de bord en temps réel pour visualiser la part de marché d'OVHcloud dans l'infrastructure Solana (Nodes & RPC). Cette V1 présente les métriques clés, la distribution géographique et les principaux validateurs hébergés sur OVHcloud.
+
+## ✨ Fonctionnalités V1
+
+- 📈 **KPIs en temps réel** : Nodes OVH, part de marché, distribution géographique
+- 🍩 **Visualisation graphique** : Donut chart de la répartition OVH vs Autres
+- 📊 **Graphique de tendance** : Évolution du market share sur 7/30/90 jours (Phase 2)
+- 💾 **Historique des métriques** : Base de données SQLite avec sauvegarde quotidienne (Phase 2)
+- 🗺️ **Carte mondiale interactive** : Localisation des nodes OVH
+- 🏆 **Top Validateurs** : Liste des principaux validateurs sur infrastructure OVH
+- 🎨 **Design premium** : Interface moderne avec animations 3D et effets glassmorphism
+- ⚡ **Performance optimisée** : Cache intelligent et chargement rapide
+
+## 🚀 Déploiement Rapide
+
+### Option 1 : Déploiement via Vercel (Recommandé)
+
+1. **Installer Vercel CLI** :
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+npm i -g vercel
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+2. **Se connecter à Vercel** :
+```bash
+vercel login
+```
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+3. **Déployer** :
+```bash
+vercel --prod
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+### Option 2 : Via l'interface Vercel
 
-## Learn More
+1. Allez sur [vercel.com](https://vercel.com)
+2. Cliquez sur "Add New Project"
+3. Importez votre repository GitHub
+4. Cliquez sur "Deploy"
 
-To learn more about Next.js, take a look at the following resources:
+## 🛠️ Développement Local
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+```bash
+# Installation
+npm install
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+# Lancer le serveur de développement
+npm run dev
 
-## Deploy on Vercel
+# Build de production
+npm run build
+npm start
+```
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+Ouvrez [http://localhost:3000](http://localhost:3000) dans votre navigateur.
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+### Phase 2 : Historique & Trends
+
+```bash
+# Générer des données de test (90 jours)
+npx tsx scripts/seed-historical-data.ts
+
+# Lancer le worker (sauvegarde quotidienne des métriques)
+npm run worker
+
+# Vérifier la base de données
+sqlite3 data/metrics.db "SELECT COUNT(*) FROM metrics_history;"
+```
+
+
+## 📦 Stack Technique
+
+- **Framework** : Next.js 16.1.6 (App Router)
+- **UI** : React 19.2.3 + Tailwind CSS 4
+- **Charts** : Recharts 3.7.0
+- **Icons** : Heroicons 2.2.0
+- **Géolocalisation** : MaxMind GeoLite2
+- **TypeScript** : 5.x
+
+## 🌍 Sources de Données
+
+- **Solana RPC** : Récupération des nodes via `getClusterNodes`
+- **Géolocalisation** : MaxMind GeoLite2 ASN Database
+- **ASNs OVHcloud** : AS16276, AS35540, AS35540
+
+## 📊 Métriques Affichées
+
+- Nombre total de nodes OVH
+- Part de marché OVH (%)
+- Nombre de pays hébergeant des nodes OVH
+- Distribution géographique (carte + liste)
+- Top 10 validateurs OVH
+
+## 🎨 Design
+
+Interface inspirée de [OVHcloud Powering Blockchain](https://www.ovhcloud.com/en/lp/powering-blockchain-ethos) avec :
+- Palette de couleurs dark mode premium
+- Animations 3D de cubes blockchain
+- Effets glassmorphism
+- Gradients dynamiques
+- Micro-animations au survol
+
+## 👥 Équipe
+
+- **Alexandre Al Ajourdi** - [LinkedIn](https://www.linkedin.com/in/alexandre-al-ajourdi/)
+- **Omar Abi Issa** - [LinkedIn](https://www.linkedin.com/in/omar-abi-issa/)
+- **Benoit Baillon** - [LinkedIn](https://www.linkedin.com/in/benoit-baillon/)
+
+## 📝 License
+
+Ce projet est développé pour OVHcloud.
+
+## 🔗 Liens Utiles
+
+- [OVHcloud Blockchain](https://www.ovhcloud.com/en/lp/powering-blockchain-ethos)
+- [Documentation Next.js](https://nextjs.org/docs)
+- [Documentation Vercel](https://vercel.com/docs)
+
+---
+
+**Développé avec ❤️ pour OVHcloud**
