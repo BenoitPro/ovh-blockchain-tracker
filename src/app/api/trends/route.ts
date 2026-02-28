@@ -33,7 +33,7 @@ export async function GET(request: NextRequest) {
         }
 
         // Fetch data from database
-        const data = MetricsRepository.getMetricsByPeriod(period);
+        const data = await MetricsRepository.getMetricsByPeriod(period);
 
         logger.info(`[API /trends] Returning ${data.length} data points for period=${period}`);
 

@@ -1,9 +1,6 @@
-import fs from 'fs/promises';
-import path from 'path';
 import { APIResponse } from '@/types';
 import { logger } from '@/lib/utils';
-
-const CACHE_FILE_PATH = path.join(process.cwd(), 'data', 'cache.json');
+import { getDatabase } from '@/lib/db/database';
 
 export interface CachedMetrics {
     data: APIResponse['data'];
@@ -11,43 +8,63 @@ export interface CachedMetrics {
     nodeCount: number;
 }
 
+const CACHE_KEY = 'solana-metrics';
+
 /**
- * Read cached metrics from JSON file
+ * Read cached metrics from Turso Database
  */
 export async function readCache(): Promise<CachedMetrics | null> {
     try {
-        const fileContent = await fs.readFile(CACHE_FILE_PATH, 'utf-8');
-        const parsed = JSON.parse(fileContent) as CachedMetrics;
+        const db = getDatabase();
 
-        logger.info(`[Cache] Loaded data from ${new Date(parsed.timestamp).toISOString()}`);
-        return parsed;
-    } catch (error) {
-        if ((error as NodeJS.ErrnoException).code === 'ENOENT') {
-            logger.info('[Cache] No cache file found');
+        const result = await db.execute({
+            sql: 'SELECT data, timestamp, node_count FROM cache WHERE key = ?',
+            args: [CACHE_KEY]
+        });
+
+        if (result.rows.length === 0) {
+            logger.info('[Cache] No cache found in database');
             return null;
         }
+
+        const row = result.rows[0];
+
+        const cachedData: CachedMetrics = {
+            data: JSON.parse(row.data as string),
+            timestamp: row.timestamp as number,
+            nodeCount: row.node_count as number
+        };
+
+        logger.info(`[Cache] Loaded data from ${new Date(cachedData.timestamp).toISOString()}`);
+        return cachedData;
+    } catch (error) {
         logger.error('[Cache] Error reading cache:', error);
         return null;
     }
 }
 
 /**
- * Write metrics to JSON cache file
+ * Write metrics to Turso Database
  */
 export async function writeCache(data: APIResponse['data'], nodeCount: number): Promise<void> {
     try {
-        // Ensure data directory exists
-        const dataDir = path.dirname(CACHE_FILE_PATH);
-        await fs.mkdir(dataDir, { recursive: true });
+        const db = getDatabase();
+        const timestamp = Date.now();
 
-        const cacheData: CachedMetrics = {
-            data,
-            timestamp: Date.now(),
-            nodeCount,
-        };
+        await db.execute({
+            sql: `
+                INSERT OR REPLACE INTO cache (key, data, timestamp, node_count)
+                VALUES (?, ?, ?, ?)
+            `,
+            args: [
+                CACHE_KEY,
+                JSON.stringify(data),
+                timestamp,
+                nodeCount
+            ]
+        });
 
-        await fs.writeFile(CACHE_FILE_PATH, JSON.stringify(cacheData, null, 2), 'utf-8');
-        logger.info(`[Cache] Saved ${nodeCount} nodes at ${new Date().toISOString()}`);
+        logger.info(`[Cache] Saved ${nodeCount} nodes at ${new Date(timestamp).toISOString()}`);
     } catch (error) {
         logger.error('[Cache] Error writing cache:', error);
         throw error;

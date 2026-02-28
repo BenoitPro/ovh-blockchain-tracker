@@ -3,45 +3,43 @@ import { DashboardMetrics, HistoricalMetrics, TrendDataPoint, TrendPeriod } from
 import { logger } from '@/lib/utils';
 
 /**
- * Repository for managing historical metrics in SQLite
+ * Repository for managing historical metrics in SQLite via Turso (libSQL)
  */
 export class MetricsRepository {
     /**
      * Save daily metrics snapshot to database
      * Prevents duplicate entries for the same day (based on date, not exact timestamp)
-     * @param metrics - Dashboard metrics to save
-     * @param customTimestamp - Optional custom timestamp (for seeding historical data)
      */
-    static saveMetrics(metrics: DashboardMetrics, customTimestamp?: number): void {
+    static async saveMetrics(metrics: DashboardMetrics, customTimestamp?: number): Promise<void> {
         const db = getDatabase();
 
-        // Use custom timestamp if provided, otherwise use current date
         const now = customTimestamp ? new Date(customTimestamp) : new Date();
         const dayStart = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()));
         const timestamp = dayStart.getTime();
 
         try {
-            const stmt = db.prepare(`
-                INSERT OR REPLACE INTO metrics_history (
+            await db.execute({
+                sql: `
+                    INSERT OR REPLACE INTO metrics_history (
+                        timestamp,
+                        total_nodes,
+                        ovh_nodes,
+                        market_share,
+                        estimated_revenue,
+                        geo_distribution,
+                        provider_distribution
+                    ) VALUES (?, ?, ?, ?, ?, ?, ?)
+                `,
+                args: [
                     timestamp,
-                    total_nodes,
-                    ovh_nodes,
-                    market_share,
-                    estimated_revenue,
-                    geo_distribution,
-                    provider_distribution
-                ) VALUES (?, ?, ?, ?, ?, ?, ?)
-            `);
-
-            stmt.run(
-                timestamp,
-                metrics.totalNodes,
-                metrics.ovhNodes,
-                metrics.marketShare,
-                0, // estimated_revenue is no longer tracked
-                JSON.stringify(metrics.geoDistribution),
-                JSON.stringify(metrics.providerDistribution)
-            );
+                    metrics.totalNodes,
+                    metrics.ovhNodes,
+                    metrics.marketShare,
+                    0, // estimated_revenue is no longer tracked
+                    JSON.stringify(metrics.geoDistribution),
+                    JSON.stringify(metrics.providerDistribution)
+                ]
+            });
 
             logger.info(`[MetricsRepository] Saved metrics for ${dayStart.toISOString().split('T')[0]}`);
         } catch (error) {
@@ -52,41 +50,40 @@ export class MetricsRepository {
 
     /**
      * Get metrics for a specific time period or all history
-     * Returns data points ordered by timestamp (oldest first)
      */
-    static getMetricsByPeriod(period: TrendPeriod): TrendDataPoint[] {
+    static async getMetricsByPeriod(period: TrendPeriod): Promise<TrendDataPoint[]> {
         if (period === 'all') {
             return MetricsRepository.getAllMetrics();
         }
 
         const db = getDatabase();
 
-        // Calculate cutoff timestamp (start of day, N days ago)
         const cutoffDate = new Date();
         cutoffDate.setUTCDate(cutoffDate.getUTCDate() - (period as number));
         cutoffDate.setUTCHours(0, 0, 0, 0);
         const cutoffTimestamp = cutoffDate.getTime();
 
         try {
-            const stmt = db.prepare(`
-                SELECT
-                    timestamp,
-                    total_nodes,
-                    ovh_nodes,
-                    market_share
-                FROM metrics_history
-                WHERE timestamp >= ?
-                ORDER BY timestamp ASC
-            `);
+            const result = await db.execute({
+                sql: `
+                    SELECT
+                        timestamp,
+                        total_nodes,
+                        ovh_nodes,
+                        market_share
+                    FROM metrics_history
+                    WHERE timestamp >= ?
+                    ORDER BY timestamp ASC
+                `,
+                args: [cutoffTimestamp]
+            });
 
-            const rows = stmt.all(cutoffTimestamp) as HistoricalMetrics[];
-
-            return rows.map(row => ({
-                timestamp: row.timestamp,
-                date: new Date(row.timestamp).toISOString().split('T')[0],
-                marketShare: row.market_share,
-                ovhNodes: row.ovh_nodes,
-                totalNodes: row.total_nodes,
+            return result.rows.map(row => ({
+                timestamp: row.timestamp as number,
+                date: new Date(row.timestamp as number).toISOString().split('T')[0],
+                marketShare: row.market_share as number,
+                ovhNodes: row.ovh_nodes as number,
+                totalNodes: row.total_nodes as number,
             }));
         } catch (error) {
             logger.error(`[MetricsRepository] Failed to get metrics for ${period} days:`, error);
@@ -95,13 +92,13 @@ export class MetricsRepository {
     }
 
     /**
-     * Get all historical metrics (used for 'all' period)
+     * Get all historical metrics
      */
-    static getAllMetrics(): TrendDataPoint[] {
+    static async getAllMetrics(): Promise<TrendDataPoint[]> {
         const db = getDatabase();
 
         try {
-            const stmt = db.prepare(`
+            const result = await db.execute(`
                 SELECT
                     timestamp,
                     total_nodes,
@@ -111,14 +108,12 @@ export class MetricsRepository {
                 ORDER BY timestamp ASC
             `);
 
-            const rows = stmt.all() as HistoricalMetrics[];
-
-            return rows.map(row => ({
-                timestamp: row.timestamp,
-                date: new Date(row.timestamp).toISOString().split('T')[0],
-                marketShare: row.market_share,
-                ovhNodes: row.ovh_nodes,
-                totalNodes: row.total_nodes,
+            return result.rows.map(row => ({
+                timestamp: row.timestamp as number,
+                date: new Date(row.timestamp as number).toISOString().split('T')[0],
+                marketShare: row.market_share as number,
+                ovhNodes: row.ovh_nodes as number,
+                totalNodes: row.total_nodes as number,
             }));
         } catch (error) {
             logger.error('[MetricsRepository] Failed to get all metrics:', error);
@@ -128,19 +123,31 @@ export class MetricsRepository {
 
     /**
      * Get the most recent metrics entry
-     * Useful as a fallback when cache is empty
      */
-    static getLatestMetrics(): HistoricalMetrics | null {
+    static async getLatestMetrics(): Promise<HistoricalMetrics | null> {
         const db = getDatabase();
 
         try {
-            const stmt = db.prepare(`
+            const result = await db.execute(`
                 SELECT * FROM metrics_history
                 ORDER BY timestamp DESC
                 LIMIT 1
             `);
 
-            return stmt.get() as HistoricalMetrics | null;
+            if (result.rows.length === 0) return null;
+
+            const row = result.rows[0];
+            return {
+                id: row.id as number,
+                timestamp: row.timestamp as number,
+                total_nodes: row.total_nodes as number,
+                ovh_nodes: row.ovh_nodes as number,
+                market_share: row.market_share as number,
+                estimated_revenue: row.estimated_revenue as number,
+                geo_distribution: row.geo_distribution as string,
+                provider_distribution: row.provider_distribution as string,
+                created_at: row.created_at as number
+            };
         } catch (error) {
             logger.error('[MetricsRepository] Failed to get latest metrics:', error);
             return null;
@@ -149,9 +156,8 @@ export class MetricsRepository {
 
     /**
      * Delete old metrics beyond retention period
-     * Default: keep 2000 days of history (~5.5 years)
      */
-    static deleteOldMetrics(retentionDays: number = 2000): number {
+    static async deleteOldMetrics(retentionDays: number = 2000): Promise<number> {
         const db = getDatabase();
 
         const cutoffDate = new Date();
@@ -160,18 +166,16 @@ export class MetricsRepository {
         const cutoffTimestamp = cutoffDate.getTime();
 
         try {
-            const stmt = db.prepare(`
-                DELETE FROM metrics_history
-                WHERE timestamp < ?
-            `);
+            const result = await db.execute({
+                sql: `DELETE FROM metrics_history WHERE timestamp < ?`,
+                args: [cutoffTimestamp]
+            });
 
-            const result = stmt.run(cutoffTimestamp);
-
-            if (result.changes > 0) {
-                logger.info(`[MetricsRepository] Deleted ${result.changes} old metrics entries`);
+            if (result.rowsAffected > 0) {
+                logger.info(`[MetricsRepository] Deleted ${result.rowsAffected} old metrics entries`);
             }
 
-            return result.changes;
+            return result.rowsAffected;
         } catch (error) {
             logger.error('[MetricsRepository] Failed to delete old metrics:', error);
             throw error;
@@ -181,42 +185,15 @@ export class MetricsRepository {
     /**
      * Get total count of historical records
      */
-    static getRecordCount(): number {
+    static async getRecordCount(): Promise<number> {
         const db = getDatabase();
 
         try {
-            const stmt = db.prepare('SELECT COUNT(*) as count FROM metrics_history');
-            const result = stmt.get() as { count: number };
-            return result.count;
+            const result = await db.execute('SELECT COUNT(*) as count FROM metrics_history');
+            return Number(result.rows[0].count) || 0;
         } catch (error) {
             logger.error('[MetricsRepository] Failed to get record count:', error);
             return 0;
-        }
-    }
-
-    /**
-     * Get date range of available data
-     */
-    static getDateRange(): { oldest: Date | null; newest: Date | null } {
-        const db = getDatabase();
-
-        try {
-            const stmt = db.prepare(`
-                SELECT 
-                    MIN(timestamp) as oldest,
-                    MAX(timestamp) as newest
-                FROM metrics_history
-            `);
-
-            const result = stmt.get() as { oldest: number | null; newest: number | null };
-
-            return {
-                oldest: result.oldest ? new Date(result.oldest) : null,
-                newest: result.newest ? new Date(result.newest) : null,
-            };
-        } catch (error) {
-            logger.error('[MetricsRepository] Failed to get date range:', error);
-            return { oldest: null, newest: null };
         }
     }
 }

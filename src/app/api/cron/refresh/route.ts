@@ -4,15 +4,16 @@ import { filterOVHNodes, categorizeNodesByProvider } from '@/lib/solana/filterOV
 import { calculateMetrics } from '@/lib/solana/calculateMetrics';
 import { writeCache } from '@/lib/cache/storage';
 import { initMaxMind } from '@/lib/asn/maxmind';
+import { MetricsRepository } from '@/lib/db/metrics-repository';
 
 /**
  * Vercel Cron Job Endpoint for refreshing Solana node data
  * 
- * This endpoint is called automatically by Vercel Cron every hour.
+ * This endpoint is called automatically by Vercel Cron every day.
  * It fetches all Solana nodes, analyzes OVH infrastructure using MaxMind,
- * and caches the results for fast API responses.
+ * and caches the results for fast API responses + saves history.
  * 
- * Schedule: Every hour at minute 0 (configured in vercel.json)
+ * Schedule: Every day at 00:00 (configured in vercel.json)
  */
 export const maxDuration = 60; // Allow up to 60 seconds for this function
 export const dynamic = 'force-dynamic';
@@ -63,8 +64,12 @@ export async function GET(request: Request) {
         const metrics = calculateMetrics(allNodes, ovhNodes, providerDistribution);
 
         // Step 6: Save to cache
-        console.log('💾 [Cron] Saving to cache...');
+        console.log('💾 [Cron] Saving to cache database...');
         await writeCache(metrics, allNodes.length);
+
+        // Step 7: Save historical snapshot
+        console.log('📚 [Cron] Saving historical metrics...');
+        await MetricsRepository.saveMetrics(metrics);
 
         const totalTime = ((Date.now() - startTime) / 1000).toFixed(2);
 

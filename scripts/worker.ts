@@ -85,13 +85,8 @@ async function runWorker() {
         // Step 6: Save to database (historical metrics)
         console.log('📊 [Worker] Saving to historical database...');
         try {
-            MetricsRepository.saveMetrics(metrics);
-            const recordCount = MetricsRepository.getRecordCount();
-            const dateRange = MetricsRepository.getDateRange();
-            console.log(`✅ [Worker] Saved to database (${recordCount} total records)`);
-            if (dateRange.oldest && dateRange.newest) {
-                console.log(`   Date range: ${dateRange.oldest.toISOString().split('T')[0]} to ${dateRange.newest.toISOString().split('T')[0]}`);
-            }
+            await MetricsRepository.saveMetrics(metrics);
+            console.log(`✅ [Worker] Saved to database`);
         } catch (dbError) {
             console.warn('⚠️  [Worker] Failed to save to database (cache still updated):', dbError);
             // Don't fail the entire worker if DB save fails - cache is still valid
