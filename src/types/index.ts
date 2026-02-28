@@ -57,6 +57,7 @@ export interface DashboardMetrics {
     // New Stake Metrics
     ovhStake?: number;
     totalStake?: number;
+    estimatedRevenue?: number; // Calculated revenue for OVH nodes
     // Provider breakdown for comparison chart
     providerBreakdown?: ProviderBreakdownEntry[];
 }

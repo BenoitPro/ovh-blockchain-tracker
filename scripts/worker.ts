@@ -111,7 +111,7 @@ async function runWorker() {
         console.log(`   Hetzner market share: ${((providerDistribution.hetzner / allNodes.length) * 100).toFixed(2)}%`);
         console.log(`   Others: ${((providerDistribution.others / allNodes.length) * 100).toFixed(2)}%`);
         console.log('─'.repeat(60));
-        console.log(`   Estimated OVH revenue: €${metrics.estimatedRevenue.toLocaleString()}/month`);
+        console.log(`   Estimated OVH revenue: €${(metrics.estimatedRevenue || 0).toLocaleString()}/month`);
         console.log('─'.repeat(60));
         console.log(`   Total processing time: ${totalTime}s`);
         console.log(`   Performance: ${(allNodes.length / parseFloat(totalTime)).toFixed(0)} nodes/second`);
