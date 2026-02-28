@@ -4,8 +4,6 @@ import { useEffect, useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import Header from '@/components/dashboard/Header';
 import KPICards from '@/components/dashboard/KPICards';
-import DonutChart from '@/components/dashboard/DonutChart';
-import ValidatorsList from '@/components/dashboard/ValidatorsList';
 import WorldMap from '@/components/dashboard/WorldMap';
 import Footer from '@/components/dashboard/Footer';
 import LoadingState from '@/components/dashboard/LoadingState';
@@ -158,15 +156,6 @@ export default function Home() {
                         <ProviderComparison providerBreakdown={metrics.providerBreakdown} />
                     </section>
 
-                    {/* Charts and Validators Grid */}
-                    <section className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-12">
-                        <div className="fade-in-up delay-100">
-                            <DonutChart providerDistribution={metrics.providerDistribution} />
-                        </div>
-                        <div className="fade-in-up delay-200">
-                            <ValidatorsList validators={metrics.topValidators} />
-                        </div>
-                    </section>
 
                     {/* Geographic Distribution - World Map */}
                     {Object.keys(metrics.geoDistribution).length > 0 && (

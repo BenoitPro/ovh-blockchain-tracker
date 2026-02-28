@@ -46,9 +46,9 @@ export async function GET() {
             throw new Error('No nodes returned from Solana RPC');
         }
 
-        const providerDistribution = await categorizeNodesByProvider(allNodes);
+        const providerCategorization = await categorizeNodesByProvider(allNodes);
         const ovhNodes = await filterOVHNodes(allNodes);
-        const metrics = calculateMetrics(allNodes, ovhNodes, providerDistribution);
+        const metrics = calculateMetrics(allNodes, ovhNodes, providerCategorization);
 
         const response: APIResponse = {
             success: true,

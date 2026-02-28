@@ -37,9 +37,12 @@ describe('calculateMetrics', () => {
             mockOVHNode('node1', 'France', 'Paris'),
             mockOVHNode('node2', 'Germany', 'Frankfurt'),
         ];
-        const providerDistribution = { ovh: 2, aws: 1, others: 1 };
+        const providerDistribution = {
+            distribution: { ovh: 1, aws: 1, others: 1 },
+            othersBreakdown: { 'Some Unknown Org': 1 }
+        };
 
-        const result = calculateMetrics(allNodes, ovhNodes, providerDistribution);
+        const result = calculateMetrics(allNodes, ovhNodes, providerDistribution as any);
 
         expect(result.totalNodes).toBe(4);
         expect(result.ovhNodes).toBe(2);
@@ -50,7 +53,7 @@ describe('calculateMetrics', () => {
     });
 
     it('should handle empty node arrays', () => {
-        const result = calculateMetrics([], [], {});
+        const result = calculateMetrics([], [], ({} as any));
 
         expect(result.totalNodes).toBe(0);
         expect(result.ovhNodes).toBe(0);
@@ -61,7 +64,7 @@ describe('calculateMetrics', () => {
 
     it('should calculate 0% market share when no OVH nodes', () => {
         const allNodes = [mockSolanaNode('node1'), mockSolanaNode('node2')];
-        const result = calculateMetrics(allNodes, [], {});
+        const result = calculateMetrics(allNodes, [], ({} as any));
 
         expect(result.totalNodes).toBe(2);
         expect(result.ovhNodes).toBe(0);
@@ -74,7 +77,7 @@ describe('calculateMetrics', () => {
             mockOVHNode(`node${i}`, 'France', 'Paris')
         );
 
-        const result = calculateMetrics(allNodes, ovhNodes, {});
+        const result = calculateMetrics(allNodes, ovhNodes, ({} as any));
 
         expect(result.topValidators).toHaveLength(10);
     });
@@ -86,7 +89,7 @@ describe('calculateMetrics', () => {
             mockOVHNode('node2', 'France', 'Lyon'),
         ];
 
-        const result = calculateMetrics(allNodes, ovhNodes, {});
+        const result = calculateMetrics(allNodes, ovhNodes, ({} as any));
 
         expect(result.geoDistribution).toEqual({ France: 2 });
     });

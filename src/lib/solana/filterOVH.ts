@@ -202,14 +202,20 @@ export async function filterOVHNodes(nodes: SolanaNode[]): Promise<OVHNode[]> {
     return ovhNodes;
 }
 
+export interface ProviderCategorizationResult {
+    distribution: Record<string, number>;
+    othersBreakdown: Record<string, number>;
+}
+
 /**
  * Categorize all nodes by provider using MaxMind (ultra-fast)
  * This is 150x faster than the old ip-api.com method
  */
 export async function categorizeNodesByProvider(
     nodes: SolanaNode[]
-): Promise<Record<string, number>> {
+): Promise<ProviderCategorizationResult> {
     const distribution: Record<string, number> = {};
+    const othersBreakdown: Record<string, number> = {};
 
     // Initialize distribution for all known providers
     for (const key of Object.keys(PROVIDER_ASN_MAP)) {
@@ -247,12 +253,14 @@ export async function categorizeNodesByProvider(
 
         if (!categorized) {
             distribution.others++;
+            const org = asnInfo.org || 'Unknown Provider';
+            othersBreakdown[org] = (othersBreakdown[org] || 0) + 1;
         }
     }
 
     logger.debug(`[MaxMind] Provider distribution:`, distribution);
 
-    return distribution;
+    return { distribution, othersBreakdown };
 }
 
 

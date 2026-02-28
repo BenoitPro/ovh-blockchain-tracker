@@ -57,6 +57,21 @@ function CustomTooltip({ active, payload }: CustomTooltipProps) {
                         </span>
                     </p>
                 )}
+
+                {entry.subProviders && entry.subProviders.length > 0 && (
+                    <div className="pt-3 pb-1 border-t border-white/10 mt-3 space-y-1.5 min-w-[200px]">
+                        <p className="text-xs text-gray-400 font-medium uppercase tracking-wider mb-2">Top Others:</p>
+                        {entry.subProviders.map((sub, idx) => (
+                            <div key={idx} className="flex justify-between items-center text-xs">
+                                <span className="text-gray-300 max-w-[120px] truncate" title={sub.label}>{sub.label}</span>
+                                <div className="text-right">
+                                    <span className="text-white font-medium mr-1.5">{sub.nodeCount}</span>
+                                    <span className="text-gray-500 text-[10px]">({sub.marketShare.toFixed(1)}%)</span>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                )}
             </div>
         </div>
     );

@@ -146,10 +146,10 @@ describe('categorizeNodesByProvider', () => {
 
         const result = await categorizeNodesByProvider(nodes);
 
-        expect(result.ovh).toBe(1);
-        expect(result.aws).toBe(1);
-        expect(result.google).toBe(1);
-        expect(result.others).toBe(0);
+        expect(result.distribution.ovh).toBe(1);
+        expect(result.distribution.aws).toBe(1);
+        expect(result.distribution.google).toBe(1);
+        expect(result.distribution.others).toBe(0);
     });
 
     it('should count unknown providers as others', async () => {
@@ -163,8 +163,8 @@ describe('categorizeNodesByProvider', () => {
 
         const result = await categorizeNodesByProvider(nodes);
 
-        expect(result.others).toBe(1);
-        expect(result.ovh).toBe(0);
+        expect(result.distribution.others).toBe(1);
+        expect(result.distribution.ovh).toBe(0);
     });
 
     it('should handle nodes without valid IPs', async () => {
@@ -180,6 +180,6 @@ describe('categorizeNodesByProvider', () => {
 
         const result = await categorizeNodesByProvider([nodeWithoutIP]);
 
-        expect(result.others).toBe(1);
+        expect(result.distribution.others).toBe(1);
     });
 });

@@ -5,6 +5,7 @@ import { EnrichedNode } from '@/types';
 import { MagnifyingGlassIcon, ServerIcon, ChevronDownIcon, FunnelIcon } from '@heroicons/react/24/outline';
 import Image from 'next/image';
 import NodeDetails from './NodeDetails';
+import ValidatorsList from '../dashboard/ValidatorsList';
 
 interface NodeExplorerProps {
     initialNodes: EnrichedNode[];
@@ -26,6 +27,10 @@ export default function NodeExplorer({ initialNodes }: NodeExplorerProps) {
     const [searchQuery, setSearchQuery] = useState('');
     const [selectedNode, setSelectedNode] = useState<EnrichedNode | null>(null);
     const [visibleCount, setVisibleCount] = useState(ROWS_PER_PAGE);
+
+    // View Mode and Sort
+    const [viewMode, setViewMode] = useState<'table' | 'top_ovh'>('table');
+    const [sortBy, setSortBy] = useState<'stake_desc' | 'stake_asc' | 'commission_asc'>('stake_desc');
 
     // Filters
     const [providerFilter, setProviderFilter] = useState('All');
@@ -89,6 +94,18 @@ export default function NodeExplorer({ initialNodes }: NodeExplorerProps) {
 
         return nodes;
     }, [initialNodes, searchQuery, providerFilter, countryFilter]);
+
+    const sortedOvhNodes = useMemo(() => {
+        let ovhNodes = initialNodes.filter(n => n.org?.toLowerCase().includes('ovh') || n.provider?.toLowerCase().includes('ovh'));
+        if (sortBy === 'stake_desc') {
+            ovhNodes.sort((a, b) => (b.activatedStake || 0) - (a.activatedStake || 0));
+        } else if (sortBy === 'stake_asc') {
+            ovhNodes.sort((a, b) => (a.activatedStake || 0) - (b.activatedStake || 0));
+        } else if (sortBy === 'commission_asc') {
+            ovhNodes.sort((a, b) => (a.commission || 0) - (b.commission || 0));
+        }
+        return ovhNodes;
+    }, [initialNodes, sortBy]);
 
     const visibleNodes = filteredNodes.slice(0, visibleCount);
     const hasMore = visibleNodes.length < filteredNodes.length;
@@ -154,167 +171,212 @@ export default function NodeExplorer({ initialNodes }: NodeExplorerProps) {
                     </button>
                 </div>
 
-                {/* Filters Row */}
-                <div className="flex flex-wrap gap-4 items-center">
-                    <div className="flex items-center space-x-2 text-white/40 text-sm font-bold uppercase tracking-widest">
-                        <FunnelIcon className="h-4 w-4" />
-                        <span>Filters:</span>
-                    </div>
-
-                    {/* Provider Dropdown */}
-                    <div className="relative">
-                        <select
-                            value={providerFilter}
-                            onChange={(e) => setProviderFilter(e.target.value)}
-                            className="appearance-none bg-black/40 border border-white/10 rounded-xl py-2 pl-4 pr-10 text-white/80 text-sm focus:outline-none focus:border-[#00F0FF]/50 cursor-pointer hover:bg-white/5 transition-all w-48 truncate"
-                        >
-                            {uniqueProviders.map(p => (
-                                <option key={p} value={p}>{p}</option>
-                            ))}
-                        </select>
-                        <ChevronDownIcon className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-white/30 pointer-events-none" />
-                    </div>
-
-                    {/* Country Dropdown */}
-                    <div className="relative">
-                        <select
-                            value={countryFilter}
-                            onChange={(e) => setCountryFilter(e.target.value)}
-                            className="appearance-none bg-black/40 border border-white/10 rounded-xl py-2 pl-4 pr-10 text-white/80 text-sm focus:outline-none focus:border-[#00F0FF]/50 cursor-pointer hover:bg-white/5 transition-all w-48 truncate"
-                        >
-                            {uniqueCountries.map(c => (
-                                <option key={c} value={c}>{c}</option>
-                            ))}
-                        </select>
-                        <ChevronDownIcon className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-white/30 pointer-events-none" />
-                    </div>
-
-                    {/* Active Filters Summary */}
-                    {(providerFilter !== 'All' || countryFilter !== 'All' || searchQuery) && (
-                        <div className="ml-auto flex items-center gap-2">
-                            <span className="text-xs text-[#00F0FF] font-mono">
-                                {filteredNodes.length} nodes found
-                            </span>
-                            <button
-                                onClick={() => {
-                                    setProviderFilter('All');
-                                    setCountryFilter('All');
-                                    setSearchQuery('');
-                                }}
-                                className="text-xs text-white/40 hover:text-white underline"
-                            >
-                                Clear All
-                            </button>
-                        </div>
-                    )}
+                {/* View Mode Toggle */}
+                <div className="flex bg-black/40 border border-white/10 rounded-xl p-1 mb-2 w-max">
+                    <button
+                        onClick={() => setViewMode('table')}
+                        className={`px-4 py-2 rounded-lg text-sm font-bold transition-all ${viewMode === 'table' ? 'bg-[#00F0FF]/20 text-[#00F0FF]' : 'text-white/40 hover:text-white/80'}`}
+                    >
+                        Complete List
+                    </button>
+                    <button
+                        onClick={() => setViewMode('top_ovh')}
+                        className={`px-4 py-2 rounded-lg text-sm font-bold transition-all ${viewMode === 'top_ovh' ? 'bg-[#00F0FF]/20 text-[#00F0FF]' : 'text-white/40 hover:text-white/80'}`}
+                    >
+                        Top OVH Validators
+                    </button>
                 </div>
-            </div>
 
-            {/* Table Header */}
-            <div className="hidden md:grid grid-cols-12 gap-4 px-6 py-3 bg-white/5 border-y border-white/10 text-xs font-bold text-white/40 uppercase tracking-widest mb-2 sticky top-0 z-10 backdrop-blur-xl">
-                <div className="col-span-1">#</div>
-                <div className="col-span-4">Validator Identity</div>
-                <div className="col-span-2 text-right">Active Stake</div>
-                <div className="col-span-1 text-center">Fee</div>
-                <div className="col-span-2">Provider</div>
-                <div className="col-span-2 text-right">Location</div>
-            </div>
-
-            {/* Table Rows */}
-            <div className="space-y-1">
-                {visibleNodes.map((node, index) => {
-                    const isOVH = node.org?.toLowerCase().includes('ovh');
-                    const stakePercentage = node.activatedStake && totalStake ? ((node.activatedStake / totalStake) * 100).toFixed(2) : '0.00';
-                    const flag = getFlagEmoji(node.country);
-
-                    return (
-                        <div
-                            key={node.pubkey}
-                            onClick={() => setSelectedNode(node)}
-                            className={`
-                                group relative grid grid-cols-1 md:grid-cols-12 gap-4 px-6 py-4 items-center rounded-xl transition-all cursor-pointer border
-                                ${isOVH
-                                    ? 'bg-[#00F0FF]/5 border-[#00F0FF]/20 hover:bg-[#00F0FF]/10'
-                                    : 'bg-black/20 border-white/5 hover:bg-white/5 hover:border-white/10'
-                                }
-                            `}
-                        >
-                            {/* OVH Badge */}
-                            {isOVH && (
-                                <div className="absolute -left-1 top-1/2 -translate-y-1/2 w-1 h-2/3 bg-[#00F0FF] rounded-r-full shadow-[0_0_10px_#00F0FF]"></div>
-                            )}
-
-                            {/* Rank */}
-                            <div className="col-span-1 font-mono text-white/30 text-sm">{index + 1}</div>
-
-                            {/* Validator Identity */}
-                            <div className="col-span-4 flex items-center space-x-3 overflow-hidden">
-                                <div className={`p-2 rounded-lg flex-shrink-0 relative overflow-hidden ${isOVH ? 'bg-[#00F0FF]/20 text-[#00F0FF]' : 'bg-white/5 text-white/30 group-hover:text-white transition-colors'}`}>
-                                    {node.image ? (
-                                        <Image src={node.image} alt={node.name || ''} width={20} height={20} className="w-5 h-5 rounded-full object-cover" />
-                                    ) : (
-                                        <ServerIcon className="h-5 w-5" />
-                                    )}
-                                </div>
-                                <div className="min-w-0">
-                                    <p className="text-white font-bold text-sm truncate group-hover:text-[#00F0FF] transition-colors">
-                                        {node.name || 'Unknown Validator'}
-                                    </p>
-                                    <p className="text-xs text-white/30 truncate font-mono">
-                                        {node.pubkey.slice(0, 8)}...{node.pubkey.slice(-8)}
-                                    </p>
-                                </div>
-                            </div>
-
-                            {/* Stake */}
-                            <div className="col-span-2 text-right">
-                                <p className="text-white font-mono text-sm">{formatLamports(node.activatedStake)}</p>
-                                <p className="text-xs text-white/30">{stakePercentage}%</p>
-                            </div>
-
-                            {/* Commission */}
-                            <div className="col-span-1 text-center">
-                                <span className={`text-xs px-2 py-1 rounded-md ${(node.commission || 0) === 100
-                                    ? 'bg-red-500/20 text-red-400'
-                                    : (node.commission || 0) === 0
-                                        ? 'bg-green-500/20 text-green-400'
-                                        : 'bg-white/10 text-white/60'
-                                    }`}>
-                                    {node.commission ?? 'N/A'}%
-                                </span>
-                            </div>
-
-                            {/* Provider */}
-                            <div className="col-span-2 min-w-0">
-                                <p className={`text-sm truncate ${isOVH ? 'text-[#00F0FF] font-medium' : 'text-white/70'}`}>
-                                    {node.provider || node.org || 'Unknown'}
-                                </p>
-                                <p className="text-xs text-white/30 truncate">{node.asn || 'AS Unknown'}</p>
-                            </div>
-
-                            {/* Location */}
-                            <div className="col-span-2 text-right">
-                                <div className="flex items-center justify-end space-x-2">
-                                    <span className="text-2xl" title={node.countryName}>{flag}</span>
-                                    <span className="text-white/60 text-xs hidden lg:inline-block">{node.country || 'UNK'}</span>
-                                </div>
-                            </div>
+                {/* Filters Row */}
+                {viewMode === 'table' ? (
+                    <div className="flex flex-wrap gap-4 items-center">
+                        <div className="flex items-center space-x-2 text-white/40 text-sm font-bold uppercase tracking-widest">
+                            <FunnelIcon className="h-4 w-4" />
+                            <span>Filters:</span>
                         </div>
-                    );
-                })}
 
-                {/* Load More Trigger */}
-                {hasMore && (
-                    <div className="pt-8 pb-4 text-center">
-                        <button
-                            onClick={loadMore}
-                            className="px-8 py-3 bg-white/5 hover:bg-white/10 border border-white/10 rounded-full text-white/60 hover:text-white transition-all text-sm uppercase tracking-widest"
-                        >
-                            Load More Nodes ({filteredNodes.length - visibleCount} remaining)
-                        </button>
+                        {/* Provider Dropdown */}
+                        <div className="relative">
+                            <select
+                                value={providerFilter}
+                                onChange={(e) => setProviderFilter(e.target.value)}
+                                className="appearance-none bg-black/40 border border-white/10 rounded-xl py-2 pl-4 pr-10 text-white/80 text-sm focus:outline-none focus:border-[#00F0FF]/50 cursor-pointer hover:bg-white/5 transition-all w-48 truncate"
+                            >
+                                {uniqueProviders.map(p => (
+                                    <option key={p} value={p}>{p}</option>
+                                ))}
+                            </select>
+                            <ChevronDownIcon className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-white/30 pointer-events-none" />
+                        </div>
+
+                        {/* Country Dropdown */}
+                        <div className="relative">
+                            <select
+                                value={countryFilter}
+                                onChange={(e) => setCountryFilter(e.target.value)}
+                                className="appearance-none bg-black/40 border border-white/10 rounded-xl py-2 pl-4 pr-10 text-white/80 text-sm focus:outline-none focus:border-[#00F0FF]/50 cursor-pointer hover:bg-white/5 transition-all w-48 truncate"
+                            >
+                                {uniqueCountries.map(c => (
+                                    <option key={c} value={c}>{c}</option>
+                                ))}
+                            </select>
+                            <ChevronDownIcon className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-white/30 pointer-events-none" />
+                        </div>
+
+                        {/* Active Filters Summary */}
+                        {(providerFilter !== 'All' || countryFilter !== 'All' || searchQuery) && (
+                            <div className="ml-auto flex items-center gap-2">
+                                <span className="text-xs text-[#00F0FF] font-mono">
+                                    {filteredNodes.length} nodes found
+                                </span>
+                                <button
+                                    onClick={() => {
+                                        setProviderFilter('All');
+                                        setCountryFilter('All');
+                                        setSearchQuery('');
+                                    }}
+                                    className="text-xs text-white/40 hover:text-white underline"
+                                >
+                                    Clear All
+                                </button>
+                            </div>
+                        )}
+                    </div>
+                ) : (
+                    <div className="flex flex-wrap gap-4 items-center mb-4">
+                        <div className="flex items-center space-x-2 text-white/40 text-sm font-bold uppercase tracking-widest">
+                            <FunnelIcon className="h-4 w-4" />
+                            <span>Sort Top OVH By:</span>
+                        </div>
+                        <div className="relative">
+                            <select
+                                value={sortBy}
+                                onChange={(e) => setSortBy(e.target.value as any)}
+                                className="appearance-none bg-black/40 border border-white/10 rounded-xl py-2 pl-4 pr-10 text-white/80 text-sm focus:outline-none focus:border-[#00F0FF]/50 cursor-pointer hover:bg-white/5 transition-all w-48 truncate"
+                            >
+                                <option value="stake_desc">Stake (Highest First)</option>
+                                <option value="stake_asc">Stake (Lowest First)</option>
+                                <option value="commission_asc">Commission (Lowest First)</option>
+                            </select>
+                            <ChevronDownIcon className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-white/30 pointer-events-none" />
+                        </div>
                     </div>
                 )}
             </div>
+
+            {viewMode === 'table' ? (
+                <>
+                    {/* Table Header */}
+                    <div className="hidden md:grid grid-cols-12 gap-4 px-6 py-3 bg-white/5 border-y border-white/10 text-xs font-bold text-white/40 uppercase tracking-widest mb-2 sticky top-0 z-10 backdrop-blur-xl">
+                        <div className="col-span-1">#</div>
+                        <div className="col-span-4">Validator Identity</div>
+                        <div className="col-span-2 text-right">Active Stake</div>
+                        <div className="col-span-1 text-center">Fee</div>
+                        <div className="col-span-2">Provider</div>
+                        <div className="col-span-2 text-right">Location</div>
+                    </div>
+
+                    {/* Table Rows */}
+                    <div className="space-y-1">
+                        {visibleNodes.map((node, index) => {
+                            const isOVH = node.org?.toLowerCase().includes('ovh');
+                            const stakePercentage = node.activatedStake && totalStake ? ((node.activatedStake / totalStake) * 100).toFixed(2) : '0.00';
+                            const flag = getFlagEmoji(node.country);
+
+                            return (
+                                <div
+                                    key={node.pubkey}
+                                    onClick={() => setSelectedNode(node)}
+                                    className={`
+                                group relative grid grid-cols-1 md:grid-cols-12 gap-4 px-6 py-4 items-center rounded-xl transition-all cursor-pointer border
+                                ${isOVH
+                                            ? 'bg-[#00F0FF]/5 border-[#00F0FF]/20 hover:bg-[#00F0FF]/10'
+                                            : 'bg-black/20 border-white/5 hover:bg-white/5 hover:border-white/10'
+                                        }
+                            `}
+                                >
+                                    {/* OVH Badge */}
+                                    {isOVH && (
+                                        <div className="absolute -left-1 top-1/2 -translate-y-1/2 w-1 h-2/3 bg-[#00F0FF] rounded-r-full shadow-[0_0_10px_#00F0FF]"></div>
+                                    )}
+
+                                    {/* Rank */}
+                                    <div className="col-span-1 font-mono text-white/30 text-sm">{index + 1}</div>
+
+                                    {/* Validator Identity */}
+                                    <div className="col-span-4 flex items-center space-x-3 overflow-hidden">
+                                        <div className={`p-2 rounded-lg flex-shrink-0 relative overflow-hidden ${isOVH ? 'bg-[#00F0FF]/20 text-[#00F0FF]' : 'bg-white/5 text-white/30 group-hover:text-white transition-colors'}`}>
+                                            {node.image ? (
+                                                <Image src={node.image} alt={node.name || ''} width={20} height={20} className="w-5 h-5 rounded-full object-cover" />
+                                            ) : (
+                                                <ServerIcon className="h-5 w-5" />
+                                            )}
+                                        </div>
+                                        <div className="min-w-0">
+                                            <p className="text-white font-bold text-sm truncate group-hover:text-[#00F0FF] transition-colors">
+                                                {node.name || 'Unknown Validator'}
+                                            </p>
+                                            <p className="text-xs text-white/30 truncate font-mono">
+                                                {node.pubkey.slice(0, 8)}...{node.pubkey.slice(-8)}
+                                            </p>
+                                        </div>
+                                    </div>
+
+                                    {/* Stake */}
+                                    <div className="col-span-2 text-right">
+                                        <p className="text-white font-mono text-sm">{formatLamports(node.activatedStake)}</p>
+                                        <p className="text-xs text-white/30">{stakePercentage}%</p>
+                                    </div>
+
+                                    {/* Commission */}
+                                    <div className="col-span-1 text-center">
+                                        <span className={`text-xs px-2 py-1 rounded-md ${(node.commission || 0) === 100
+                                            ? 'bg-red-500/20 text-red-400'
+                                            : (node.commission || 0) === 0
+                                                ? 'bg-green-500/20 text-green-400'
+                                                : 'bg-white/10 text-white/60'
+                                            }`}>
+                                            {node.commission ?? 'N/A'}%
+                                        </span>
+                                    </div>
+
+                                    {/* Provider */}
+                                    <div className="col-span-2 min-w-0">
+                                        <p className={`text-sm truncate ${isOVH ? 'text-[#00F0FF] font-medium' : 'text-white/70'}`}>
+                                            {node.provider || node.org || 'Unknown'}
+                                        </p>
+                                        <p className="text-xs text-white/30 truncate">{node.asn || 'AS Unknown'}</p>
+                                    </div>
+
+                                    {/* Location */}
+                                    <div className="col-span-2 text-right">
+                                        <div className="flex items-center justify-end space-x-2">
+                                            <span className="text-2xl" title={node.countryName}>{flag}</span>
+                                            <span className="text-white/60 text-xs hidden lg:inline-block">{node.country || 'UNK'}</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            );
+                        })}
+
+                        {/* Load More Trigger */}
+                        {hasMore && (
+                            <div className="pt-8 pb-4 text-center">
+                                <button
+                                    onClick={loadMore}
+                                    className="px-8 py-3 bg-white/5 hover:bg-white/10 border border-white/10 rounded-full text-white/60 hover:text-white transition-all text-sm uppercase tracking-widest"
+                                >
+                                    Load More Nodes ({filteredNodes.length - visibleCount} remaining)
+                                </button>
+                            </div>
+                        )}
+                    </div>
+                </>
+            ) : (
+                <div className="max-w-4xl mx-auto w-full">
+                    <ValidatorsList validators={sortedOvhNodes} />
+                </div>
+            )}
 
             {/* Node Details Modal/Slide-over */}
             {selectedNode && (

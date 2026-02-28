@@ -57,10 +57,10 @@ async function runWorker() {
         // Step 2: Categorize nodes by provider (ultra-fast with MaxMind)
         console.log('🔍 [Worker] Analyzing provider distribution with MaxMind...');
         const categorizeStart = Date.now();
-        const providerDistribution = await categorizeNodesByProvider(allNodes);
+        const providerCategorization = await categorizeNodesByProvider(allNodes);
         const categorizeTime = ((Date.now() - categorizeStart) / 1000).toFixed(2);
 
-        console.log('📊 [Worker] Provider distribution:', providerDistribution);
+        console.log('📊 [Worker] Provider distribution:', providerCategorization.distribution);
         console.log(`⏱️  [Worker] Categorization completed in ${categorizeTime}s`);
         console.log('');
 
@@ -76,7 +76,7 @@ async function runWorker() {
 
         // Step 4: Calculate metrics
         console.log('📈 [Worker] Calculating market share metrics...');
-        const metrics = calculateMetrics(allNodes, ovhNodes, providerDistribution);
+        const metrics = calculateMetrics(allNodes, ovhNodes, providerCategorization);
 
         // Step 5: Save to cache
         console.log('💾 [Worker] Saving to cache...');
@@ -102,9 +102,9 @@ async function runWorker() {
         console.log(`   Total nodes analyzed: ${allNodes.length}`);
         console.log(`   OVH nodes found: ${ovhNodes.length}`);
         console.log(`   OVH market share: ${metrics.marketShare.toFixed(2)}%`);
-        console.log(`   AWS market share: ${((providerDistribution.aws / allNodes.length) * 100).toFixed(2)}%`);
-        console.log(`   Hetzner market share: ${((providerDistribution.hetzner / allNodes.length) * 100).toFixed(2)}%`);
-        console.log(`   Others: ${((providerDistribution.others / allNodes.length) * 100).toFixed(2)}%`);
+        console.log(`   AWS market share: ${((providerCategorization.distribution.aws / allNodes.length) * 100).toFixed(2)}%`);
+        console.log(`   Hetzner market share: ${((providerCategorization.distribution.hetzner / allNodes.length) * 100).toFixed(2)}%`);
+        console.log(`   Others: ${((providerCategorization.distribution.others / allNodes.length) * 100).toFixed(2)}%`);
         console.log('─'.repeat(60));
         console.log(`   Estimated OVH revenue: €${(metrics.estimatedRevenue || 0).toLocaleString()}/month`);
         console.log('─'.repeat(60));

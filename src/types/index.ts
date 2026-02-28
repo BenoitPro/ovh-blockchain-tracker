@@ -60,6 +60,8 @@ export interface DashboardMetrics {
     estimatedRevenue?: number; // Calculated revenue for OVH nodes
     // Provider breakdown for comparison chart
     providerBreakdown?: ProviderBreakdownEntry[];
+    // Breakdown of 'Others' category for hovered details
+    othersBreakdown?: Record<string, number>;
 }
 
 export interface APIResponse {
@@ -77,6 +79,7 @@ export interface ProviderBreakdownEntry {
     nodeCount: number;
     marketShare: number;
     color: string;
+    subProviders?: { label: string; nodeCount: number; marketShare: number }[];
 }
 
 // Historical Metrics Types

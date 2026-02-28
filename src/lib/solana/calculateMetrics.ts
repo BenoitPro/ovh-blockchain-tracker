@@ -23,16 +23,19 @@ const PROVIDER_LABELS: Record<string, string> = {
     others: 'Others',
 };
 
+import { ProviderCategorizationResult } from './filterOVH';
+
 /**
  * Calculate all dashboard metrics from node data
  */
 export function calculateMetrics(
     allNodes: SolanaNode[],
     ovhNodes: OVHNode[],
-    providerDistribution: Record<string, number>
+    providerCategorization: ProviderCategorizationResult
 ): DashboardMetrics {
     const totalNodes = allNodes.length;
     const ovhNodeCount = ovhNodes.length;
+    const { distribution, othersBreakdown } = providerCategorization;
 
     // Calculate market share percentage
     const marketShare = totalNodes > 0 ? (ovhNodeCount / totalNodes) * 100 : 0;
@@ -65,15 +68,35 @@ export function calculateMetrics(
         }));
 
     // Build structured provider breakdown for comparison chart
-    const providerBreakdown: ProviderBreakdownEntry[] = Object.entries(providerDistribution)
+    const providerBreakdown: ProviderBreakdownEntry[] = Object.entries(distribution)
         .filter(([, count]) => count > 0)
-        .map(([key, count]) => ({
-            key,
-            label: PROVIDER_LABELS[key] ?? key,
-            nodeCount: count,
-            marketShare: totalNodes > 0 ? (count / totalNodes) * 100 : 0,
-            color: PROVIDER_COLORS[key] ?? '#6B7280',
-        }))
+        .map(([key, count]) => {
+            const entry: ProviderBreakdownEntry = {
+                key,
+                label: PROVIDER_LABELS[key] ?? key,
+                nodeCount: count,
+                marketShare: totalNodes > 0 ? (count / totalNodes) * 100 : 0,
+                color: PROVIDER_COLORS[key] ?? '#6B7280',
+            };
+
+            // Enhance 'others' with top 5 sub-providers
+            if (key === 'others' && othersBreakdown) {
+                const topOthers = Object.entries(othersBreakdown)
+                    .sort((a, b) => b[1] - a[1])
+                    .slice(0, 5)
+                    .map(([org, orgCount]) => ({
+                        label: org,
+                        nodeCount: orgCount,
+                        marketShare: totalNodes > 0 ? (orgCount / totalNodes) * 100 : 0
+                    }));
+
+                if (topOthers.length > 0) {
+                    entry.subProviders = topOthers;
+                }
+            }
+
+            return entry;
+        })
         .sort((a, b) => b.nodeCount - a.nodeCount);
 
     return {
@@ -81,8 +104,9 @@ export function calculateMetrics(
         ovhNodes: ovhNodeCount,
         marketShare,
         geoDistribution,
-        providerDistribution, // Now dynamic from the worker
+        providerDistribution: distribution, // Now dynamic from the worker
         providerBreakdown,
+        othersBreakdown,
         topValidators,
         ovhStake,
         totalStake,

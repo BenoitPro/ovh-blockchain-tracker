@@ -37,8 +37,8 @@ export default function ValidatorsList({ validators = [] }: ValidatorsListProps)
     }
 
     return (
-        <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-white/5 to-white/[0.02] backdrop-blur-xl border border-white/10 p-6 md:p-8 flex flex-col h-[500px] lg:h-[580px]">
-            <div className="flex items-center justify-between mb-4 md:mb-6 flex-shrink-0">
+        <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-white/5 to-white/[0.02] backdrop-blur-xl border border-white/10 p-6 md:p-8 flex flex-col max-h-[800px] min-h-[500px]">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-4 md:mb-6 flex-shrink-0 gap-4">
                 <h2 className="text-lg md:text-xl font-bold text-white">
                     Top OVH Validators
                     <span className="ml-2 text-sm font-normal text-gray-400">
