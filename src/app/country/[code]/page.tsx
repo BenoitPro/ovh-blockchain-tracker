@@ -59,7 +59,7 @@ export default function CountryDetailPage() {
                     className="flex items-center gap-2 mb-10 text-gray-400 hover:text-[#00F0FF] transition-colors group"
                 >
                     <ArrowLeftIcon className="w-5 h-5 group-hover:-translate-x-1 transition-transform" />
-                    <span className="text-sm font-medium">Retour au dashboard</span>
+                    <span className="text-sm font-medium">Back to dashboard</span>
                 </button>
 
                 {/* Loading */}
@@ -77,7 +77,7 @@ export default function CountryDetailPage() {
                             onClick={() => router.push('/')}
                             className="mt-4 text-sm text-gray-400 hover:text-white transition-colors"
                         >
-                            ← Revenir au dashboard
+                            ← Back to dashboard
                         </button>
                     </div>
                 )}
@@ -92,7 +92,7 @@ export default function CountryDetailPage() {
                                 <div>
                                     <h1 className="text-3xl font-bold text-white">{data.countryName}</h1>
                                     <p className="text-gray-400 mt-1">
-                                        Nœuds OVHcloud sur la blockchain Solana
+                                        OVHcloud nodes on the Solana blockchain
                                     </p>
                                 </div>
                             </div>
@@ -100,11 +100,11 @@ export default function CountryDetailPage() {
                             {/* Stats row */}
                             <div className="mt-6 flex flex-wrap gap-4">
                                 <div className="px-4 py-3 rounded-xl bg-[#00F0FF]/10 border border-[#00F0FF]/20">
-                                    <p className="text-xs text-gray-400 mb-1">Nœuds OVH</p>
+                                    <p className="text-xs text-gray-400 mb-1">OVH Nodes</p>
                                     <p className="text-2xl font-bold text-[#00F0FF]">{data.totalNodes}</p>
                                 </div>
                                 <div className="px-4 py-3 rounded-xl bg-violet-500/10 border border-violet-500/20">
-                                    <p className="text-xs text-gray-400 mb-1">Stake total</p>
+                                    <p className="text-xs text-gray-400 mb-1">Total Stake</p>
                                     <p className="text-2xl font-bold text-violet-300">{formatSOL(data.totalStake)}</p>
                                 </div>
                                 <div className="px-4 py-3 rounded-xl bg-white/5 border border-white/10">
@@ -119,16 +119,16 @@ export default function CountryDetailPage() {
                         {/* Nodes table */}
                         {data.nodes.length === 0 ? (
                             <div className="rounded-2xl bg-white/5 border border-white/10 p-12 text-center">
-                                <p className="text-gray-400">Aucun nœud OVH trouvé pour ce pays.</p>
+                                <p className="text-gray-400">No OVH nodes found for this country.</p>
                             </div>
                         ) : (
                             <div className="rounded-2xl overflow-hidden bg-gradient-to-br from-white/5 to-white/[0.02] backdrop-blur-xl border border-white/10">
                                 {/* Table header */}
                                 <div className="grid grid-cols-12 gap-4 px-6 py-4 border-b border-white/10 text-xs font-semibold text-gray-400 uppercase tracking-wider">
                                     <div className="col-span-1">#</div>
-                                    <div className="col-span-3">Identité</div>
+                                    <div className="col-span-3">Identity</div>
                                     <div className="col-span-2">IP</div>
-                                    <div className="col-span-2">Ville</div>
+                                    <div className="col-span-2">City</div>
                                     <div className="col-span-2">Stake</div>
                                     <div className="col-span-1 text-center">Val.</div>
                                     <div className="col-span-1 text-right">Comm.</div>

@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { calculateMetrics, formatCurrency, formatPercentage } from './calculateMetrics';
+import { calculateMetrics, formatPercentage } from './calculateMetrics';
 import { SolanaNode, OVHNode } from '@/types';
 
 // Mock data for testing
@@ -44,7 +44,6 @@ describe('calculateMetrics', () => {
         expect(result.totalNodes).toBe(4);
         expect(result.ovhNodes).toBe(2);
         expect(result.marketShare).toBe(50); // 2/4 = 50%
-        expect(result.estimatedRevenue).toBe(300); // 2 * 150 EUR
         expect(result.geoDistribution).toEqual({ France: 1, Germany: 1 });
         expect(result.providerDistribution).toEqual(providerDistribution);
         expect(result.topValidators).toHaveLength(2);
@@ -56,7 +55,6 @@ describe('calculateMetrics', () => {
         expect(result.totalNodes).toBe(0);
         expect(result.ovhNodes).toBe(0);
         expect(result.marketShare).toBe(0);
-        expect(result.estimatedRevenue).toBe(0);
         expect(result.geoDistribution).toEqual({});
         expect(result.topValidators).toHaveLength(0);
     });
@@ -91,14 +89,6 @@ describe('calculateMetrics', () => {
         const result = calculateMetrics(allNodes, ovhNodes, {});
 
         expect(result.geoDistribution).toEqual({ France: 2 });
-    });
-});
-
-describe('formatCurrency', () => {
-    it('should format EUR currency correctly', () => {
-        expect(formatCurrency(1500)).toBe('€1,500');
-        expect(formatCurrency(0)).toBe('€0');
-        expect(formatCurrency(150000)).toBe('€150,000');
     });
 });
 

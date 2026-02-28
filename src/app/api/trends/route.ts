@@ -13,13 +13,13 @@ export async function GET(request: NextRequest) {
         const periodParam = searchParams.get('period');
 
         // Validate period parameter
-        const validNumericPeriods: number[] = [30, 90, 180, 365, 1825];
+        const validNumericPeriods: number[] = [90, 365];
         let period: TrendPeriod;
 
         if (periodParam === 'all') {
             period = 'all';
         } else {
-            const numericPeriod = periodParam ? parseInt(periodParam, 10) : 30;
+            const numericPeriod = periodParam ? parseInt(periodParam, 10) : 90;
             if (!validNumericPeriods.includes(numericPeriod)) {
                 return NextResponse.json(
                     {
@@ -53,7 +53,7 @@ export async function GET(request: NextRequest) {
 
         const errorResponse: TrendResponse = {
             success: false,
-            period: 30,
+            period: 90,
             data: [],
             error: error instanceof Error ? error.message : 'Failed to fetch trend data',
         };

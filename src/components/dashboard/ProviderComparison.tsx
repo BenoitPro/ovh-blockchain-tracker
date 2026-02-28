@@ -40,20 +40,20 @@ function CustomTooltip({ active, payload }: CustomTooltipProps) {
             <p className="font-bold text-white mb-2">{entry.label}</p>
             <div className="space-y-1 text-gray-300">
                 <p>
-                    <span className="text-gray-400">Nœuds : </span>
+                    <span className="text-gray-400">Nodes: </span>
                     <span className="font-semibold text-white">{entry.nodeCount}</span>
                 </p>
                 <p>
-                    <span className="text-gray-400">Part de marché : </span>
+                    <span className="text-gray-400">Market share: </span>
                     <span className="font-semibold" style={{ color: entry.color }}>
                         {entry.marketShare.toFixed(2)}%
                     </span>
                 </p>
                 {entry.key === 'ovh' && (
                     <p className="pt-1 border-t border-white/10 mt-1">
-                        <span className="text-gray-400">Rev. estimé : </span>
+                        <span className="text-gray-400">Est. Rev: </span>
                         <span className="font-semibold text-[#00F0FF]">
-                            ~{(entry.nodeCount * MONTHLY_COST_PER_NODE).toLocaleString('fr-FR')} €/mois
+                            ~€{(entry.nodeCount * MONTHLY_COST_PER_NODE).toLocaleString('en-US')}/month
                         </span>
                     </p>
                 )}
@@ -83,7 +83,7 @@ export default function ProviderComparison({ providerBreakdown }: ProviderCompar
             <div className="flex items-center justify-between mb-8">
                 <div>
                     <h2 className="text-xl font-bold text-white">Provider Comparison</h2>
-                    <p className="text-sm text-gray-400 mt-1">Répartition des nœuds Solana par hébergeur</p>
+                    <p className="text-sm text-gray-400 mt-1">Solana nodes distribution by provider</p>
                 </div>
                 <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-[#00F0FF]/10 border border-[#00F0FF]/20">
                     <div className="w-2 h-2 rounded-full bg-[#00F0FF] animate-pulse" />

@@ -38,7 +38,7 @@ export class MetricsRepository {
                 metrics.totalNodes,
                 metrics.ovhNodes,
                 metrics.marketShare,
-                metrics.estimatedRevenue,
+                0, // estimated_revenue is no longer tracked
                 JSON.stringify(metrics.geoDistribution),
                 JSON.stringify(metrics.providerDistribution)
             );

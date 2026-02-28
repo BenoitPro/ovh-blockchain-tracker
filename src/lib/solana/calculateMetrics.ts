@@ -23,9 +23,6 @@ const PROVIDER_LABELS: Record<string, string> = {
     others: 'Others',
 };
 
-// Estimated monthly cost per Solana validator node (in EUR)
-const MONTHLY_COST_PER_NODE = 150;
-
 /**
  * Calculate all dashboard metrics from node data
  */
@@ -39,9 +36,6 @@ export function calculateMetrics(
 
     // Calculate market share percentage
     const marketShare = totalNodes > 0 ? (ovhNodeCount / totalNodes) * 100 : 0;
-
-    // Estimate monthly revenue (conservative estimate)
-    const estimatedRevenue = ovhNodeCount * MONTHLY_COST_PER_NODE;
 
     // Calculate Activated Stake
     const totalStake = allNodes.reduce((acc, node) => acc + ((node as any).activatedStake || 0), 0);
@@ -86,7 +80,6 @@ export function calculateMetrics(
         totalNodes,
         ovhNodes: ovhNodeCount,
         marketShare,
-        estimatedRevenue,
         geoDistribution,
         providerDistribution, // Now dynamic from the worker
         providerBreakdown,
@@ -94,18 +87,6 @@ export function calculateMetrics(
         ovhStake,
         totalStake,
     };
-}
-
-/**
- * Format currency for display
- */
-export function formatCurrency(amount: number): string {
-    return new Intl.NumberFormat('en-US', {
-        style: 'currency',
-        currency: 'EUR',
-        minimumFractionDigits: 0,
-        maximumFractionDigits: 0,
-    }).format(amount);
 }
 
 /**

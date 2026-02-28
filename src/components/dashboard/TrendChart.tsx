@@ -8,7 +8,8 @@ import LoadingState from './LoadingState';
 import ErrorState from './ErrorState';
 
 export default function TrendChart() {
-    const [period, setPeriod] = useState<TrendPeriod>(30);
+    const [period, setPeriod] = useState<TrendPeriod>(90);
+    const [displayMode, setDisplayMode] = useState<'marketShare' | 'absolute'>('marketShare');
     const [data, setData] = useState<TrendDataPoint[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
@@ -42,10 +43,10 @@ export default function TrendChart() {
     // Aggregation logic for smoothing charts
     const aggregateData = (rawData: TrendDataPoint[], selectedPeriod: TrendPeriod): TrendDataPoint[] => {
         // No aggregation for short periods (high fidelity)
-        if (selectedPeriod === 30 || selectedPeriod === 90) return rawData;
+        if (selectedPeriod === 90) return rawData;
 
         // Group by week or month based on period
-        const isMonthly = selectedPeriod === 'all' || selectedPeriod === 1825;
+        const isMonthly = selectedPeriod === 'all';
         const groups: Record<string, TrendDataPoint[]> = {};
 
         rawData.forEach(point => {
@@ -53,10 +54,10 @@ export default function TrendChart() {
             let key: string;
 
             if (isMonthly) {
-                // Monthly aggregation for 'all' and 5 years
+                // Monthly aggregation for 'all'
                 key = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
             } else {
-                // Weekly aggregation for 180j and 365j
+                // Weekly aggregation for 365d
                 const fw = new Date(date.getFullYear(), 0, 1);
                 const week = Math.ceil((((date.getTime() - fw.getTime()) / 86400000) + fw.getDay() + 1) / 7);
                 key = `${date.getFullYear()}-W${String(week).padStart(2, '0')}`;
@@ -86,13 +87,10 @@ export default function TrendChart() {
 
     const formatDate = (dateString: string) => {
         const date = new Date(dateString);
-        if (period === 'all' || period === 1825) {
-            return date.toLocaleDateString('fr-FR', { month: 'short', year: '2-digit' });
+        if (period === 'all') {
+            return date.toLocaleDateString('en-US', { month: 'short', year: '2-digit' });
         }
-        if (period === 180 || period === 365) {
-            return date.toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' });
-        }
-        return date.toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' });
+        return date.toLocaleDateString('en-US', { day: 'numeric', month: 'short' });
     };
 
     const formatPercentage = (value: number) => {
@@ -109,17 +107,19 @@ export default function TrendChart() {
                     style={{ boxShadow: '0 0 18px rgba(0, 240, 255, 0.35), 0 0 40px rgba(0, 240, 255, 0.15)' }}
                 >
                     <p className="text-gray-400 text-sm mb-2">
-                        {new Date(dataPoint.timestamp).toLocaleDateString('fr-FR', {
+                        {new Date(dataPoint.timestamp).toLocaleDateString('en-US', {
                             day: 'numeric',
                             month: 'long',
                             year: 'numeric',
                         })}
                     </p>
                     <p className="text-white font-bold text-lg">
-                        {formatPercentage(dataPoint.marketShare)}
+                        {displayMode === 'marketShare'
+                            ? formatPercentage(dataPoint.marketShare)
+                            : `${dataPoint.ovhNodes} OVH nodes`}
                     </p>
                     <p className="text-gray-400 text-xs mt-1">
-                        {dataPoint.ovhNodes} / {dataPoint.totalNodes} nodes
+                        {dataPoint.ovhNodes} / {dataPoint.totalNodes} total nodes
                     </p>
                 </div>
             );
@@ -127,13 +127,48 @@ export default function TrendChart() {
         return null;
     };
 
+    const chartTitle = displayMode === 'marketShare' ? '📈 Market Share Trend' : '📈 OVH Nodes Trend';
+
+    const renderHeader = () => (
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-6 gap-4">
+            <div>
+                <h2 className="text-2xl font-bold text-white">{chartTitle}</h2>
+                {data.length > 0 && !loading && !error && (
+                    <p className="text-gray-400 text-sm mt-1">
+                        {data.length} data point{data.length > 1 ? 's' : ''}
+                    </p>
+                )}
+            </div>
+            <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
+                <div className="flex bg-gray-800/50 rounded-lg p-1 border border-white/10">
+                    <button
+                        onClick={() => setDisplayMode('marketShare')}
+                        className={`px-3 py-1.5 rounded-md text-xs font-medium transition-all ${displayMode === 'marketShare'
+                            ? 'bg-blue-500/20 text-blue-400 shadow-[0_0_10px_rgba(59,130,246,0.3)]'
+                            : 'text-gray-400 hover:text-white'
+                            }`}
+                    >
+                        % Market Share
+                    </button>
+                    <button
+                        onClick={() => setDisplayMode('absolute')}
+                        className={`px-3 py-1.5 rounded-md text-xs font-medium transition-all ${displayMode === 'absolute'
+                            ? 'bg-purple-500/20 text-purple-400 shadow-[0_0_10px_rgba(168,85,247,0.3)]'
+                            : 'text-gray-400 hover:text-white'
+                            }`}
+                    >
+                        Nodes (Absolute)
+                    </button>
+                </div>
+                <PeriodSelector selectedPeriod={period} onPeriodChange={setPeriod} />
+            </div>
+        </div>
+    );
+
     if (loading) {
         return (
             <div className="bg-gradient-to-br from-gray-900/50 to-gray-800/30 backdrop-blur-sm rounded-2xl border border-white/10 p-6">
-                <div className="flex items-center justify-between mb-6">
-                    <h2 className="text-2xl font-bold text-white">📈 Évolution du Market Share</h2>
-                    <PeriodSelector selectedPeriod={period} onPeriodChange={setPeriod} />
-                </div>
+                {renderHeader()}
                 <LoadingState />
             </div>
         );
@@ -142,10 +177,7 @@ export default function TrendChart() {
     if (error) {
         return (
             <div className="bg-gradient-to-br from-gray-900/50 to-gray-800/30 backdrop-blur-sm rounded-2xl border border-white/10 p-6">
-                <div className="flex items-center justify-between mb-6">
-                    <h2 className="text-2xl font-bold text-white">📈 Évolution du Market Share</h2>
-                    <PeriodSelector selectedPeriod={period} onPeriodChange={setPeriod} />
-                </div>
+                {renderHeader()}
                 <ErrorState message={error} />
             </div>
         );
@@ -154,13 +186,10 @@ export default function TrendChart() {
     if (data.length === 0) {
         return (
             <div className="bg-gradient-to-br from-gray-900/50 to-gray-800/30 backdrop-blur-sm rounded-2xl border border-white/10 p-6">
-                <div className="flex items-center justify-between mb-6">
-                    <h2 className="text-2xl font-bold text-white">📈 Évolution du Market Share</h2>
-                    <PeriodSelector selectedPeriod={period} onPeriodChange={setPeriod} />
-                </div>
+                {renderHeader()}
                 <div className="flex flex-col items-center justify-center h-64 text-gray-400">
-                    <p className="text-lg">📊 Pas encore de données historiques</p>
-                    <p className="text-sm mt-2">Lancez le worker pour commencer à collecter des données</p>
+                    <p className="text-lg">📊 No historical data yet</p>
+                    <p className="text-sm mt-2">Run the worker to start collecting data</p>
                     <code className="mt-4 px-4 py-2 bg-gray-800 rounded text-xs">npm run worker</code>
                 </div>
             </div>
@@ -169,15 +198,7 @@ export default function TrendChart() {
 
     return (
         <div className="bg-gradient-to-br from-gray-900/50 to-gray-800/30 backdrop-blur-sm rounded-2xl border border-white/10 p-6 hover:border-blue-500/30 transition-all duration-300">
-            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-6 gap-4">
-                <div>
-                    <h2 className="text-2xl font-bold text-white">📈 Évolution du Market Share</h2>
-                    <p className="text-gray-400 text-sm mt-1">
-                        {data.length} point{data.length > 1 ? 's' : ''} de données
-                    </p>
-                </div>
-                <PeriodSelector selectedPeriod={period} onPeriodChange={setPeriod} />
-            </div>
+            {renderHeader()}
 
             <ResponsiveContainer width="100%" height={300}>
                 <LineChart data={data} margin={{ top: 5, right: 20, left: 0, bottom: 5 }}>
@@ -195,7 +216,7 @@ export default function TrendChart() {
                         style={{ fontSize: '12px' }}
                     />
                     <YAxis
-                        tickFormatter={formatPercentage}
+                        tickFormatter={displayMode === 'marketShare' ? formatPercentage : (val) => val.toString()}
                         stroke="#9ca3af"
                         style={{ fontSize: '12px' }}
                         domain={['auto', 'auto']}
@@ -203,7 +224,7 @@ export default function TrendChart() {
                     <Tooltip content={<CustomTooltip />} />
                     <Line
                         type="monotoneX" // Smoother interpolation than 'monotone'
-                        dataKey="marketShare"
+                        dataKey={displayMode === 'marketShare' ? 'marketShare' : 'ovhNodes'}
                         stroke="url(#lineGradient)"
                         strokeWidth={4} // Thicker, more premium line
                         dot={data.length < 40 ? { fill: '#3b82f6', r: 4, strokeWidth: 0 } : false} // Hide dots for dense data

@@ -53,7 +53,7 @@ export default function WorldMap({ geoDistribution, onCountryClick }: WorldMapPr
             .map(([country, count]) => {
                 const coords = COUNTRY_COORDS[country];
                 if (!coords) {
-                    console.warn(`Coordonnées non trouvées pour: ${country}`);
+                    console.warn(`Coordinates not found for: ${country}`);
                     return null;
                 }
 

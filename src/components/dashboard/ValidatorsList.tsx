@@ -48,7 +48,7 @@ export default function ValidatorsList({ validators = [] }: ValidatorsListProps)
                 <button
                     onClick={handleExportCSV}
                     className="flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-medium text-[#00F0FF] border border-[#00F0FF]/30 bg-[#00F0FF]/10 hover:bg-[#00F0FF]/20 transition-colors"
-                    title="Télécharger la liste en CSV"
+                    title="Download list as CSV"
                 >
                     <ArrowDownTrayIcon className="w-4 h-4" />
                     Export CSV

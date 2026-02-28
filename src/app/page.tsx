@@ -133,7 +133,7 @@ export default function Home() {
                                     <li><strong className="text-white/80">Capital-weighting:</strong> Prioritize Stake over node count to reflect consensus weight.</li>
                                 </ol>
                                 <p className="pt-2 text-white/50 italic border-t border-white/5 mt-2">
-                                    Note: We map specific ASNs to eliminate false positives and uniquely track both validators and non-voting RPC infrastructure.
+                                    Note: Unlike the Messari report which focuses exclusively on Active Validators (~1,800 nodes), our dataset includes the entire network footprint, tracking both voting validators and non-voting RPC nodes (~5,000 nodes) to provide a broader view of physical infrastructure reliance.
                                 </p>
                             </div>
                         </details>
@@ -144,7 +144,6 @@ export default function Home() {
                         <KPICards
                             ovhNodes={metrics.ovhNodes}
                             marketShare={metrics.marketShare}
-                            estimatedRevenue={metrics.estimatedRevenue}
                             stakeShare={metrics.totalStake ? (metrics.ovhStake || 0) / metrics.totalStake * 100 : 0}
                         />
                     </section>

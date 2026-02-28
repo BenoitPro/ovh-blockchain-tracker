@@ -51,7 +51,6 @@ export interface DashboardMetrics {
     totalNodes: number;
     ovhNodes: number;
     marketShare: number;
-    estimatedRevenue: number;
     geoDistribution: Record<string, number>;
     providerDistribution: Record<string, number>;
     topValidators: EnrichedNode[];
@@ -80,7 +79,7 @@ export interface ProviderBreakdownEntry {
 }
 
 // Historical Metrics Types
-export type TrendPeriod = 30 | 90 | 180 | 365 | 1825 | 'all';
+export type TrendPeriod = 90 | 365 | 'all';
 
 export interface TrendDataPoint {
     timestamp: number;

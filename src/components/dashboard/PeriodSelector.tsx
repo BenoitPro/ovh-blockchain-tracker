@@ -9,12 +9,9 @@ interface PeriodSelectorProps {
 
 export default function PeriodSelector({ selectedPeriod, onPeriodChange }: PeriodSelectorProps) {
     const periods: { value: TrendPeriod; label: string }[] = [
-        { value: 30, label: '30j' },
-        { value: 90, label: '90j' },
-        { value: 180, label: '180j' },
-        { value: 365, label: '1 an' },
-        { value: 1825, label: '5 ans' },
-        { value: 'all', label: 'Tout' },
+        { value: 90, label: '90d' },
+        { value: 365, label: '1y' },
+        { value: 'all', label: 'All' },
     ];
 
     return (
