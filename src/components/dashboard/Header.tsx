@@ -1,11 +1,12 @@
 import Image from 'next/image';
+import ChainToggle from '@/components/ChainToggle';
 
 export default function Header() {
     return (
         <header className="relative border-b border-white/10 bg-black/40 backdrop-blur-xl z-20">
-            <div className="container mx-auto px-4 py-4 md:py-6">
-                <div className="flex flex-col items-center justify-center space-y-2 md:space-y-4">
-                    {/* OVHcloud Logo - The Hero Element */}
+            <div className="container mx-auto px-4 py-4 md:py-5">
+                <div className="flex flex-col items-center justify-center space-y-2 md:space-y-3">
+                    {/* OVHcloud Logo */}
                     <a
                         href="https://www.ovhcloud.com/en/lp/powering-blockchain-ethos"
                         target="_blank"
@@ -22,11 +23,10 @@ export default function Header() {
                                 priority
                             />
                         </div>
-                        {/* Centered glow effect behind logo */}
                         <div className="absolute inset-0 bg-gradient-radial from-[#00F0FF]/40 via-[#6B4FBB]/20 to-transparent blur-3xl opacity-70 group-hover:opacity-100 transition-opacity duration-700 -z-10 scale-[2]"></div>
                     </a>
 
-                    {/* Title - Elegant and Complementary */}
+                    {/* Title */}
                     <div className="text-center">
                         <h1 className="text-xs md:text-sm lg:text-base font-medium text-white/70 tracking-[0.2em] md:tracking-[0.4em] uppercase">
                             Solana Infrastructure{' '}
@@ -36,23 +36,17 @@ export default function Header() {
                         </h1>
                     </div>
 
-                    {/* Navigation */}
-                    <nav className="flex items-center space-x-8 pt-2">
-                        <a
-                            href="/"
-                            className="text-[10px] md:text-xs font-bold uppercase tracking-widest text-white/50 hover:text-[#00F0FF] transition-colors relative group"
-                        >
-                            Dashboard
-                            <span className="absolute -bottom-2 left-0 w-0 h-[2px] bg-[#00F0FF] group-hover:w-full transition-all duration-300"></span>
-                        </a>
+                    {/* Chain Toggle + Explorer link */}
+                    <div className="flex items-center gap-6 pt-1">
+                        <ChainToggle />
                         <a
                             href="/nodes"
-                            className="text-[10px] md:text-xs font-bold uppercase tracking-widest text-white/50 hover:text-[#00F0FF] transition-colors relative group"
+                            className="text-[10px] md:text-xs font-bold uppercase tracking-widest text-white/40 hover:text-[#00F0FF] transition-colors relative group"
                         >
                             Explorer
                             <span className="absolute -bottom-2 left-0 w-0 h-[2px] bg-[#00F0FF] group-hover:w-full transition-all duration-300"></span>
                         </a>
-                    </nav>
+                    </div>
                 </div>
             </div>
 

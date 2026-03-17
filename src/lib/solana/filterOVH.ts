@@ -4,6 +4,7 @@ import { logger, RateLimiter } from '@/lib/utils';
 import {
     initMaxMind,
     getASNFromMaxMind,
+    getCountryFromMaxMind,
     isOVHIP,
     batchGetASN
 } from '@/lib/asn/maxmind';
@@ -169,8 +170,9 @@ export async function filterOVHNodes(nodes: SolanaNode[]): Promise<OVHNode[]> {
         if (isOVHIP(ip, OVH_ASN_LIST)) {
             const asnInfo = getASNFromMaxMind(ip);
             if (asnInfo) {
-                // Use existing enriched data if available, otherwise minimal defaults
+                // Use existing enriched data if available, otherwise use MaxMind country lookup
                 const enriched = isEnriched(node) ? node : null;
+                const countryInfo = enriched?.country ? null : getCountryFromMaxMind(ip);
 
                 ovhNodes.push({
                     ...node,
@@ -178,9 +180,8 @@ export async function filterOVHNodes(nodes: SolanaNode[]): Promise<OVHNode[]> {
                         ip,
                         asn: asnInfo.asn,
                         org: asnInfo.org,
-                        // Prefer enriched data, then fallback to 'Unknown' (skipping slow API)
-                        country: enriched?.country || 'Unknown',
-                        country_name: enriched?.countryName || 'Unknown',
+                        country: enriched?.country || countryInfo?.countryCode || 'Unknown',
+                        country_name: enriched?.countryName || countryInfo?.country || 'Unknown',
                         city: enriched?.city || 'Unknown',
                         latitude: enriched?.latitude || 0,
                         longitude: enriched?.longitude || 0,

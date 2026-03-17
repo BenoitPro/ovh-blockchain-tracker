@@ -10,6 +10,7 @@
  *   npx tsx scripts/seed-historical-data.ts
  */
 
+require('dotenv').config({ path: '.env.local' });
 import { MetricsRepository } from '../src/lib/db/metrics-repository';
 import { DashboardMetrics } from '../src/types';
 

@@ -18,3 +18,18 @@ CREATE INDEX IF NOT EXISTS idx_metrics_timestamp ON metrics_history(timestamp DE
 
 -- Index for market share analysis
 CREATE INDEX IF NOT EXISTS idx_metrics_market_share ON metrics_history(market_share);
+
+-- Ethereum Node Snapshots
+-- Each row is one manual crawl snapshot
+CREATE TABLE IF NOT EXISTS ethereum_snapshots (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    timestamp INTEGER NOT NULL,
+    total_nodes INTEGER NOT NULL,
+    provider_distribution TEXT NOT NULL,  -- JSON: {ovh: 200, aws: 1400, ...}
+    geo_distribution TEXT NOT NULL,       -- JSON: {FR: 500, DE: 800, ...}
+    provider_breakdown TEXT NOT NULL,     -- JSON: ProviderBreakdownEntry[]
+    crawl_duration_min INTEGER,           -- crawl duration in minutes
+    created_at INTEGER DEFAULT (unixepoch())
+);
+
+CREATE INDEX IF NOT EXISTS idx_eth_snapshots_timestamp ON ethereum_snapshots(timestamp DESC);

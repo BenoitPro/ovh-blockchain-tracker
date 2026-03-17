@@ -68,36 +68,76 @@ export function calculateMetrics(
         }));
 
     // Build structured provider breakdown for comparison chart
-    const providerBreakdown: ProviderBreakdownEntry[] = Object.entries(distribution)
-        .filter(([, count]) => count > 0)
-        .map(([key, count]) => {
-            const entry: ProviderBreakdownEntry = {
+    // Providers with > 5% market share are shown individually; the rest go into "Others"
+    const MARKET_SHARE_THRESHOLD = 5;
+
+    const eligibleEntries: ProviderBreakdownEntry[] = [];
+    // Start "others" count from the existing "others" bucket, then adjust below
+    let totalOthersCount = distribution.others || 0;
+    const newOthersBreakdown: Record<string, number> = { ...(othersBreakdown ?? {}) };
+
+    // 1. Process known providers (fixed categories)
+    for (const [key, count] of Object.entries(distribution)) {
+        if (key === 'others' || count === 0) continue;
+        const marketShare = totalNodes > 0 ? (count / totalNodes) * 100 : 0;
+        if (marketShare > MARKET_SHARE_THRESHOLD) {
+            eligibleEntries.push({
                 key,
                 label: PROVIDER_LABELS[key] ?? key,
                 nodeCount: count,
-                marketShare: totalNodes > 0 ? (count / totalNodes) * 100 : 0,
+                marketShare,
                 color: PROVIDER_COLORS[key] ?? '#6B7280',
-            };
+            });
+        } else {
+            // Below threshold: merge into "others"
+            totalOthersCount += count;
+            newOthersBreakdown[PROVIDER_LABELS[key] ?? key] = count;
+        }
+    }
 
-            // Enhance 'others' with top 5 sub-providers
-            if (key === 'others' && othersBreakdown) {
-                const topOthers = Object.entries(othersBreakdown)
-                    .sort((a, b) => b[1] - a[1])
-                    .slice(0, 5)
-                    .map(([org, orgCount]) => ({
-                        label: org,
-                        nodeCount: orgCount,
-                        marketShare: totalNodes > 0 ? (orgCount / totalNodes) * 100 : 0
-                    }));
-
-                if (topOthers.length > 0) {
-                    entry.subProviders = topOthers;
-                }
+    // 2. Promote any org from othersBreakdown that exceeds the threshold
+    if (othersBreakdown) {
+        for (const [org, orgCount] of Object.entries(othersBreakdown)) {
+            const orgMarketShare = totalNodes > 0 ? (orgCount / totalNodes) * 100 : 0;
+            if (orgMarketShare > MARKET_SHARE_THRESHOLD) {
+                eligibleEntries.push({
+                    key: org.toLowerCase().replace(/[^a-z0-9]/g, '_'),
+                    label: org,
+                    nodeCount: orgCount,
+                    marketShare: orgMarketShare,
+                    color: '#6B7280',
+                });
+                // Remove from the "others" pool
+                totalOthersCount -= orgCount;
+                delete newOthersBreakdown[org];
             }
+        }
+    }
 
-            return entry;
-        })
-        .sort((a, b) => b.nodeCount - a.nodeCount);
+    // 3. Add the aggregated "Others" entry
+    if (totalOthersCount > 0) {
+        const othersMarketShare = totalNodes > 0 ? (totalOthersCount / totalNodes) * 100 : 0;
+        const topOthers = Object.entries(newOthersBreakdown)
+            .sort((a, b) => b[1] - a[1])
+            .slice(0, 5)
+            .map(([org, orgCount]) => ({
+                label: org,
+                nodeCount: orgCount,
+                marketShare: totalNodes > 0 ? (orgCount / totalNodes) * 100 : 0,
+            }));
+
+        const othersEntry: ProviderBreakdownEntry = {
+            key: 'others',
+            label: 'Others',
+            nodeCount: totalOthersCount,
+            marketShare: othersMarketShare,
+            color: PROVIDER_COLORS['others'],
+        };
+        if (topOthers.length > 0) othersEntry.subProviders = topOthers;
+        eligibleEntries.push(othersEntry);
+    }
+
+    const providerBreakdown = eligibleEntries.sort((a, b) => b.nodeCount - a.nodeCount);
 
     return {
         totalNodes,

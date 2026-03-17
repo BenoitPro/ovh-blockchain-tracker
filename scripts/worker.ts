@@ -18,6 +18,7 @@
  * Recommended: Run via cron every hour
  */
 
+require('dotenv').config({ path: '.env.local' });
 import { fetchEnrichedNodes } from '../src/lib/solana/getAllNodes';
 import { filterOVHNodes, categorizeNodesByProvider } from '../src/lib/solana/filterOVH';
 import { calculateMetrics } from '../src/lib/solana/calculateMetrics';

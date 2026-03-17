@@ -184,3 +184,93 @@ body::before {
 
 .fade-in-up.delay-100 { animation-delay: 100ms; }
 .fade-in-up.delay-200 { animation-delay: 200ms; }
+
+/* ============================================================
+   Chain Toggle — shared component (works on both themes)
+   ============================================================ */
+.chain-toggle {
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+.chain-toggle-active-sol {
+  background: linear-gradient(135deg, rgba(0, 240, 255, 0.18), rgba(107, 79, 187, 0.18));
+  border: 1px solid rgba(0, 240, 255, 0.35);
+  color: #00F0FF !important;
+  box-shadow: 0 0 12px rgba(0, 240, 255, 0.2);
+}
+
+.chain-toggle-active-eth {
+  background: linear-gradient(135deg, rgba(98, 126, 234, 0.25), rgba(147, 197, 253, 0.15));
+  border: 1px solid rgba(98, 126, 234, 0.45);
+  color: #627EEA !important;
+  box-shadow: 0 0 12px rgba(98, 126, 234, 0.25);
+}
+
+/* Override toggle appearance on light Ethereum theme */
+html.eth-theme .chain-toggle {
+  background: rgba(255, 255, 255, 0.7);
+  border: 1px solid rgba(98, 126, 234, 0.2);
+  box-shadow: 0 2px 12px rgba(98, 126, 234, 0.08);
+}
+
+html.eth-theme .chain-toggle .chain-toggle-btn:not(.chain-toggle-active-sol):not(.chain-toggle-active-eth) {
+  color: rgba(30, 41, 59, 0.45);
+}
+
+html.eth-theme .chain-toggle .chain-toggle-btn:not(.chain-toggle-active-sol):not(.chain-toggle-active-eth):hover {
+  color: rgba(30, 41, 59, 0.75);
+}
+
+/* ============================================================
+   Ethereum Light Theme  (html.eth-theme)
+   ============================================================ */
+
+html.eth-theme body {
+  background: #f0f4ff;
+  background-image:
+    radial-gradient(ellipse at 15% 25%, rgba(98, 126, 234, 0.11) 0%, transparent 50%),
+    radial-gradient(ellipse at 85% 65%, rgba(98, 126, 234, 0.08) 0%, transparent 50%),
+    radial-gradient(ellipse at 50% 90%, rgba(147, 197, 253, 0.07) 0%, transparent 50%);
+  color: #1e293b;
+}
+
+html.eth-theme body::before {
+  background:
+    radial-gradient(circle at 18% 22%, rgba(98, 126, 234, 0.20) 0%, transparent 28%),
+    radial-gradient(circle at 80% 70%, rgba(98, 126, 234, 0.14) 0%, transparent 28%),
+    radial-gradient(circle at 48% 88%, rgba(147, 197, 253, 0.16) 0%, transparent 32%),
+    radial-gradient(circle at 65% 15%, rgba(196, 213, 255, 0.12) 0%, transparent 25%);
+  filter: blur(70px);
+  opacity: 0.8;
+}
+
+/* Light glassmorphism cards */
+html.eth-theme .glass-card {
+  background: rgba(255, 255, 255, 0.55);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border: 1px solid rgba(98, 126, 234, 0.15);
+  box-shadow: 0 4px 32px rgba(98, 126, 234, 0.06), 0 1px 4px rgba(98, 126, 234, 0.04);
+}
+
+html.eth-theme .glass-card:hover {
+  background: rgba(255, 255, 255, 0.78);
+  border-color: rgba(98, 126, 234, 0.30);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 40px rgba(98, 126, 234, 0.10), 0 2px 8px rgba(98, 126, 234, 0.06);
+}
+
+/* Scrollbar for light theme */
+html.eth-theme ::-webkit-scrollbar-track {
+  background: rgba(98, 126, 234, 0.05);
+}
+
+html.eth-theme ::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, rgba(98, 126, 234, 0.35), rgba(147, 197, 253, 0.35));
+  border-color: rgba(240, 244, 255, 0.5);
+}
+
+html.eth-theme ::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(180deg, rgba(98, 126, 234, 0.55), rgba(147, 197, 253, 0.55));
+}

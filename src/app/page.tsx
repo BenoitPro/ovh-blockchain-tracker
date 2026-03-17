@@ -50,6 +50,11 @@ export default function Home() {
     const [error, setError] = useState<string | null>(null);
     const router = useRouter();
 
+    // Remove Ethereum light theme if user navigated back from /ethereum
+    useEffect(() => {
+        document.documentElement.classList.remove('eth-theme');
+    }, []);
+
     useScrollReveal(!loading && !!metrics);
 
     const handleCountryClick = useCallback((countryCode: string) => {
