@@ -42,11 +42,20 @@ export default function TrendChart() {
 
     // Aggregation logic for smoothing charts
     const aggregateData = (rawData: TrendDataPoint[], selectedPeriod: TrendPeriod): TrendDataPoint[] => {
-        // No aggregation for short periods (high fidelity)
-        if (selectedPeriod === 90) return rawData;
+        // No aggregation if we have few points – keep high fidelity for new projects
+        if (rawData.length <= 60) return rawData;
 
-        // Group by week or month based on period
-        const isMonthly = selectedPeriod === 'all';
+        // Calculate time span to decide grain
+        const first = rawData[0].timestamp;
+        const last = rawData[rawData.length - 1].timestamp;
+        const daySpan = (last - first) / (1000 * 60 * 60 * 24);
+
+        // Group by week or month based on period and actual data span
+        const isMonthly = selectedPeriod === 'all' && daySpan > 365;
+        const isWeekly = (selectedPeriod === 365 || (selectedPeriod === 'all' && daySpan > 90)) && !isMonthly;
+
+        if (!isMonthly && !isWeekly) return rawData;
+
         const groups: Record<string, TrendDataPoint[]> = {};
 
         rawData.forEach(point => {
@@ -54,10 +63,10 @@ export default function TrendChart() {
             let key: string;
 
             if (isMonthly) {
-                // Monthly aggregation for 'all'
+                // Monthly aggregation
                 key = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
             } else {
-                // Weekly aggregation for 365d
+                // Weekly aggregation
                 const fw = new Date(date.getFullYear(), 0, 1);
                 const week = Math.ceil((((date.getTime() - fw.getTime()) / 86400000) + fw.getDay() + 1) / 7);
                 key = `${date.getFullYear()}-W${String(week).padStart(2, '0')}`;
@@ -67,12 +76,10 @@ export default function TrendChart() {
             groups[key].push(point);
         });
 
-        // Calculate averages for each group
         return Object.values(groups).map(group => {
             const avgMarketShare = group.reduce((sum, p) => sum + p.marketShare, 0) / group.length;
             const avgOvhNodes = Math.round(group.reduce((sum, p) => sum + p.ovhNodes, 0) / group.length);
             const avgTotalNodes = Math.round(group.reduce((sum, p) => sum + p.totalNodes, 0) / group.length);
-            // Use the timestamp of the middle point for accurate X-axis positioning
             const midPoint = group[Math.floor(group.length / 2)];
 
             return {
@@ -87,9 +94,17 @@ export default function TrendChart() {
 
     const formatDate = (dateString: string) => {
         const date = new Date(dateString);
-        if (period === 'all') {
+        
+        // If data spans more than a year, only show Month/Year to avoid overlap
+        const first = data[0]?.timestamp || 0;
+        const last = data[data.length - 1]?.timestamp || 0;
+        const daySpan = (last - first) / (1000 * 60 * 60 * 24);
+
+        if (daySpan > 365) {
             return date.toLocaleDateString('en-US', { month: 'short', year: '2-digit' });
         }
+        
+        // Default to day/month for better precision
         return date.toLocaleDateString('en-US', { day: 'numeric', month: 'short' });
     };
 
@@ -139,37 +154,29 @@ export default function TrendChart() {
                     </p>
                 )}
             </div>
-            <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
-                <div className="flex bg-gray-800/50 rounded-lg p-1 border border-white/10">
-                    <button
-                        onClick={() => setDisplayMode('marketShare')}
-                        className={`px-3 py-1.5 rounded-md text-xs font-medium transition-all ${displayMode === 'marketShare'
-                            ? 'bg-blue-500/20 text-blue-400 shadow-[0_0_10px_rgba(59,130,246,0.3)]'
-                            : 'text-gray-400 hover:text-white'
-                            }`}
-                    >
-                        % Market Share
-                    </button>
-                    <button
-                        onClick={() => setDisplayMode('absolute')}
-                        className={`px-3 py-1.5 rounded-md text-xs font-medium transition-all ${displayMode === 'absolute'
-                            ? 'bg-purple-500/20 text-purple-400 shadow-[0_0_10px_rgba(168,85,247,0.3)]'
-                            : 'text-gray-400 hover:text-white'
-                            }`}
-                    >
-                        Nodes (Absolute)
-                    </button>
-                </div>
-                <PeriodSelector selectedPeriod={period} onPeriodChange={setPeriod} />
+            <div className="flex bg-black/40 border border-white/10 rounded-xl p-1">
+                <button
+                    onClick={() => setDisplayMode('marketShare')}
+                    className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${displayMode === 'marketShare' ? 'bg-[#00F0FF]/20 text-[#00F0FF]' : 'text-gray-500 hover:text-gray-300'}`}
+                >
+                    Market Share (%)
+                </button>
+                <button
+                    onClick={() => setDisplayMode('absolute')}
+                    className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${displayMode === 'absolute' ? 'bg-[#00F0FF]/20 text-[#00F0FF]' : 'text-gray-500 hover:text-gray-300'}`}
+                >
+                    Node Count
+                </button>
             </div>
+            <PeriodSelector selectedPeriod={period} onPeriodChange={setPeriod} />
         </div>
     );
 
     if (loading) {
         return (
-            <div className="bg-gradient-to-br from-gray-900/50 to-gray-800/30 backdrop-blur-sm rounded-2xl border border-white/10 p-6">
+            <div className="bg-gradient-to-br from-gray-900/50 to-gray-800/30 backdrop-blur-sm rounded-2xl border border-white/10 p-6 min-h-[400px]">
                 {renderHeader()}
-                <LoadingState />
+                <LoadingState fullPage={false} />
             </div>
         );
     }
@@ -223,7 +230,7 @@ export default function TrendChart() {
                     />
                     <Tooltip content={<CustomTooltip />} />
                     <Line
-                        type="monotoneX" // Smoother interpolation than 'monotone'
+                        type="monotone"
                         dataKey={displayMode === 'marketShare' ? 'marketShare' : 'ovhNodes'}
                         stroke="url(#lineGradient)"
                         strokeWidth={4} // Thicker, more premium line

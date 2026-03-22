@@ -22,8 +22,9 @@ export async function fetchSolanaNodes(limit?: number): Promise<SolanaNode[]> {
                 id: 1,
                 method: 'getClusterNodes',
             }),
-            // Cache for 5 minutes
-            next: { revalidate: 300 },
+            // Bypassing Next.js cache because the payload size is > 2MB 
+            // which crashes Turbopack and triggers an infinite reload loop in dev environment.
+            cache: 'no-store',
         });
 
         if (!response.ok) {

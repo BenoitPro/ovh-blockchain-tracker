@@ -15,7 +15,7 @@ async function fetchValidatorList() {
         // Fetch from stakewiz.com public API
         const response = await fetch('https://api.stakewiz.com/validators', {
             headers: { 'Content-Type': 'application/json' },
-            next: { revalidate: 3600 } // Cache for 1 hour
+            cache: 'no-store' // Avoid caching very large payloads with Turbopack
         });
 
         if (response.ok) {
@@ -62,7 +62,7 @@ async function fetchVoteAccounts(): Promise<Map<string, { stake: number; commiss
                     commitment: 'finalized',
                 }]
             }),
-            next: { revalidate: 300 } // Cache for 5 minutes
+            cache: 'no-store' // Avoid Turbopack large cache crashes
         });
 
         if (!response.ok) throw new Error(`Vote accounts RPC error: ${response.status}`);
