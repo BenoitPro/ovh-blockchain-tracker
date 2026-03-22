@@ -81,15 +81,7 @@ export default function WorldMap({ geoDistribution, onCountryClick }: WorldMapPr
         return () => resizeObserver.disconnect();
     }, []);
 
-    // Set auto-rotation and initial zoom on load
-    useEffect(() => {
-        if (globeRef.current) {
-            globeRef.current.controls().autoRotate = true;
-            globeRef.current.controls().autoRotateSpeed = 0.8; // Rotation lente sur lui-même
-            // Centrage type "Atlantic View" montrant US et Europe, comme demandé
-            globeRef.current.pointOfView({ altitude: 1.8, lat: 38, lng: -25 }, 1200); 
-        }
-    }, [dimensions]); // Triggering occasionally to ensure it gets applied
+
 
     // Calculate maximum nodes for scaling
     const maxNodes = Math.max(...Object.values(geoDistribution), 1); 
@@ -154,6 +146,15 @@ export default function WorldMap({ geoDistribution, onCountryClick }: WorldMapPr
                         globeImageUrl="//unpkg.com/three-globe/example/img/earth-dark.jpg"
                         bumpImageUrl="//unpkg.com/three-globe/example/img/earth-topology.png"
                         backgroundImageUrl="//unpkg.com/three-globe/example/img/night-sky.png"
+                        
+                        onGlobeReady={() => {
+                            if (globeRef.current) {
+                                globeRef.current.controls().autoRotate = true;
+                                globeRef.current.controls().autoRotateSpeed = 0.8;
+                                // Bien centré sur l'Europe en zoomant correctement !
+                                globeRef.current.pointOfView({ altitude: 1.5, lat: 48, lng: 10 }, 1500);
+                            }
+                        }}
                         
                         // --- Polygons (Country Outlines & Hover) ---
                         polygonsData={countriesGeoJson.features}

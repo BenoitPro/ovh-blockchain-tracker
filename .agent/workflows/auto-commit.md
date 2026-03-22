@@ -7,3 +7,4 @@ description: Analyse le code modifié et effectue un commit avec un message dét
 3. Génère un message de commit descriptif en utilisant le format "Conventional Commits" (ex: `feat: ...`, `fix: ...`, `chore: ...`, `refactor: ...`).
 4. Prépare les fichiers avec `git add .`.
 5. Valide les fichiers avec `git commit -m "<message généré>"`.
+6. Envoie les modifications sur le serveur distant avec `git push`.
