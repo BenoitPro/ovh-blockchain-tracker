@@ -1,7 +1,6 @@
 import { SolanaNode } from '@/types';
 import { logger } from '@/lib/utils';
-
-const SOLANA_RPC_ENDPOINT = 'https://api.mainnet-beta.solana.com';
+import { SOLANA_RPC_ENDPOINT } from '@/lib/config/constants';
 
 /**
  * Fetch cluster nodes from Solana mainnet

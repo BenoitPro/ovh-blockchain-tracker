@@ -8,7 +8,7 @@ export interface CachedMetrics {
     nodeCount: number;
 }
 
-const CACHE_KEY = 'solana-metrics';
+import { CACHE_KEY } from '@/lib/config/constants';
 
 /**
  * Read cached metrics from Turso Database

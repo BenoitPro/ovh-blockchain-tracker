@@ -160,7 +160,7 @@ export async function getIPInfoHybrid(ip: string): Promise<IPInfo | null> {
         const response = await fetch(
             `http://ip-api.com/json/${ip}?fields=status,city,lat,lon`,
             {
-                headers: { 'User-Agent': 'OVH-Solana-Tracker/2.0' },
+                headers: { 'User-Agent': 'OVH-Blockchain-Tracker/2.0' },
                 signal: AbortSignal.timeout(5000),
             }
         );

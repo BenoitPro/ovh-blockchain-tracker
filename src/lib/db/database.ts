@@ -1,5 +1,6 @@
 import { createClient, Client } from '@libsql/client';
 import { logger } from '@/lib/utils';
+import { getEnvConfig } from '@/lib/config/env';
 import fs from 'fs';
 import path from 'path';
 
@@ -21,21 +22,20 @@ export function getDatabase(): Client {
         return db;
     }
 
-    const url = process.env.TURSO_DATABASE_URL;
-    const authToken = process.env.TURSO_AUTH_TOKEN;
+    const { tursoUrl, tursoAuthToken } = getEnvConfig();
 
-    if (!url) {
+    if (!tursoUrl) {
         logger.warn('[Database] TURSO_DATABASE_URL is not set. Using local file format for libSQL (testing only).');
     }
 
     try {
         // Create database client
         db = createClient({
-            url: url || 'file:./data/metrics.db', // Fallback for local testing
-            authToken: authToken,
+            url: tursoUrl || 'file:./data/metrics.db', // Fallback for local testing
+            authToken: tursoAuthToken,
         });
 
-        logger.info(`[Database] Connected to Turso database: ${url ? 'Remote' : 'Local'}`);
+        logger.info(`[Database] Connected to Turso database: ${tursoUrl ? 'Remote' : 'Local'}`);
 
         // Initialize schema if needed (fire and forget as it's async in libsql context when running multiple queries, we will await the batch)
         if (!isInitialized) {

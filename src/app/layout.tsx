@@ -5,19 +5,19 @@ import './globals.css';
 const inter = Inter({ subsets: ['latin'] });
 
 export const metadata: Metadata = {
-    title: 'OVHcloud Solana Infrastructure Monitor',
-    description: 'Real-time monitoring of OVHcloud market share in Solana blockchain infrastructure. Track nodes, validators, and geographic distribution.',
-    keywords: ['OVHcloud', 'Solana', 'Blockchain', 'Infrastructure', 'Validators', 'Bare Metal'],
+    title: 'OVHcloud Blockchain Infrastructure Monitor',
+    description: 'Real-time monitoring of OVHcloud market share in blockchain infrastructure. Track nodes, validators, and geographic distribution across multiple networks.',
+    keywords: ['OVHcloud', 'Solana', 'Ethereum', 'Blockchain', 'Infrastructure', 'Validators', 'Bare Metal'],
     authors: [{ name: 'OVHcloud' }],
     openGraph: {
-        title: 'OVHcloud Solana Infrastructure Monitor',
-        description: 'Real-time monitoring of OVHcloud market share in Solana blockchain infrastructure',
+        title: 'OVHcloud Blockchain Infrastructure Monitor',
+        description: 'Real-time monitoring of OVHcloud market share in blockchain infrastructure',
         type: 'website',
     },
     twitter: {
         card: 'summary_large_image',
-        title: 'OVHcloud Solana Infrastructure Monitor',
-        description: 'Real-time monitoring of OVHcloud market share in Solana blockchain infrastructure',
+        title: 'OVHcloud Blockchain Infrastructure Monitor',
+        description: 'Real-time monitoring of OVHcloud market share in blockchain infrastructure',
     },
 };
 

@@ -1,4 +1,4 @@
--- SQLite Schema for OVH Solana Tracker Historical Metrics
+-- SQLite Schema for OVH Blockchain Tracker Historical Metrics
 -- This table stores daily snapshots of market share metrics
 
 CREATE TABLE IF NOT EXISTS metrics_history (

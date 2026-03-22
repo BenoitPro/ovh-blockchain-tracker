@@ -8,49 +8,7 @@ import {
     isOVHIP,
     batchGetASN
 } from '@/lib/asn/maxmind';
-
-// OVHcloud ASN list - Exhaustive global list
-export const OVH_ASN_LIST = [
-    'AS16276', // OVH SAS (Main)
-    'AS35540', // OVH Managed
-    'AS21351', // OVH Public Cloud
-    'AS198203', // OVH Singapore
-    'AS50082',  // OVH Australia
-    'AS32790',  // OVH USA
-    'AS14061',  // OVH Canada (sometimes DO shares this but mostly OVH CA)
-];
-
-// Known provider ASNs for comprehensive market share analysis
-export const PROVIDER_ASN_MAP: Record<string, { label: string, asns: string[] }> = {
-    ovh: {
-        label: 'OVHcloud',
-        asns: OVH_ASN_LIST
-    },
-    aws: {
-        label: 'AWS',
-        asns: ['AS16509', 'AS14618', 'AS16501', 'AS16550', 'AS16551', 'AS32805', 'AS35691']
-    },
-    google: {
-        label: 'Google Cloud',
-        asns: ['AS15169', 'AS396982', 'AS19527', 'AS36040']
-    },
-    hetzner: {
-        label: 'Hetzner',
-        asns: ['AS24940', 'AS213230']
-    },
-    digitalocean: {
-        label: 'DigitalOcean',
-        asns: ['AS14061', 'AS202018', 'AS21245', 'AS201229']
-    },
-    vultr: {
-        label: 'Vultr',
-        asns: ['AS20473']
-    },
-    equinix: {
-        label: 'Equinix',
-        asns: ['AS13445', 'AS40676', 'AS32133', 'AS54527']
-    },
-};
+import { OVH_ASN_LIST, PROVIDER_ASN_MAP } from '@/lib/config/constants';
 
 // Simple in-memory cache for geolocation data
 const geoCache = new Map<string, IPInfo>();
@@ -74,7 +32,8 @@ async function getGeolocation(ip: string): Promise<Partial<IPInfo> | null> {
             const response = await fetch(
                 `http://ip-api.com/json/${ip}?fields=status,message,country,countryCode,city,lat,lon`,
                 {
-                    headers: { 'User-Agent': 'OVH-Solana-Tracker/2.0-MaxMind' },
+                    method: 'GET',
+                    headers: { 'User-Agent': 'OVH-Blockchain-Tracker/2.0-MaxMind' },
                     signal: AbortSignal.timeout(5000),
                 }
             );

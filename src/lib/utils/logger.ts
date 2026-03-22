@@ -1,5 +1,5 @@
 /**
- * Logger utility for OVH Solana Tracker
+ * Logger utility for OVH Blockchain Tracker
  * 
  * Conditionally logs messages based on environment:
  * - Development: all logs are printed

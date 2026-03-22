@@ -1,7 +1,7 @@
 
 import { fetchSolanaNodes, extractIP } from '../src/lib/solana/fetchNodes';
 import { initMaxMind, getASNFromMaxMind } from '../src/lib/asn/maxmind';
-import { OVH_ASN_LIST } from '../src/lib/solana/filterOVH';
+import { OVH_ASN_LIST } from '../src/lib/config/constants';
 
 async function diagnose() {
     console.log('🔍 Starting OVH False Negative Diagnosis...');

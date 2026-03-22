@@ -13,36 +13,8 @@ import ParticlesBackground from '@/components/ParticlesBackground';
 import TrendChart from '@/components/dashboard/TrendChart';
 import ProviderComparison from '@/components/dashboard/ProviderComparison';
 import { DashboardMetrics } from '@/types';
+import { useScrollReveal } from '@/hooks/useScrollReveal';
 
-function useScrollReveal(ready: boolean) {
-    const observe = useCallback(() => {
-        if (!ready) return () => { };
-
-        // Wait a tiny bit for React to actually flush the DOM after loading=false
-        const timeoutId = setTimeout(() => {
-            const elements = document.querySelectorAll('.fade-in-up');
-            const observer = new IntersectionObserver(
-                (entries) => {
-                    entries.forEach((entry) => {
-                        if (entry.isIntersecting) {
-                            entry.target.classList.add('is-visible');
-                            observer.unobserve(entry.target);
-                        }
-                    });
-                },
-                { threshold: 0.12 }
-            );
-            elements.forEach((el) => observer.observe(el));
-        }, 100);
-
-        return () => clearTimeout(timeoutId);
-    }, [ready]);
-
-    useEffect(() => {
-        const cleanup = observe();
-        return cleanup;
-    }, [observe]);
-}
 
 export default function Home() {
     const [metrics, setMetrics] = useState<DashboardMetrics | null>(null);
@@ -129,14 +101,19 @@ export default function Home() {
                                 <p>
                                     We employ an industry-standard methodology aligned with frameworks like the one described in the <a href="https://messari.io/report/evaluating-validator-decentralization-geographic-and-infrastructure-distribution-in-proof-of-stake-networks" target="_blank" rel="noopener noreferrer" className="text-[#00F0FF] hover:underline">Messari Validator Decentralization Report</a>.
                                 </p>
-                                <ol className="list-decimal list-inside space-y-1 ml-1 text-gray-400">
-                                    <li><strong className="text-white/80">Data Collection:</strong> Query Solana RPC for active validators & RPC nodes IPs.</li>
-                                    <li><strong className="text-white/80">ASN Resolution:</strong> Map IP to Autonomous System Number (ASN) via MaxMind GeoLite2 for exact CSP identification.</li>
-                                    <li><strong className="text-white/80">Geolocation:</strong> Map IP to country/city.</li>
-                                    <li><strong className="text-white/80">Capital-weighting:</strong> Prioritize Stake over node count to reflect consensus weight.</li>
+                                <ol className="list-decimal list-inside space-y-3 ml-1 text-gray-400">
+                                    <li>
+                                        <strong className="text-white/80">Data Collection:</strong>
+                                        <ul className="list-disc list-inside ml-4 mt-1 space-y-1">
+                                            <li><span className="text-[#00F0FF] text-[10px] uppercase font-bold tracking-wider">Solana:</span> We query the official Solana RPC to get an exact census of all active validators and RPC nodes IPs.</li>
+                                            <li><span className="text-purple-400 text-[10px] uppercase font-bold tracking-wider">Ethereum:</span> Due to its pure P2P nature, we use an industry-standard network crawler (similar to Ethernodes.org) iterating over the Discv4/Discv5 DHT to map publicly discoverable nodes.</li>
+                                        </ul>
+                                    </li>
+                                    <li><strong className="text-white/80">ASN Resolution:</strong> We map every discovered IP to its Autonomous System Number (ASN) via MaxMind GeoLite2 for exact cloud provider identification.</li>
+                                    <li><strong className="text-white/80">Geolocation & Weighting:</strong> Map IP to country/city, and capital-weight nodes based on Stake/Consensus influence where applicable.</li>
                                 </ol>
-                                <p className="pt-2 text-white/50 italic border-t border-white/5 mt-2">
-                                    Note: Unlike the Messari report which focuses exclusively on Active Validators (~1,800 nodes), our dataset includes the entire network footprint, tracking both voting validators and non-voting RPC nodes (~5,000 nodes) to provide a broader view of physical infrastructure reliance.
+                                <p className="pt-2 text-white/50 italic border-t border-white/5 mt-3">
+                                    Note: For Solana, our dataset includes the entire network footprint (~5,000 nodes). For Ethereum, node counts are estimations limited to publicly discoverable nodes, as some institutional providers deliberately disable P2P discovery behind firewalls.
                                 </p>
                             </div>
                         </details>

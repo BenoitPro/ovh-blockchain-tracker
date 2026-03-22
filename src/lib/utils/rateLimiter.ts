@@ -3,8 +3,7 @@
  * Prevents overwhelming the IP API with requests
  */
 export class RateLimiter {
-    private queue: Array<() => Promise<void>> = [];
-    private processing = false;
+
     private delayMs: number;
     private maxRetries: number;
 

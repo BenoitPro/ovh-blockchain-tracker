@@ -1,28 +1,6 @@
 import { EthSnapshotMetrics, ProviderBreakdownEntry } from '@/types';
-import { PROVIDER_ASN_MAP } from '@/lib/solana/filterOVH';
+import { PROVIDER_COLORS, PROVIDER_LABELS } from '@/lib/config/constants';
 
-// Color palette — same as Solana side
-const PROVIDER_COLORS: Record<string, string> = {
-    ovh: '#00F0FF',
-    aws: '#FF9900',
-    hetzner: '#D50C2D',
-    google: '#4285F4',
-    digitalocean: '#0080FF',
-    vultr: '#007BFC',
-    equinix: '#ED2126',
-    others: '#6B7280',
-};
-
-const PROVIDER_LABELS: Record<string, string> = {
-    ovh: 'OVHcloud',
-    aws: 'AWS',
-    hetzner: 'Hetzner',
-    google: 'Google Cloud',
-    digitalocean: 'DigitalOcean',
-    vultr: 'Vultr',
-    equinix: 'Equinix',
-    others: 'Others',
-};
 
 const MARKET_SHARE_THRESHOLD = 5; // percent
 

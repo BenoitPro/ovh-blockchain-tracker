@@ -1,27 +1,5 @@
 import { SolanaNode, OVHNode, DashboardMetrics, ProviderBreakdownEntry } from '@/types';
-
-// Color palette for providers (matches dashboard theme)
-const PROVIDER_COLORS: Record<string, string> = {
-    ovh: '#00F0FF', // OVHcloud cyan
-    aws: '#FF9900', // AWS orange
-    hetzner: '#D50C2D', // Hetzner red
-    google: '#4285F4', // Google blue
-    digitalocean: '#0080FF', // DO blue
-    vultr: '#007BFC', // Vultr blue
-    equinix: '#ED2126', // Equinix red
-    others: '#6B7280', // Gray for others
-};
-
-const PROVIDER_LABELS: Record<string, string> = {
-    ovh: 'OVHcloud',
-    aws: 'AWS',
-    hetzner: 'Hetzner',
-    google: 'Google Cloud',
-    digitalocean: 'DigitalOcean',
-    vultr: 'Vultr',
-    equinix: 'Equinix',
-    others: 'Others',
-};
+import { PROVIDER_COLORS, PROVIDER_LABELS } from '@/lib/config/constants';
 
 import { ProviderCategorizationResult } from './filterOVH';
 

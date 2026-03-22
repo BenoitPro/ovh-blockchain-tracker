@@ -1,6 +1,6 @@
 # 🌐 OVHcloud Blockchain Infrastructure Monitor - V1
 
-[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/VOTRE-USERNAME/ovh-solana-tracker)
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/VOTRE-USERNAME/ovh-blockchain-tracker)
 
 ## 📊 Vue d'ensemble
 

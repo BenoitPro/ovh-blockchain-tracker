@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { filterOVHNodes, categorizeNodesByProvider, OVH_ASN_LIST } from './filterOVH';
+import { filterOVHNodes, categorizeNodesByProvider } from './filterOVH';
+import { OVH_ASN_LIST } from '@/lib/config/constants';
 import { SolanaNode } from '@/types';
 import * as maxmind from '@/lib/asn/maxmind';
 

@@ -3,8 +3,7 @@ import { fetchSolanaNodes, extractIP } from './fetchNodes';
 import { batchGetASN, initMaxMind, batchGetCountry } from '@/lib/asn/maxmind';
 import { identifyProvider } from './filterOVH';
 import { logger } from '@/lib/utils';
-
-const SOLANA_RPC_ENDPOINT = 'https://api.mainnet-beta.solana.com';
+import { SOLANA_RPC_ENDPOINT } from '@/lib/config/constants';
 
 // Cache for validator names
 let validatorMapCache: Map<string, { name: string; image: string; }> | null = null;
