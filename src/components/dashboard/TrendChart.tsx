@@ -31,7 +31,7 @@ export default function TrendChart() {
             }
 
             // Apply aggregation before setting state
-            const aggregated = aggregateData(result.data, selectedPeriod);
+            const aggregated = aggregateData(result.data);
             setData(aggregated);
         } catch (err) {
             setError(err instanceof Error ? err.message : 'Unknown error');
@@ -40,43 +40,28 @@ export default function TrendChart() {
         }
     };
 
-    // Aggregation logic for smoothing charts
-    const aggregateData = (rawData: TrendDataPoint[], selectedPeriod: TrendPeriod): TrendDataPoint[] => {
-        // No aggregation if we have few points – keep high fidelity for new projects
-        if (rawData.length <= 60) return rawData;
+    // Aggregation logic: Limit to ~15 data points maximum based on data's own timeframe
+    const aggregateData = (rawData: TrendDataPoint[]): TrendDataPoint[] => {
+        if (rawData.length <= 15) return rawData;
+        
+        const targetPoints = 15;
+        const start = rawData[0].timestamp;
+        const end = rawData[rawData.length - 1].timestamp;
+        const step = (end - start) / targetPoints;
 
-        // Calculate time span to decide grain
-        const first = rawData[0].timestamp;
-        const last = rawData[rawData.length - 1].timestamp;
-        const daySpan = (last - first) / (1000 * 60 * 60 * 24);
+        if (step === 0) return rawData;
 
-        // Group by week or month based on period and actual data span
-        const isMonthly = selectedPeriod === 'all' && daySpan > 365;
-        const isWeekly = (selectedPeriod === 365 || (selectedPeriod === 'all' && daySpan > 90)) && !isMonthly;
-
-        if (!isMonthly && !isWeekly) return rawData;
-
-        const groups: Record<string, TrendDataPoint[]> = {};
-
+        const grouped: Record<number, TrendDataPoint[]> = {};
+        
         rawData.forEach(point => {
-            const date = new Date(point.timestamp);
-            let key: string;
-
-            if (isMonthly) {
-                // Monthly aggregation
-                key = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
-            } else {
-                // Weekly aggregation
-                const fw = new Date(date.getFullYear(), 0, 1);
-                const week = Math.ceil((((date.getTime() - fw.getTime()) / 86400000) + fw.getDay() + 1) / 7);
-                key = `${date.getFullYear()}-W${String(week).padStart(2, '0')}`;
-            }
-
-            if (!groups[key]) groups[key] = [];
-            groups[key].push(point);
+            let bucketIndex = Math.floor((point.timestamp - start) / step);
+            if (bucketIndex >= targetPoints) bucketIndex = targetPoints - 1;
+            
+            if (!grouped[bucketIndex]) grouped[bucketIndex] = [];
+            grouped[bucketIndex].push(point);
         });
 
-        return Object.values(groups).map(group => {
+        return Object.values(grouped).map(group => {
             const avgMarketShare = group.reduce((sum, p) => sum + p.marketShare, 0) / group.length;
             const avgOvhNodes = Math.round(group.reduce((sum, p) => sum + p.ovhNodes, 0) / group.length);
             const avgTotalNodes = Math.round(group.reduce((sum, p) => sum + p.totalNodes, 0) / group.length);
@@ -92,21 +77,41 @@ export default function TrendChart() {
         }).sort((a, b) => a.timestamp - b.timestamp);
     };
 
-    const formatDate = (dateString: string) => {
-        const date = new Date(dateString);
-        
-        // If data spans more than a year, only show Month/Year to avoid overlap
-        const first = data[0]?.timestamp || 0;
-        const last = data[data.length - 1]?.timestamp || 0;
-        const daySpan = (last - first) / (1000 * 60 * 60 * 24);
+    const getXDomain = () => {
+        const now = Date.now();
+        if (period === 90) return [now - 90 * 86400000, now];
+        if (period === 365) return [now - 365 * 86400000, now];
+        // 'all' -> whatever data covers, mapped to at least 1 yr for UX consistency
+        const first = data.length > 0 ? data[0].timestamp : now - 365 * 86400000;
+        return [Math.min(first, now - 365 * 86400000), now];
+    };
 
-        if (daySpan > 365) {
+    const getXTicks = () => {
+        const [min, max] = getXDomain();
+        const span = max - min;
+        // 12 ticks for 1y (1 per month), 6 ticks for 90d (1 per 15 days) and All
+        const tickCount = period === 365 ? 12 : 6; 
+        const step = span / (tickCount - 1);
+        const ticks = [];
+        for (let i = 0; i < tickCount; i++) {
+            ticks.push(min + i * step);
+        }
+        return ticks;
+    };
+
+    const formatTick = (val: number) => {
+        const date = new Date(val);
+        if (period === 365) {
+            // "tous les mois de l'année" -> Just short month name
+            return date.toLocaleDateString('en-US', { month: 'short' });
+        }
+        if (period === 'all') {
             return date.toLocaleDateString('en-US', { month: 'short', year: '2-digit' });
         }
-        
-        // Default to day/month for better precision
+        // 90d -> day and month
         return date.toLocaleDateString('en-US', { day: 'numeric', month: 'short' });
     };
+
 
     const formatPercentage = (value: number) => {
         return `${value.toFixed(2)}%`;
@@ -217,8 +222,11 @@ export default function TrendChart() {
                     </defs>
                     <CartesianGrid strokeDasharray="3 3" stroke="#374151" opacity={0.3} />
                     <XAxis
-                        dataKey="date"
-                        tickFormatter={formatDate}
+                        dataKey="timestamp"
+                        type="number"
+                        domain={getXDomain()}
+                        ticks={getXTicks()}
+                        tickFormatter={formatTick}
                         stroke="#9ca3af"
                         style={{ fontSize: '12px' }}
                     />
@@ -230,7 +238,7 @@ export default function TrendChart() {
                     />
                     <Tooltip content={<CustomTooltip />} />
                     <Line
-                        type="monotone"
+                        type="monotoneX"
                         dataKey={displayMode === 'marketShare' ? 'marketShare' : 'ovhNodes'}
                         stroke="url(#lineGradient)"
                         strokeWidth={4} // Thicker, more premium line
