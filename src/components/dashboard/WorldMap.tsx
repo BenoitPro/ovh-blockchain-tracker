@@ -85,9 +85,9 @@ export default function WorldMap({ geoDistribution, onCountryClick }: WorldMapPr
     useEffect(() => {
         if (globeRef.current) {
             globeRef.current.controls().autoRotate = true;
-            globeRef.current.controls().autoRotateSpeed = 2.5; // Vitesse augmentée pour que ce soit visible
-            // Centrage direct sur l'Europe central (lat: 48, lng: 5) avec un bon niveau de zoom
-            globeRef.current.pointOfView({ altitude: 1.4, lat: 48, lng: 5 }, 1000); 
+            globeRef.current.controls().autoRotateSpeed = 0.8; // Rotation lente sur lui-même
+            // Centrage type "Atlantic View" montrant US et Europe, comme demandé
+            globeRef.current.pointOfView({ altitude: 1.8, lat: 38, lng: -25 }, 1200); 
         }
     }, [dimensions]); // Triggering occasionally to ensure it gets applied
 

@@ -81,15 +81,14 @@ export default function TrendChart() {
         const now = Date.now();
         if (period === 90) return [now - 90 * 86400000, now];
         if (period === 365) return [now - 365 * 86400000, now];
-        // 'all' -> whatever data covers, mapped to at least 1 yr for UX consistency
-        const first = data.length > 0 ? data[0].timestamp : now - 365 * 86400000;
-        return [Math.min(first, now - 365 * 86400000), now];
+        // 'all' -> 5 years (1825 days) mapping
+        return [now - 1825 * 86400000, now];
     };
 
     const getXTicks = () => {
         const [min, max] = getXDomain();
         const span = max - min;
-        // 12 ticks for 1y (1 per month), 6 ticks for 90d (1 per 15 days) and All
+        // 12 ticks for 1y (1 per month), 6 ticks for 90d and All (years)
         const tickCount = period === 365 ? 12 : 6; 
         const step = span / (tickCount - 1);
         const ticks = [];
@@ -106,7 +105,7 @@ export default function TrendChart() {
             return date.toLocaleDateString('en-US', { month: 'short' });
         }
         if (period === 'all') {
-            return date.toLocaleDateString('en-US', { month: 'short', year: '2-digit' });
+            return date.toLocaleDateString('en-US', { year: 'numeric' }); // e.g. 2026
         }
         // 90d -> day and month
         return date.toLocaleDateString('en-US', { day: 'numeric', month: 'short' });
@@ -242,7 +241,7 @@ export default function TrendChart() {
                         dataKey={displayMode === 'marketShare' ? 'marketShare' : 'ovhNodes'}
                         stroke="url(#lineGradient)"
                         strokeWidth={4} // Thicker, more premium line
-                        dot={data.length < 40 ? { fill: '#3b82f6', r: 4, strokeWidth: 0 } : false} // Hide dots for dense data
+                        dot={false} // Clean line with no persistent dots
                         activeDot={{ r: 8, fill: '#8b5cf6', stroke: '#fff', strokeWidth: 2 }}
                         animationDuration={1500}
                     />
