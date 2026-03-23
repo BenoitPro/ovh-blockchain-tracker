@@ -78,7 +78,7 @@ export default function Home() {
             {/* Main Content */}
             <div className="relative z-10 flex flex-col min-h-screen">
 
-                <main className="flex-1 flex flex-col p-6 w-full max-w-7xl mx-auto">
+                <main className="flex-1 flex flex-col p-2 md:p-4 w-full max-w-7xl mx-auto">
 
                     {/* Animated Tagline */}
                     <AnimatedTagline 
@@ -91,7 +91,7 @@ export default function Home() {
 
                     {/* 1. Geographic Distribution - World Map (Takes remaining space) */}
                     {Object.keys(metrics.geoDistribution).length > 0 && (
-                        <section className="flex-1 flex flex-col mb-2 fade-in-up relative z-10 w-full">
+                        <section className="flex-1 flex flex-col mb-1 fade-in-up relative z-10 w-full">
                             <div className="w-full flex-grow flex items-center justify-center">
                                 <WorldMap
                                     geoDistribution={metrics.geoDistribution}
@@ -102,7 +102,7 @@ export default function Home() {
                     )}
 
                     {/* 2. KPI Cards (Moved back down) */}
-                    <section className="mt-0 mb-4 fade-in-up delay-100 flex-shrink-0 relative z-20">
+                    <section className="mt-0 mb-2 fade-in-up delay-100 flex-shrink-0 relative z-20">
                         <KPICards
                             totalNodes={metrics.totalNodes}
                             ovhNodes={metrics.ovhNodes}

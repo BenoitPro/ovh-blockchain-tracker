@@ -2,6 +2,7 @@
 
 import { useMemo, useState, useEffect, useRef } from 'react';
 import dynamic from 'next/dynamic';
+import { useNetworkTheme } from '@/components/NetworkThemeProvider';
 
 const Globe = dynamic(() => import('react-globe.gl'), { 
     ssr: false,
@@ -58,6 +59,10 @@ export default function WorldMap({ geoDistribution, onCountryClick }: WorldMapPr
     const [dimensions, setDimensions] = useState({ width: 0, height: 0 });
     const [countriesGeoJson, setCountriesGeoJson] = useState<any>({ features: [] });
     const [hoveredPolygon, setHoveredPolygon] = useState<any>(null);
+    const { theme } = useNetworkTheme();
+    const isEth = theme === 'ethereum';
+    const accent = isEth ? '#627EEA' : '#00F0FF';
+    const accentRgb = isEth ? '98, 126, 234' : '0, 240, 255';
 
     // Fetch GeoJSON for country polygons
     useEffect(() => {
@@ -103,21 +108,21 @@ export default function WorldMap({ geoDistribution, onCountryClick }: WorldMapPr
                     lat: coords.coordinates[1],
                     lng: coords.coordinates[0],
                     intensity,
-                    color: `rgba(0, 240, 255, ${0.4 + intensity * 0.6})`,
+                    color: `rgba(${accentRgb}, ${0.4 + intensity * 0.6})`,
                     size: 0.1 + intensity * 0.4
                 };
             })
             .filter((p): p is NonNullable<typeof p> => p !== null);
-    }, [geoDistribution, maxNodes]);
+    }, [geoDistribution, maxNodes, accentRgb]);
 
     // Generate network arcs between a main central hub and all other nodes
     const connections = useMemo(() => {
         if (dataPoints.length < 2) return [];
-        
+
         // Find main hub
         const mainHub = [...dataPoints].sort((a: any, b: any) => b.count - a.count)[0];
         if (!mainHub) return [];
-        
+
         return dataPoints
             .filter((point: any) => point.fullCountry !== mainHub.fullCountry)
             .map((point: any) => ({
@@ -125,9 +130,9 @@ export default function WorldMap({ geoDistribution, onCountryClick }: WorldMapPr
                 startLng: mainHub.lng,
                 endLat: point.lat,
                 endLng: point.lng,
-                color: ['rgba(0, 240, 255, 0.4)', 'rgba(168, 85, 247, 0.6)']
+                color: [`rgba(${accentRgb}, 0.4)`, 'rgba(168, 85, 247, 0.6)']
             }));
-    }, [dataPoints]);
+    }, [dataPoints, accentRgb]);
 
     return (
         <div className="relative flex flex-col w-full min-h-[400px]">
@@ -171,16 +176,16 @@ export default function WorldMap({ geoDistribution, onCountryClick }: WorldMapPr
                         polygonAltitude={(d: any) => d === hoveredPolygon ? 0.015 : 0.005}
                         polygonCapColor={(d: any) => {
                             const nodeData = dataPoints.find(p => p.isoCode === d.properties.ISO_A2 || p.fullCountry === d.properties.ADMIN || p.country === d.properties.NAME || (p.isoCode === 'FR' && d.properties.NAME === 'France'));
-                            if (d === hoveredPolygon) return 'rgba(0, 240, 255, 0.3)'; // Highlight on hover
-                            if (nodeData) return 'rgba(0, 240, 255, 0.05)'; // Subtle fill if it has nodes
-                            return 'rgba(255, 255, 255, 0.0)'; // Transparent otherwise
+                            if (d === hoveredPolygon) return `rgba(${accentRgb}, 0.3)`;
+                            if (nodeData) return `rgba(${accentRgb}, 0.08)`;
+                            return 'rgba(255, 255, 255, 0.0)';
                         }}
-                        polygonSideColor={() => 'rgba(0, 240, 255, 0.05)'}
+                        polygonSideColor={() => `rgba(${accentRgb}, 0.05)`}
                         polygonStrokeColor={(d: any) => {
                             const nodeData = dataPoints.find(p => p.isoCode === d.properties.ISO_A2 || p.fullCountry === d.properties.ADMIN || p.country === d.properties.NAME || (p.isoCode === 'FR' && d.properties.NAME === 'France'));
-                            if (d === hoveredPolygon) return 'rgba(0, 240, 255, 1)';
-                            if (nodeData) return 'rgba(0, 240, 255, 0.3)';
-                            return 'rgba(255, 255, 255, 0.05)';
+                            if (d === hoveredPolygon) return `rgba(${accentRgb}, 1)`;
+                            if (nodeData) return `rgba(${accentRgb}, 0.4)`;
+                            return isEth ? 'rgba(98, 126, 234, 0.08)' : 'rgba(255, 255, 255, 0.05)';
                         }}
                         onPolygonHover={setHoveredPolygon}
                         polygonLabel={(d: any) => {
@@ -188,12 +193,12 @@ export default function WorldMap({ geoDistribution, onCountryClick }: WorldMapPr
                             if (!nodeData) return '';
                             return `
                                 <div style="
-                                    background: linear-gradient(135deg, rgba(0, 240, 255, 0.95), rgba(168, 85, 247, 0.9));
+                                    background: linear-gradient(135deg, rgba(${accentRgb}, 0.95), rgba(168, 85, 247, 0.9));
                                     backdrop-filter: blur(12px);
                                     padding: 10px 16px;
                                     border-radius: 8px;
-                                    border: 1px solid rgba(0, 240, 255, 0.5);
-                                    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+                                    border: 1px solid rgba(${accentRgb}, 0.5);
+                                    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
                                     color: white;
                                     font-family: inherit;
                                 ">
@@ -232,40 +237,37 @@ export default function WorldMap({ geoDistribution, onCountryClick }: WorldMapPr
                         arcAltitudeAutoScale={0.4}
                         
                         // Configs esthétiques supplémentaires
-                        atmosphereColor="#00F0FF"
+                        atmosphereColor={accent}
                         atmosphereAltitude={0.05}
                     />
                 )}
                 
             </div>
 
-            {/* Légende absolue en haut à droite - Groupée en components logiques */}
+            {/* Legend */}
             <div className="absolute top-4 right-4 md:top-6 md:right-6 flex flex-col items-end gap-3 z-20 pointer-events-none">
-                
-                {/* Component 1: Node Status & Heatmap Intensity */}
-                <div className="flex items-center gap-4 bg-black/40 px-4 py-2 rounded-full border border-white/10 backdrop-blur-md shadow-lg">
-                    {/* Part 1: Status */}
-                    <div className="flex items-center gap-2 pr-4 border-r border-white/10">
-                        <span className="text-gray-300 font-medium text-[10px] tracking-widest uppercase">Active Node</span>
+
+                {/* Node Status & Heatmap Intensity */}
+                <div className={`flex items-center gap-4 px-4 py-2 rounded-full backdrop-blur-md shadow-lg border ${isEth ? 'bg-white/60 border-[#627EEA]/20' : 'bg-black/40 border-white/10'}`}>
+                    <div className={`flex items-center gap-2 pr-4 border-r ${isEth ? 'border-[#627EEA]/20' : 'border-white/10'}`}>
+                        <span className={`font-medium text-[10px] tracking-widest uppercase ${isEth ? 'text-slate-500' : 'text-gray-300'}`}>Active Node</span>
                         <div className="relative">
-                            <div className="w-2 h-2 rounded-full bg-[#00F0FF] shadow-[0_0_8px_#00F0FF]"></div>
-                            <div className="absolute inset-0 w-2 h-2 rounded-full bg-[#00F0FF] animate-ping opacity-60"></div>
+                            <div className="w-2 h-2 rounded-full animate-ping opacity-60" style={{ backgroundColor: accent }} />
+                            <div className="absolute inset-0 w-2 h-2 rounded-full" style={{ backgroundColor: accent, boxShadow: `0 0 8px ${accent}` }} />
                         </div>
                     </div>
-
-                    {/* Part 2: Gradient Scale */}
                     <div className="flex items-center gap-2 pl-1">
-                        <span className="text-gray-500 text-[9px] uppercase font-bold tracking-wider">Low</span>
-                        <div className="w-16 h-1 rounded-full bg-gradient-to-r from-[#00F0FF]/20 via-[#00F0FF]/60 to-[#00F0FF] shadow-[0_0_5px_rgba(0,240,255,0.5)]"></div>
-                        <span className="text-white/90 text-[9px] uppercase font-bold tracking-wider">High</span>
+                        <span className={`text-[9px] uppercase font-bold tracking-wider ${isEth ? 'text-slate-400' : 'text-gray-500'}`}>Low</span>
+                        <div className="w-16 h-1 rounded-full" style={{ background: `linear-gradient(to right, rgba(${accentRgb}, 0.2), rgba(${accentRgb}, 0.6), rgba(${accentRgb}, 1))`, boxShadow: `0 0 5px rgba(${accentRgb}, 0.5)` }} />
+                        <span className={`text-[9px] uppercase font-bold tracking-wider ${isEth ? 'text-slate-700' : 'text-white/90'}`}>High</span>
                     </div>
                 </div>
 
-                {/* Component 2: Countries Distribution */}
-                <div className="flex items-center gap-2.5 bg-black/40 px-3 py-1.5 rounded-full border border-white/10 backdrop-blur-md shadow-lg">
-                    <span className="text-gray-300 font-medium text-[10px] tracking-widest uppercase">Countries</span>
-                    <div className="flex items-center justify-center min-w-[20px] h-[20px] px-1.5 rounded-md bg-[#00F0FF]/15 border border-[#00F0FF]/30">
-                        <span className="text-[10px] font-bold text-[#00F0FF] leading-none">{Object.keys(geoDistribution).length}</span>
+                {/* Countries count */}
+                <div className={`flex items-center gap-2.5 px-3 py-1.5 rounded-full backdrop-blur-md shadow-lg border ${isEth ? 'bg-white/60 border-[#627EEA]/20' : 'bg-black/40 border-white/10'}`}>
+                    <span className={`font-medium text-[10px] tracking-widest uppercase ${isEth ? 'text-slate-500' : 'text-gray-300'}`}>Countries</span>
+                    <div className="flex items-center justify-center min-w-[20px] h-[20px] px-1.5 rounded-md" style={{ background: `rgba(${accentRgb}, 0.15)`, border: `1px solid rgba(${accentRgb}, 0.3)` }}>
+                        <span className="text-[10px] font-bold leading-none" style={{ color: accent }}>{Object.keys(geoDistribution).length}</span>
                     </div>
                 </div>
 

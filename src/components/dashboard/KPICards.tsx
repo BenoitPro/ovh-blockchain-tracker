@@ -7,27 +7,33 @@ interface KPICardsProps {
     totalNodes: number;
     ovhNodes: number;
     marketShare: number;
+    network?: 'solana' | 'ethereum';
 }
 
-export default function KPICards({ totalNodes, ovhNodes, marketShare }: KPICardsProps) {
+export default function KPICards({ totalNodes, ovhNodes, marketShare, network = 'solana' }: KPICardsProps) {
     const [activeTooltip, setActiveTooltip] = useState<number | null>(null);
+    const isEth = network === 'ethereum';
 
     const metrics = [
         {
-            title: 'Total Network Nodes',
+            title: isEth ? 'Total Execution Nodes' : 'Total Network Nodes',
             value: totalNodes.toLocaleString(),
             icon: ServerIcon,
             color: '#A855F7',
-            tooltipTitle: 'Total Network Nodes',
-            tooltipContent: 'Total number of active nodes detected globally on the network.'
+            tooltipTitle: isEth ? 'Total Execution Nodes' : 'Total Network Nodes',
+            tooltipContent: isEth
+                ? 'Total number of discovered execution-layer nodes across the entire Ethereum network during the last crawl.'
+                : 'Total number of active nodes detected globally on the network.'
         },
         {
-            title: 'Active OVH Nodes (RPC + Staking)',
+            title: isEth ? 'Active OVH Nodes' : 'Active OVH Nodes (RPC + Staking)',
             value: ovhNodes.toString(),
             icon: ServerIcon,
             color: '#00F0FF',
-            tooltipTitle: 'Active OVH Nodes (RPC + Staking)',
-            tooltipContent: 'Total number of Solana network nodes (both RPC and voting validators) currently identifying as hosting on OVHcloud infrastructure via their ASN.'
+            tooltipTitle: isEth ? 'Active OVH Nodes' : 'Active OVH Nodes (RPC + Staking)',
+            tooltipContent: isEth
+                ? 'Number of Ethereum execution-layer nodes mapped to OVHcloud ASNs via MaxMind GeoLite2.'
+                : 'Total number of Solana network nodes (both RPC and voting validators) currently identifying as hosting on OVHcloud infrastructure via their ASN.'
         },
         {
             title: 'Market Share (All Nodes)',
@@ -35,17 +41,19 @@ export default function KPICards({ totalNodes, ovhNodes, marketShare }: KPICards
             icon: ChartPieIcon,
             color: '#6B4FBB',
             tooltipTitle: 'Node Market Share',
-            tooltipContent: 'Percentage of total network nodes (RPC + Staking) hosted on OVH.'
+            tooltipContent: isEth
+                ? 'Percentage of total Ethereum execution-layer nodes hosted on OVHcloud infrastructure.'
+                : 'Percentage of total network nodes (RPC + Staking) hosted on OVH.'
         }
     ];
 
     return (
-        <div className="flex flex-col md:flex-row gap-8 justify-center items-center w-full relative z-20">
+        <div className="flex flex-wrap md:flex-nowrap gap-4 md:gap-8 justify-center items-stretch w-full relative z-20 px-2 lg:px-0">
             {metrics.map((item, index) => (
                 <div
                     key={index}
                     onClick={() => setActiveTooltip(index)}
-                    className="relative group cursor-pointer flex flex-col items-center text-center p-4 min-w-[300px]"
+                    className="relative group cursor-pointer flex flex-col items-center text-center p-3 md:p-4 flex-1 min-w-[200px] max-w-[350px]"
                 >
                     {/* Glowing effect behind the text */}
                     <div 
@@ -53,14 +61,14 @@ export default function KPICards({ totalNodes, ovhNodes, marketShare }: KPICards
                         style={{ background: `radial-gradient(circle, ${item.color} 0%, transparent 60%)` }}
                     />
                     
-                    <div className="flex items-center gap-2 mb-2 text-slate-400 group-hover:text-white transition-colors duration-300">
-                        <item.icon className="w-5 h-5 opacity-70" style={{ color: item.color }} />
-                        <span className="text-xs font-bold uppercase tracking-[0.15em]">{item.title}</span>
-                        <InformationCircleIcon className="w-4 h-4 opacity-30 hover:opacity-100 transition-opacity" />
+                    <div className="flex items-center gap-1.5 md:gap-2 mb-1 md:mb-2 text-slate-400 group-hover:text-white transition-colors duration-300">
+                        <item.icon className="w-4 h-4 md:w-5 md:h-5 opacity-70" style={{ color: item.color }} />
+                        <span className="text-[10px] md:text-xs font-bold uppercase tracking-[0.1em] md:tracking-[0.15em] shrink-0 text-center">{item.title}</span>
+                        <InformationCircleIcon className="w-3.5 h-3.5 md:w-4 md:h-4 opacity-30 hover:opacity-100 transition-opacity" />
                     </div>
                     
                     <h3 
-                        className="text-4xl md:text-5xl font-black drop-shadow-[0_0_20px_rgba(255,255,255,0.1)] transition-transform duration-300 group-hover:scale-105"
+                        className="text-2xl sm:text-3xl md:text-4xl font-black drop-shadow-[0_0_20px_rgba(255,255,255,0.1)] transition-transform duration-300 group-hover:scale-105"
                         style={{ color: item.color, textShadow: `0 0 30px ${item.color}60` }}
                     >
                         {item.value}

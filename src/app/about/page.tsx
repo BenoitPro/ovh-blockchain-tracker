@@ -4,6 +4,7 @@ import React from 'react';
 import Image from 'next/image';
 import { motion } from 'framer-motion';
 import { useNetworkTheme } from '@/components/NetworkThemeProvider';
+import ParticlesBackground from '@/components/ParticlesBackground';
 
 const teamMembers = [
     {
@@ -31,9 +32,11 @@ export default function AboutUsPage() {
     const isEth = theme === 'ethereum';
 
     return (
-        <div className="min-h-screen relative overflow-hidden flex flex-col items-center">
+        <div className={`min-h-screen relative overflow-hidden flex flex-col items-center transition-colors duration-1000 ${isEth ? 'bg-[#f0f4ff]' : 'bg-[#050510]'}`}>
             
             {/* Background effects */}
+            {!isEth && <ParticlesBackground />}
+            
             <div 
                 className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] blur-[120px] rounded-full pointer-events-none transition-colors duration-1000" 
                 style={{ backgroundColor: isEth ? 'rgba(98,126,234,0.15)' : 'rgba(0,240,255,0.15)' }}
@@ -45,11 +48,11 @@ export default function AboutUsPage() {
             
             {/* Overlay Gradient */}
             <div 
-                className="absolute inset-0 pointer-events-none transition-colors duration-1000" 
+                className="absolute inset-0 pointer-events-none transition-all duration-1000" 
                 style={{
                     background: isEth 
                         ? 'linear-gradient(to bottom, transparent, rgba(240,244,255,0.5), #f0f4ff)' 
-                        : 'linear-gradient(to bottom, transparent, rgba(0,0,0,0.5), #000000)'
+                        : 'linear-gradient(to bottom, transparent, rgba(5,5,16,0.3), #050510)'
                 }}
             />
 

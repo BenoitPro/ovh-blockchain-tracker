@@ -1,11 +1,12 @@
 'use client';
 
-import ParticlesBackground from '@/components/ParticlesBackground';
+import Link from 'next/link';
 import AnimatedTagline from '@/components/dashboard/AnimatedTagline';
 
 const ACCENT = '#627EEA';
 
 const cases = [
+// ... (rest of cases)
     {
         company: 'EthStaker',
         role: 'Ethereum Solo Staking Community',
@@ -87,9 +88,9 @@ interface UseCaseCardProps {
 function UseCaseCard({ company, role, chains, description, quote, person, highlights, source, accent }: UseCaseCardProps) {
     return (
         <div
-            className="rounded-2xl p-6 md:p-8 border bg-black/30 backdrop-blur-xl transition-all duration-300"
+            className="rounded-2xl p-6 md:p-8 border bg-white/60 backdrop-blur-xl transition-all duration-300 hover:bg-white/80"
             style={{
-                borderColor: `${accent}18`,
+                borderColor: `${accent}20`,
                 boxShadow: `0 4px 40px ${accent}08`,
             }}
         >
@@ -161,9 +162,7 @@ function UseCaseCard({ company, role, chains, description, quote, person, highli
 
 export default function EthereumUseCasesPage() {
     return (
-        <div className="min-h-screen relative overflow-hidden bg-[#050510]">
-            <ParticlesBackground />
-
+        <div className="min-h-screen relative overflow-hidden">
             <div className="relative z-10">
                 <main className="p-6 w-full max-w-4xl mx-auto">
                     <AnimatedTagline
@@ -173,33 +172,63 @@ export default function EthereumUseCasesPage() {
                     />
 
                     {/* Stats banner */}
-                    <div
-                        className="mb-10 rounded-2xl p-5 border bg-black/30 backdrop-blur-xl flex flex-col sm:flex-row items-center justify-around gap-4 text-center"
-                        style={{
-                            borderColor: `${ACCENT}18`,
-                            boxShadow: `0 2px 30px ${ACCENT}08`,
-                        }}
-                    >
-                        <div>
-                            <p className="text-3xl font-black" style={{ color: ACCENT }}>~10%</p>
-                            <p className="text-[10px] uppercase tracking-[0.18em] text-white/40 font-bold mt-1">of Ethereum nodes hosted</p>
-                        </div>
-                        <div className="hidden sm:block w-px h-10 bg-white/10" />
-                        <div>
-                            <p className="text-3xl font-black text-white">~4%</p>
-                            <p className="text-[10px] uppercase tracking-[0.18em] text-white/40 font-bold mt-1">of ETH 2.0 staking share</p>
-                        </div>
-                        <div className="hidden sm:block w-px h-10 bg-white/10" />
-                        <div>
-                            <p className="text-3xl font-black text-white">2×</p>
-                            <p className="text-[10px] uppercase tracking-[0.18em] text-white/40 font-bold mt-1">MarketsandMarkets "Star"</p>
-                        </div>
+                    <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-3 mb-6">
+                        {[
+                            { label: 'Ethereum Nodes', value: '~10%', sub: 'of the network', accent: true },
+                            { label: 'Global Ranking', value: '#2', sub: 'Blockchain Cloud', accent: true },
+                            { label: 'Infra Reach', value: '46', sub: 'Datacenters', accent: false },
+                            { label: 'Industry Leader', value: '2×', sub: 'MarketsandMarkets', accent: false },
+                        ].map(({ label, value, sub, accent }) => (
+                            <div
+                                key={label}
+                                className="rounded-xl p-3 border bg-white/60 backdrop-blur-xl text-center flex flex-col justify-center gap-0.5 transition-all hover:bg-white/80"
+                                style={{ borderColor: `${ACCENT}20`, boxShadow: `0 2px 12px ${ACCENT}06` }}
+                            >
+                                <p className="text-[8px] uppercase tracking-[0.15em] text-slate-400 font-bold">{label}</p>
+                                <p className="text-2xl font-black" style={{ color: accent ? ACCENT : '#1e293b' }}>{value}</p>
+                                <p className="text-[8px] text-slate-400 uppercase tracking-[0.1em]">{sub}</p>
+                            </div>
+                        ))}
                     </div>
 
-                    <div className="flex flex-col gap-8 pb-24">
+                    <p className="text-[9px] text-center text-slate-400 mb-12 uppercase tracking-[0.22em] font-medium max-w-3xl mx-auto leading-relaxed">
+                        Supporting all architectures, from standard RPC/ERPC endpoints to<br className="hidden sm:block" />
+                        complex institutional nodes: <span className="text-slate-600">Bare Metal</span> •{' '}
+                        <span className="text-slate-600">Public Cloud</span> •{' '}
+                        <span className="text-slate-600">Hybrid Solutions</span>
+                    </p>
+
+                    <div className="flex flex-col gap-8">
                         {cases.map((c) => (
                             <UseCaseCard key={c.company} {...c} accent={ACCENT} />
                         ))}
+                    </div>
+
+                    {/* Final CTA section */}
+                    <div className="mt-16 mb-24 p-8 rounded-3xl border bg-white/60 backdrop-blur-xl text-center"
+                        style={{ borderColor: `${ACCENT}20`, boxShadow: `0 4px 40px ${ACCENT}08` }}>
+                        <h3 className="text-xl font-black text-slate-800 mb-3">Ready to Build?</h3>
+                        <p className="text-sm text-slate-500 mb-8 max-w-lg mx-auto leading-relaxed">
+                            Explore our official blockchain ecosystem or connect with our specialized team to design your next infrastructure.
+                        </p>
+                        <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+                            <a
+                                href="https://www.ovhcloud.com/en/lp/powering-blockchain-ethos/"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="w-full sm:w-auto px-8 py-3.5 rounded-xl font-black uppercase tracking-widest text-[11px] transition-all hover:scale-105 active:scale-95 text-white"
+                                style={{ background: ACCENT, boxShadow: `0 0 24px ${ACCENT}40` }}
+                            >
+                                Visit Official Hub
+                            </a>
+                            <Link
+                                href="/about#contact-section"
+                                className="w-full sm:w-auto px-8 py-3.5 rounded-xl font-black uppercase tracking-widest text-[11px] transition-all hover:bg-[#627EEA]/5 active:scale-95"
+                                style={{ border: `1px solid ${ACCENT}30`, color: ACCENT }}
+                            >
+                                Contact Experts
+                            </Link>
+                        </div>
                     </div>
                 </main>
             </div>

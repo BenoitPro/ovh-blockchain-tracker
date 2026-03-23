@@ -1,5 +1,6 @@
 'use client';
 
+import Link from 'next/link';
 import ParticlesBackground from '@/components/ParticlesBackground';
 import AnimatedTagline from '@/components/dashboard/AnimatedTagline';
 
@@ -17,6 +18,7 @@ const cases = [
         person: 'Francesco Ciuci, CEO & Co-Founder, Mizar',
         highlights: ['2–3 day provisioning', 'Minimal RPC latency', 'gRPC stream access', 'Custom monitoring dashboard'],
         source: 'https://www.ovhcloud.com/en/case-studies/dysnix/',
+        image: '/images/use-cases/mizar-solana.png',
     },
     {
         company: 'Everstake',
@@ -29,6 +31,7 @@ const cases = [
         person: 'Denys Avierin, CIO at Everstake',
         highlights: ['$7B+ staked assets', '1M+ delegators', '80+ PoS networks', '99.98% reliability'],
         source: 'https://www.ovhcloud.com/en/case-studies/everstake/',
+        image: '/images/use-cases/everstake-solana.png',
     },
     {
         company: 'Stakely',
@@ -41,6 +44,7 @@ const cases = [
         person: 'Jose Antonio Hernandez, CEO at Stakely',
         highlights: ['40+ PoS networks', 'Global geo-distribution', '1.3 Tbit/s Anti-DDoS', 'Water-cooled infra'],
         source: 'https://www.ovhcloud.com/en/case-studies/stakely/',
+        image: '/images/use-cases/stakely-solana.png',
     },
 ];
 
@@ -70,15 +74,27 @@ interface UseCaseCardProps {
     highlights: string[];
     source: string;
     accent: string;
+    image: string;
 }
 
-function UseCaseCard({ company, role, chains, description, quote, person, highlights, source, accent }: UseCaseCardProps) {
+function UseCaseCard({ company, role, chains, description, quote, person, highlights, source, accent, image }: UseCaseCardProps) {
     return (
         <div
-            className="rounded-2xl p-6 md:p-8 border border-white/8 bg-black/40 backdrop-blur-xl transition-all duration-300 hover:border-white/15"
+            className="rounded-2xl border border-white/8 bg-black/40 backdrop-blur-xl transition-all duration-300 hover:border-white/15 overflow-hidden group"
             style={{ boxShadow: `0 4px 40px ${accent}08` }}
         >
-            {/* Header */}
+            {/* Image section */}
+            <div className="relative h-48 w-full overflow-hidden border-b border-white/8">
+                <img 
+                    src={image} 
+                    alt={company} 
+                    className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
+            </div>
+
+            <div className="p-6 md:p-8">
+                {/* Header */}
             <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 mb-5">
                 <div>
                     <h2 className="text-xl font-black text-white tracking-tight">{company}</h2>
@@ -135,6 +151,7 @@ function UseCaseCard({ company, role, chains, description, quote, person, highli
                     <path strokeLinecap="round" strokeLinejoin="round" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
                 </svg>
             </a>
+            </div>
         </div>
     );
 }
@@ -153,30 +170,86 @@ export default function UseCasesPage() {
                     />
 
                     {/* Stats banner */}
-                    <div
-                        className="mb-10 rounded-2xl p-5 border border-white/8 bg-black/30 backdrop-blur-xl flex flex-col sm:flex-row items-center justify-around gap-4 text-center"
-                        style={{ boxShadow: `0 2px 30px ${ACCENT}08` }}
-                    >
-                        <div>
-                            <p className="text-3xl font-black" style={{ color: ACCENT }}>~15%</p>
-                            <p className="text-[10px] uppercase tracking-[0.18em] text-white/40 font-bold mt-1">of Solana nodes hosted</p>
+                    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3 mb-6">
+                        {/* Solana Nodes */}
+                        <div 
+                            className="rounded-xl p-3 border border-white/8 bg-black/30 backdrop-blur-xl text-center flex flex-col justify-center gap-0.5 transition-all hover:border-white/15"
+                            style={{ boxShadow: `0 2px 20px ${ACCENT}05` }}
+                        >
+                             <p className="text-[8px] uppercase tracking-[0.15em] text-white/30 font-bold">Solana Nodes</p>
+                             <p className="text-2xl font-black" style={{ color: ACCENT }}>~15%</p>
+                             <p className="text-[8px] text-white/20 uppercase tracking-[0.1em]">of the network</p>
                         </div>
-                        <div className="hidden sm:block w-px h-10 bg-white/10" />
-                        <div>
-                            <p className="text-3xl font-black text-white">#1</p>
-                            <p className="text-[10px] uppercase tracking-[0.18em] text-white/40 font-bold mt-1">general cloud provider on Solana</p>
+                        {/* Blockchain Support */}
+                        <div 
+                            className="rounded-xl p-3 border border-white/8 bg-black/30 backdrop-blur-xl text-center flex flex-col justify-center gap-0.5 transition-all hover:border-white/15"
+                        >
+                             <p className="text-[8px] uppercase tracking-[0.15em] text-white/30 font-bold">Chains Support</p>
+                             <p className="text-2xl font-black text-white">100+</p>
+                             <p className="text-[8px] text-white/20 uppercase tracking-[0.1em]">L1 & L2 networks</p>
                         </div>
-                        <div className="hidden sm:block w-px h-10 bg-white/10" />
-                        <div>
-                            <p className="text-3xl font-black text-white">2×</p>
-                            <p className="text-[10px] uppercase tracking-[0.18em] text-white/40 font-bold mt-1">MarketsandMarkets "Star"</p>
+                        {/* Global Ranking */}
+                        <div 
+                            className="rounded-xl p-3 border border-white/8 bg-black/30 backdrop-blur-xl text-center flex flex-col justify-center gap-0.5 transition-all hover:border-white/15"
+                            style={{ boxShadow: `0 2px 20px ${ACCENT}05` }}
+                        >
+                             <p className="text-[8px] uppercase tracking-[0.15em] text-white/30 font-bold">Global Ranking</p>
+                             <p className="text-2xl font-black" style={{ color: ACCENT }}>#1</p>
+                             <p className="text-[8px] text-white/20 uppercase tracking-[0.1em]">Generalist Cloud</p>
+                        </div>
+                         {/* Data Centers */}
+                         <div 
+                            className="rounded-xl p-3 border border-white/8 bg-black/30 backdrop-blur-xl text-center flex flex-col justify-center gap-0.5 transition-all hover:border-white/15"
+                        >
+                             <p className="text-[8px] uppercase tracking-[0.15em] text-white/30 font-bold">Infra Reach</p>
+                             <p className="text-2xl font-black text-white">46</p>
+                             <p className="text-[8px] text-white/20 uppercase tracking-[0.1em]">Datacenters</p>
+                        </div>
+                        {/* Industry Star */}
+                        <div 
+                            className="rounded-xl p-3 border border-white/8 bg-black/30 backdrop-blur-xl text-center flex flex-col justify-center gap-0.5 transition-all hover:border-white/15"
+                        >
+                             <p className="text-[8px] uppercase tracking-[0.15em] text-white/30 font-bold">Industry Leader</p>
+                             <p className="text-2xl font-black text-white">2×</p>
+                             <p className="text-[8px] text-white/20 uppercase tracking-[0.1em]">MarketsandMarkets</p>
                         </div>
                     </div>
 
-                    <div className="flex flex-col gap-8 pb-24">
+                    <p className="text-[9px] text-center text-white/40 mb-12 uppercase tracking-[0.22em] font-medium max-w-3xl mx-auto leading-relaxed">
+                        Supporting all architectures, from standard RPC/ERPC endpoints to<br className="hidden sm:block" /> 
+                        complex institutional nodes: <span className="text-white/70">Bare Metal</span> • 
+                        <span className="text-white/70">Public Cloud</span> • 
+                        <span className="text-white/70">Hybrid Solutions</span>
+                    </p>
+
+                    <div className="flex flex-col gap-8">
                         {cases.map((c) => (
                             <UseCaseCard key={c.company} {...c} accent={ACCENT} />
                         ))}
+                    </div>
+
+                    {/* Final CTA section */}
+                    <div className="mt-16 mb-24 p-8 rounded-3xl border border-white/10 bg-gradient-to-b from-white/5 to-transparent backdrop-blur-xl text-center">
+                        <h3 className="text-xl font-black text-white mb-3">Ready to Build?</h3>
+                        <p className="text-sm text-white/40 mb-8 max-w-lg mx-auto leading-relaxed">
+                            Explore our official blockchain ecosystem or connect with our specialized team to design your next infrastructure.
+                        </p>
+                        <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+                            <a
+                                href="https://www.ovhcloud.com/en/lp/powering-blockchain-ethos/"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="w-full sm:w-auto px-8 py-3.5 rounded-xl bg-white text-black font-black uppercase tracking-widest text-[11px] transition-all hover:scale-105 active:scale-95 shadow-[0_0_30px_rgba(255,255,255,0.15)]"
+                            >
+                                Visit Official Hub
+                            </a>
+                            <Link
+                                href="/about#contact-section"
+                                className="w-full sm:w-auto px-8 py-3.5 rounded-xl border border-white/20 text-white font-black uppercase tracking-widest text-[11px] transition-all hover:bg-white/5 hover:border-white/40 active:scale-95"
+                            >
+                                Contact Experts
+                            </Link>
+                        </div>
                     </div>
                 </main>
             </div>

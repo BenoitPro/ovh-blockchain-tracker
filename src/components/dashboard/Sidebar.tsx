@@ -4,13 +4,16 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import ChainToggle from '@/components/ChainToggle';
+import { useNetworkTheme } from '@/components/NetworkThemeProvider';
 
 export default function Sidebar() {
     const pathname = usePathname();
-    const isEth = pathname.startsWith('/ethereum');
-    const isNodes = pathname.startsWith('/nodes');
+    const { theme } = useNetworkTheme();
+    const isEth = theme === 'ethereum';
+    const isNodes = pathname.startsWith('/nodes') || pathname.startsWith('/ethereum/nodes');
     const isUseCases = pathname.startsWith('/use-cases') || pathname.startsWith('/ethereum/use-cases');
-    const isDashboard = !isNodes && !isUseCases;
+    const isAnalytics = pathname.startsWith('/analytics') || pathname.startsWith('/ethereum/analytics');
+    const isDashboard = !isNodes && !isUseCases && !isAnalytics;
 
     const accent = isEth ? '#627EEA' : '#00F0FF';
 
@@ -103,27 +106,44 @@ export default function Sidebar() {
                 </Link>
 
                 {/* Explorer */}
-                <Link
-                    href="/nodes"
-                    className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-[11px] font-bold uppercase tracking-widest transition-all duration-200 ${
-                        isNodes ? '' : navInactiveClass
-                    }`}
-                    style={isNodes ? navActiveStyle : undefined}
-                >
-                    <svg className="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                        <circle cx="11" cy="11" r="8" />
-                        <path strokeLinecap="round" d="M21 21l-4.35-4.35" />
-                    </svg>
-                    Explorer
-                </Link>
+                {isEth ? (
+                    <Link
+                        href="/ethereum/nodes"
+                        className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-[11px] font-bold uppercase tracking-widest transition-all duration-200 opacity-50 hover:opacity-70 ${navInactiveClass}`}
+                    >
+                        <svg className="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                            <circle cx="11" cy="11" r="8" />
+                            <path strokeLinecap="round" d="M21 21l-4.35-4.35" />
+                        </svg>
+                        Explorer
+                        <span className="ml-auto text-[8px] font-black uppercase tracking-widest px-1.5 py-0.5 rounded-full border"
+                            style={{ color: '#627EEA', borderColor: '#627EEA50', background: '#627EEA12' }}>
+                            Soon
+                        </span>
+                    </Link>
+                ) : (
+                    <Link
+                        href="/nodes"
+                        className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-[11px] font-bold uppercase tracking-widest transition-all duration-200 ${
+                            isNodes ? '' : navInactiveClass
+                        }`}
+                        style={isNodes ? navActiveStyle : undefined}
+                    >
+                        <svg className="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                            <circle cx="11" cy="11" r="8" />
+                            <path strokeLinecap="round" d="M21 21l-4.35-4.35" />
+                        </svg>
+                        Explorer
+                    </Link>
+                )}
 
                 {/* Analytics */}
                 <Link
-                    href={'/analytics'}
+                    href={isEth ? '/ethereum/analytics' : '/analytics'}
                     className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-[11px] font-bold uppercase tracking-widest transition-all duration-200 ${
-                        pathname.startsWith('/analytics') ? '' : navInactiveClass
+                        isAnalytics ? '' : navInactiveClass
                     }`}
-                    style={pathname.startsWith('/analytics') ? navActiveStyle : undefined}
+                    style={isAnalytics ? navActiveStyle : undefined}
                 >
                     <svg className="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                         <path strokeLinecap="round" strokeLinejoin="round" d="M11 3.055A9.001 9.001 0 1020.945 13H11V3.055z" />
@@ -161,25 +181,42 @@ export default function Sidebar() {
                 </Link>
             </nav>
 
-            {/* ── 4. Methodology ──────────────────────────────────────────── */}
-            <div className="px-3 py-4 mt-auto">
-                <div className={`h-px mb-4 ${divider}`} />
+            {/* ── 4. CTA & Resources ────────────────────────────────────────── */}
+            <div className="px-3 pb-6 mt-auto space-y-3">
+                <div className={`h-px mb-2 ${divider}`} />
 
                 {/* Contact CTA */}
                 <Link
                     href="/about#contact-section"
-                    className={`mb-4 w-full group relative flex items-center justify-center gap-3 px-3 py-3 rounded-xl text-[11px] font-black uppercase tracking-widest transition-all duration-300 overflow-hidden text-black shadow-[0_0_20px_rgba(0,240,255,0.3)] hover:shadow-[0_0_30px_rgba(0,240,255,0.5)]`}
+                    className="w-full group relative flex items-center justify-center gap-3 px-3 py-3 rounded-xl text-[11px] font-black uppercase tracking-widest transition-all duration-300 overflow-hidden text-white"
+                    style={{ boxShadow: isEth ? '0 0 20px rgba(98,126,234,0.35)' : '0 0 20px rgba(0,240,255,0.3)' }}
                 >
-                    <div className="absolute inset-0 bg-gradient-to-r from-cyan-400 to-blue-500 opacity-90 group-hover:opacity-100 transition-opacity duration-300" />
-                    <svg className="w-4 h-4 shrink-0 text-black relative z-10" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                    <div
+                        className="absolute inset-0 opacity-90 group-hover:opacity-100 transition-opacity duration-300"
+                        style={{ background: isEth ? 'linear-gradient(135deg, #627EEA, #4F6DD4)' : 'linear-gradient(135deg, #22D3EE, #3B82F6)' }}
+                    />
+                    <svg className="w-4 h-4 shrink-0 text-white relative z-10" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
                         <path strokeLinecap="round" strokeLinejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
                     </svg>
-                    <span className="relative z-10">Contact Us</span>
+                    <span className="relative z-10 font-bold">Contact Us</span>
                 </Link>
 
-                <p className="text-[10px] text-white/30 text-center uppercase tracking-widest font-bold font-mono">
-                    Node Distribution
-                </p>
+                {/* Official Website Link */}
+                <a
+                    href="https://www.ovhcloud.com/en/lp/powering-blockchain-ethos/"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className={`group w-full flex items-center justify-center gap-2 py-3 rounded-xl transition-all duration-300 text-[9px] uppercase tracking-[0.15em] font-black ${
+                        isEth
+                            ? 'border border-[#627EEA]/25 bg-[#627EEA]/8 text-[#627EEA]/60 hover:text-[#627EEA] hover:bg-[#627EEA]/15 hover:border-[#627EEA]/40'
+                            : 'border border-white/12 bg-white/5 text-white/50 hover:text-white hover:border-white/25 hover:bg-white/10'
+                    }`}
+                >
+                    <svg className="w-3.5 h-3.5 transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                    </svg>
+                    Go to Official Website
+                </a>
             </div>
 
             {/* ── Animated accent line on right edge ──────────────────────── */}
