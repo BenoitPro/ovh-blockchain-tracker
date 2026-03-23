@@ -9,7 +9,8 @@ export default function Sidebar() {
     const pathname = usePathname();
     const isEth = pathname.startsWith('/ethereum');
     const isNodes = pathname.startsWith('/nodes');
-    const isDashboard = !isNodes;
+    const isUseCases = pathname.startsWith('/use-cases') || pathname.startsWith('/ethereum/use-cases');
+    const isDashboard = !isNodes && !isUseCases;
 
     const accent = isEth ? '#627EEA' : '#00F0FF';
 
@@ -116,83 +117,69 @@ export default function Sidebar() {
                     Explorer
                 </Link>
 
-                {/* Use Cases — coming soon */}
-                <button
-                    disabled
-                    className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-[11px] font-bold uppercase tracking-widest w-full cursor-not-allowed opacity-40 ${
-                        isEth ? 'text-slate-400' : 'text-white/40'
+                {/* Analytics */}
+                <Link
+                    href={'/analytics'}
+                    className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-[11px] font-bold uppercase tracking-widest transition-all duration-200 ${
+                        pathname.startsWith('/analytics') ? '' : navInactiveClass
                     }`}
+                    style={pathname.startsWith('/analytics') ? navActiveStyle : undefined}
+                >
+                    <svg className="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M11 3.055A9.001 9.001 0 1020.945 13H11V3.055z" />
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M20.488 9H15V3.512A9.025 9.025 0 0120.488 9z" />
+                    </svg>
+                    Analytics
+                </Link>
+
+                {/* About Us */}
+                <Link
+                    href="/about"
+                    className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-[11px] font-bold uppercase tracking-widest transition-all duration-200 ${
+                        pathname.startsWith('/about') ? '' : navInactiveClass
+                    }`}
+                    style={pathname.startsWith('/about') ? navActiveStyle : undefined}
+                >
+                    <svg className="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                    </svg>
+                    Team & Contact
+                </Link>
+
+                {/* Use Cases */}
+                <Link
+                    href={isEth ? '/ethereum/use-cases' : '/use-cases'}
+                    className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-[11px] font-bold uppercase tracking-widest transition-all duration-200 ${
+                        isUseCases ? '' : navInactiveClass
+                    }`}
+                    style={isUseCases ? navActiveStyle : undefined}
                 >
                     <svg className="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                         <path strokeLinecap="round" strokeLinejoin="round" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
                     </svg>
                     Use Cases
-                    <span
-                        className="ml-auto text-[8px] font-black uppercase tracking-wider px-1.5 py-0.5 rounded-full"
-                        style={{ background: `${accent}18`, color: accent, border: `1px solid ${accent}30` }}
-                    >
-                        Soon
-                    </span>
-                </button>
+                </Link>
             </nav>
 
             {/* ── 4. Methodology ──────────────────────────────────────────── */}
-            <div className="px-3 py-4">
+            <div className="px-3 py-4 mt-auto">
                 <div className={`h-px mb-4 ${divider}`} />
-                <details className="group">
-                    <summary
-                        className={`text-[10px] cursor-pointer list-none flex items-center gap-2 font-semibold uppercase tracking-widest outline-none transition-colors duration-200 ${methodologyTextClass}`}
-                        style={{ '--hover-color': accent } as React.CSSProperties}
-                    >
-                        <svg className="w-3 h-3 shrink-0 opacity-60" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                            <path strokeLinecap="round" strokeLinejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                        </svg>
-                        Methodology
-                        <svg
-                            className="w-3 h-3 ml-auto transition-transform duration-300 group-open:rotate-180 opacity-60"
-                            fill="none" viewBox="0 0 24 24" stroke="currentColor"
-                        >
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                        </svg>
-                    </summary>
 
-                    <div className={`mt-3 p-3 rounded-lg text-[10px] leading-relaxed space-y-2 ${methodologyBodyClass} ${methodologyBorder}`}>
-                        {isEth ? (
-                            <>
-                                <p>
-                                    Ethereum execution-layer nodes are discovered via the <strong className={isEth ? 'text-slate-700' : 'text-white/80'}>devp2p/discv4</strong> protocol using the official EF crawler.
-                                </p>
-                                <ol className="list-decimal list-inside space-y-1 ml-1">
-                                    <li><strong className={isEth ? 'text-slate-600' : 'text-white/70'}>Crawl:</strong> 30-60 min P2P crawl, ~5,000–8,000 nodes.</li>
-                                    <li><strong className={isEth ? 'text-slate-600' : 'text-white/70'}>ASN Resolution:</strong> IP → ASN via MaxMind GeoLite2.</li>
-                                    <li><strong className={isEth ? 'text-slate-600' : 'text-white/70'}>Provider Matching:</strong> ASN against cloud provider lists.</li>
-                                </ol>
-                                <p className={`pt-2 italic border-t ${isEth ? 'border-slate-200' : 'border-white/10'}`}>
-                                    Snapshot-based. Updated manually.
-                                </p>
-                            </>
-                        ) : (
-                            <>
-                                <p>
-                                    Aligned with the{' '}
-                                    <a href="https://messari.io/report/evaluating-validator-decentralization-geographic-and-infrastructure-distribution-in-proof-of-stake-networks"
-                                        target="_blank" rel="noopener noreferrer"
-                                        className="underline" style={{ color: accent }}>
-                                        Messari Validator Report
-                                    </a>{' '}framework.
-                                </p>
-                                <ol className="list-decimal list-inside space-y-1 ml-1">
-                                    <li><strong className="text-white/70">Solana RPC:</strong> Full census of active validators &amp; RPC nodes.</li>
-                                    <li><strong className="text-white/70">ASN Resolution:</strong> IP → ASN via MaxMind GeoLite2.</li>
-                                    <li><strong className="text-white/70">Weighting:</strong> Stake/consensus influence where applicable.</li>
-                                </ol>
-                                <p className="pt-2 italic border-t border-white/10">
-                                    Full network (~5,000 nodes). Live data.
-                                </p>
-                            </>
-                        )}
-                    </div>
-                </details>
+                {/* Contact CTA */}
+                <Link
+                    href="/about#contact-section"
+                    className={`mb-4 w-full group relative flex items-center justify-center gap-3 px-3 py-3 rounded-xl text-[11px] font-black uppercase tracking-widest transition-all duration-300 overflow-hidden text-black shadow-[0_0_20px_rgba(0,240,255,0.3)] hover:shadow-[0_0_30px_rgba(0,240,255,0.5)]`}
+                >
+                    <div className="absolute inset-0 bg-gradient-to-r from-cyan-400 to-blue-500 opacity-90 group-hover:opacity-100 transition-opacity duration-300" />
+                    <svg className="w-4 h-4 shrink-0 text-black relative z-10" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+                    </svg>
+                    <span className="relative z-10">Contact Us</span>
+                </Link>
+
+                <p className="text-[10px] text-white/30 text-center uppercase tracking-widest font-bold font-mono">
+                    Node Distribution
+                </p>
             </div>
 
             {/* ── Animated accent line on right edge ──────────────────────── */}

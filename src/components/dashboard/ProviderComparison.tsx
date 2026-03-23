@@ -16,7 +16,6 @@ interface ProviderComparisonProps {
     providerBreakdown?: ProviderBreakdownEntry[];
 }
 
-const MONTHLY_COST_PER_NODE = 150; // EUR
 
 interface CustomTooltipProps {
     active?: boolean;
@@ -49,15 +48,6 @@ function CustomTooltip({ active, payload }: CustomTooltipProps) {
                         {entry.marketShare.toFixed(2)}%
                     </span>
                 </p>
-                {entry.key === 'ovh' && (
-                    <p className="pt-1 border-t border-white/10 mt-1">
-                        <span className="text-gray-400">Est. Rev: </span>
-                        <span className="font-semibold text-[#00F0FF]">
-                            ~€{(entry.nodeCount * MONTHLY_COST_PER_NODE).toLocaleString('en-US')}/month
-                        </span>
-                    </p>
-                )}
-
                 {entry.subProviders && entry.subProviders.length > 0 && (
                     <div className="pt-3 pb-1 border-t border-white/10 mt-3 space-y-1.5 min-w-[200px]">
                         <p className="text-xs text-gray-400 font-medium uppercase tracking-wider mb-2">Top Others:</p>

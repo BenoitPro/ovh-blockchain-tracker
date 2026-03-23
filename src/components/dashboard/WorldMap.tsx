@@ -130,29 +130,39 @@ export default function WorldMap({ geoDistribution, onCountryClick }: WorldMapPr
     }, [dataPoints]);
 
     return (
-        <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-white/5 to-white/[0.02] backdrop-blur-xl border border-white/10 p-8 glass-card flex flex-col h-[600px] md:h-auto">
-            <h2 className="text-xl font-bold text-white mb-6 z-10 shrink-0">Geographic Distribution</h2>
+        <div className="relative flex flex-col w-full min-h-[400px]">
+            {/* We can hide the title Geographic Distribution or keep it very subtle, let's keep it subtle */}
+            <h2 className="sr-only">Geographic Distribution</h2>
 
             {/* 3D Globe Container */}
             <div 
                 ref={containerRef} 
-                className="relative w-full flex-grow min-h-[350px] aspect-auto md:aspect-[2/1] bg-gradient-to-b from-[#02050D] to-[#0A0E1A] rounded-xl overflow-hidden shadow-2xl z-0"
+                className="w-full h-[400px] md:h-[500px] relative flex items-center justify-center"
+                style={{ 
+                    background: 'transparent',
+                }}
             >
                 {dimensions.width > 0 && dimensions.height > 0 && (
                     <Globe
                         ref={globeRef}
                         width={dimensions.width}
                         height={dimensions.height}
+                        backgroundColor="rgba(0,0,0,0)"
                         globeImageUrl="//unpkg.com/three-globe/example/img/earth-dark.jpg"
                         bumpImageUrl="//unpkg.com/three-globe/example/img/earth-topology.png"
-                        backgroundImageUrl="//unpkg.com/three-globe/example/img/night-sky.png"
                         
                         onGlobeReady={() => {
                             if (globeRef.current) {
-                                globeRef.current.controls().autoRotate = true;
-                                globeRef.current.controls().autoRotateSpeed = 0.8;
-                                // Bien centré sur l'Europe en zoomant correctement !
-                                globeRef.current.pointOfView({ altitude: 1.5, lat: 48, lng: 10 }, 1500);
+                                // Centré avec un zoom reculé pour voir les données sans scroller
+                                globeRef.current.pointOfView({ altitude: 1.8, lat: 30, lng: -10 }, 1500);
+                                
+                                // Restore auto-rotate explicitly after animation
+                                setTimeout(() => {
+                                    if (globeRef.current) {
+                                        globeRef.current.controls().autoRotate = true;
+                                        globeRef.current.controls().autoRotateSpeed = 0.8;
+                                    }
+                                }, 1550);
                             }
                         }}
                         
@@ -223,53 +233,42 @@ export default function WorldMap({ geoDistribution, onCountryClick }: WorldMapPr
                         
                         // Configs esthétiques supplémentaires
                         atmosphereColor="#00F0FF"
-                        atmosphereAltitude={0.15}
+                        atmosphereAltitude={0.05}
                     />
                 )}
                 
-                {/* Effet bordure interne */}
-                <div className="absolute inset-0 rounded-xl shadow-[inset_0_0_50px_rgba(0,0,0,0.8)] pointer-events-none z-10" />
             </div>
 
-            {/* Légende et statistiques - responsive */}
-            <div className="mt-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 text-sm shrink-0 z-10 relative">
-                <div className="flex items-center justify-center sm:justify-start gap-4 md:gap-6">
-                    <div className="flex items-center gap-2">
-                        <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-gradient-to-br from-[#00F0FF]/25 to-[#00F0FF]/5 border border-[#00F0FF]/30 shadow-[0_0_10px_rgba(0,240,255,0.2)]">
-                            <p className="text-sm font-bold text-[#00F0FF]">
-                                {Object.keys(geoDistribution).length}
-                            </p>
-                        </div>
-                        <p className="text-xs text-gray-400 font-medium tracking-wide">Countries</p>
-                    </div>
-
-                    <div className="flex items-center gap-2">
-                        <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-gradient-to-br from-white/15 to-white/5 border border-white/20">
-                            <p className="text-sm font-bold text-white">
-                                {Object.values(geoDistribution).reduce((a, b) => a + b, 0)}
-                            </p>
-                        </div>
-                        <p className="text-xs text-gray-400 font-medium tracking-wide">Total Nodes</p>
-                    </div>
-                </div>
-
-                <div className="hidden md:flex items-center gap-6 bg-black/40 px-4 py-2 rounded-lg border border-white/5">
-                    <div className="flex items-center gap-2.5">
+            {/* Légende absolue en haut à droite - Groupée en components logiques */}
+            <div className="absolute top-4 right-4 md:top-6 md:right-6 flex flex-col items-end gap-3 z-20 pointer-events-none">
+                
+                {/* Component 1: Node Status & Heatmap Intensity */}
+                <div className="flex items-center gap-4 bg-black/40 px-4 py-2 rounded-full border border-white/10 backdrop-blur-md shadow-lg">
+                    {/* Part 1: Status */}
+                    <div className="flex items-center gap-2 pr-4 border-r border-white/10">
+                        <span className="text-gray-300 font-medium text-[10px] tracking-widest uppercase">Active Node</span>
                         <div className="relative">
-                            <div className="w-2.5 h-2.5 rounded-full bg-[#00F0FF] shadow-[0_0_8px_#00F0FF]"></div>
-                            <div className="absolute inset-0 w-2.5 h-2.5 rounded-full bg-[#00F0FF] animate-ping opacity-60"></div>
+                            <div className="w-2 h-2 rounded-full bg-[#00F0FF] shadow-[0_0_8px_#00F0FF]"></div>
+                            <div className="absolute inset-0 w-2 h-2 rounded-full bg-[#00F0FF] animate-ping opacity-60"></div>
                         </div>
-                        <span className="text-gray-300 font-medium text-xs tracking-wide">Active Node</span>
                     </div>
 
-                    <div className="h-4 w-px bg-white/10" />
-
-                    <div className="flex items-center gap-3">
-                        <span className="text-gray-500 text-[10px] uppercase font-bold">Low</span>
+                    {/* Part 2: Gradient Scale */}
+                    <div className="flex items-center gap-2 pl-1">
+                        <span className="text-gray-500 text-[9px] uppercase font-bold tracking-wider">Low</span>
                         <div className="w-16 h-1 rounded-full bg-gradient-to-r from-[#00F0FF]/20 via-[#00F0FF]/60 to-[#00F0FF] shadow-[0_0_5px_rgba(0,240,255,0.5)]"></div>
-                        <span className="text-gray-400 text-[10px] uppercase font-bold text-white/90">High</span>
+                        <span className="text-white/90 text-[9px] uppercase font-bold tracking-wider">High</span>
                     </div>
                 </div>
+
+                {/* Component 2: Countries Distribution */}
+                <div className="flex items-center gap-2.5 bg-black/40 px-3 py-1.5 rounded-full border border-white/10 backdrop-blur-md shadow-lg">
+                    <span className="text-gray-300 font-medium text-[10px] tracking-widest uppercase">Countries</span>
+                    <div className="flex items-center justify-center min-w-[20px] h-[20px] px-1.5 rounded-md bg-[#00F0FF]/15 border border-[#00F0FF]/30">
+                        <span className="text-[10px] font-bold text-[#00F0FF] leading-none">{Object.keys(geoDistribution).length}</span>
+                    </div>
+                </div>
+
             </div>
         </div>
     );

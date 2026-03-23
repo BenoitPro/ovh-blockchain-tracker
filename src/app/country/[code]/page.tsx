@@ -5,6 +5,7 @@ import { useParams, useRouter } from 'next/navigation';
 import { ArrowLeftIcon, ServerIcon, MapPinIcon, ShieldCheckIcon } from '@heroicons/react/24/outline';
 import { CountryDetailResponse, CountryNode } from '@/types';
 import Image from 'next/image';
+import ParticlesBackground from '@/components/ParticlesBackground';
 
 function formatSOL(lamports: number): string {
     if (!lamports) return '—';
@@ -42,15 +43,8 @@ export default function CountryDetailPage() {
     }, [code]);
 
     return (
-        <div className="min-h-screen relative" style={{ background: 'linear-gradient(135deg, #000e1e 0%, #0d1220 50%, #000e1e 100%)' }}>
-            {/* Subtle grid overlay */}
-            <div
-                className="fixed inset-0 opacity-[0.03] pointer-events-none"
-                style={{
-                    backgroundImage: 'linear-gradient(rgba(0,240,255,.5) 1px, transparent 1px), linear-gradient(90deg, rgba(0,240,255,.5) 1px, transparent 1px)',
-                    backgroundSize: '60px 60px',
-                }}
-            />
+        <div className="min-h-screen relative overflow-hidden bg-[#050510]">
+            <ParticlesBackground />
 
             <div className="relative z-10 container mx-auto px-6 py-12">
                 {/* Back button */}

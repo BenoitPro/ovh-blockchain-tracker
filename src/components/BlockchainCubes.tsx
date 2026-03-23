@@ -17,7 +17,11 @@ interface Cube {
     parallaxFactor: number;
 }
 
-export default function BlockchainCubes() {
+interface BlockchainCubesProps {
+    opacity?: number;
+}
+
+export default function BlockchainCubes({ opacity = 0.6 }: BlockchainCubesProps) {
     const canvasRef = useRef<HTMLCanvasElement>(null);
     const cubesRef = useRef<Cube[]>([]);
     const animationFrameRef = useRef<number | undefined>(undefined);
@@ -61,9 +65,9 @@ export default function BlockchainCubes() {
                     rotationX: Math.random() * Math.PI * 2,
                     rotationY: Math.random() * Math.PI * 2,
                     rotationZ: Math.random() * Math.PI * 2,
-                    size: 40 + Math.random() * 60,
+                    size: 15 + Math.random() * 30,
                     speed: 0.001 + Math.random() * 0.002,
-                    opacity: 0.15 + Math.random() * 0.25,
+                    opacity: 0.05 + Math.random() * 0.15,
                     parallaxFactor: 5 + Math.random() * 10,
                 };
             });
@@ -75,7 +79,7 @@ export default function BlockchainCubes() {
             ctx.save();
             ctx.translate(cube.x, cube.y);
 
-            const { rotationX, rotationY, rotationZ, size, opacity } = cube;
+            const { rotationX, rotationY, rotationZ, size, opacity: cubeOpacity } = cube;
 
             // 3D projection matrix (simplified)
             const cos = Math.cos;
@@ -135,18 +139,18 @@ export default function BlockchainCubes() {
                 );
 
                 if (index % 2 === 0) {
-                    gradient.addColorStop(0, `rgba(107, 79, 187, ${opacity})`); // Purple
-                    gradient.addColorStop(1, `rgba(0, 191, 255, ${opacity * 0.6})`); // Cyan
+                    gradient.addColorStop(0, `rgba(107, 79, 187, ${cubeOpacity})`); // Purple
+                    gradient.addColorStop(1, `rgba(0, 191, 255, ${cubeOpacity * 0.6})`); // Cyan
                 } else {
-                    gradient.addColorStop(0, `rgba(0, 191, 255, ${opacity})`); // Cyan
-                    gradient.addColorStop(1, `rgba(107, 79, 187, ${opacity * 0.6})`); // Purple
+                    gradient.addColorStop(0, `rgba(0, 191, 255, ${cubeOpacity})`); // Cyan
+                    gradient.addColorStop(1, `rgba(107, 79, 187, ${cubeOpacity * 0.6})`); // Purple
                 }
 
                 ctx.fillStyle = gradient;
                 ctx.fill();
 
                 // Glowing edges
-                ctx.strokeStyle = `rgba(0, 240, 255, ${opacity * 1.5})`;
+                ctx.strokeStyle = `rgba(0, 240, 255, ${cubeOpacity * 1.5})`;
                 ctx.lineWidth = 1.5;
                 ctx.shadowBlur = 15;
                 ctx.shadowColor = 'rgba(0, 240, 255, 0.8)';
@@ -231,7 +235,7 @@ export default function BlockchainCubes() {
         <canvas
             ref={canvasRef}
             className="fixed inset-0 pointer-events-none z-0"
-            style={{ opacity: 0.6 }}
+            style={{ opacity }}
         />
     );
 }

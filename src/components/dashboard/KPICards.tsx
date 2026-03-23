@@ -1,105 +1,98 @@
 import { useState } from 'react';
-import { ServerIcon, ChartPieIcon, ShieldCheckIcon, InformationCircleIcon, XMarkIcon } from '@heroicons/react/24/outline';
+import { ServerIcon, ChartPieIcon, InformationCircleIcon, XMarkIcon } from '@heroicons/react/24/outline';
 import { formatPercentage } from '@/lib/solana/calculateMetrics';
+import { motion, AnimatePresence } from 'framer-motion';
 
 interface KPICardsProps {
+    totalNodes: number;
     ovhNodes: number;
     marketShare: number;
-    stakeShare?: number; // New prop
 }
 
-export default function KPICards({ ovhNodes, marketShare, stakeShare }: KPICardsProps) {
+export default function KPICards({ totalNodes, ovhNodes, marketShare }: KPICardsProps) {
     const [activeTooltip, setActiveTooltip] = useState<number | null>(null);
 
-    const cards = [
+    const metrics = [
+        {
+            title: 'Total Network Nodes',
+            value: totalNodes.toLocaleString(),
+            icon: ServerIcon,
+            color: '#A855F7',
+            tooltipTitle: 'Total Network Nodes',
+            tooltipContent: 'Total number of active nodes detected globally on the network.'
+        },
         {
             title: 'Active OVH Nodes (RPC + Staking)',
             value: ovhNodes.toString(),
             icon: ServerIcon,
-            color: 'cyan',
-            gradient: 'from-[#00F0FF]/20 via-[#6B4FBB]/10 to-transparent',
+            color: '#00F0FF',
             tooltipTitle: 'Active OVH Nodes (RPC + Staking)',
-            tooltipContent: 'Total number of Solana network nodes (both RPC and voting validators) currently identifying as hosting on OVHcloud infrastructure via their ASN (Autonomous System Number). Detected using MaxMind GeoLite2 ASN database mapping.'
+            tooltipContent: 'Total number of Solana network nodes (both RPC and voting validators) currently identifying as hosting on OVHcloud infrastructure via their ASN.'
         },
         {
             title: 'Market Share (All Nodes)',
             value: formatPercentage(marketShare),
             icon: ChartPieIcon,
-            color: 'purple',
-            gradient: 'from-[#6B4FBB]/20 via-[#00F0FF]/10 to-transparent',
+            color: '#6B4FBB',
             tooltipTitle: 'Node Market Share',
-            tooltipContent: 'Percentage of total network nodes (RPC + Staking) hosted on OVH. Calculated as: (OVH Nodes / Total Network Nodes) * 100.'
-        },
-        {
-            title: 'Network Security (Stake)',
-            value: stakeShare !== undefined ? formatPercentage(stakeShare) : 'Loading...',
-            icon: ShieldCheckIcon,
-            color: 'green',
-            gradient: 'from-emerald-500/20 via-teal-500/10 to-transparent',
-            tooltipTitle: 'Stake Weight (Security %)',
-            tooltipContent: 'Percentage of total network active stake (SOL) delegated to OVH nodes. This represents the actual voting power and security influence of OVH on the network.'
-        },
+            tooltipContent: 'Percentage of total network nodes (RPC + Staking) hosted on OVH.'
+        }
     ];
 
     return (
-        <div className="grid grid-cols-1 md:grid-cols-3 xl:grid-cols-3 gap-6">
-            {cards.map((card, index) => (
+        <div className="flex flex-col md:flex-row gap-8 justify-center items-center w-full relative z-20">
+            {metrics.map((item, index) => (
                 <div
                     key={index}
                     onClick={() => setActiveTooltip(index)}
-                    className="group relative overflow-hidden rounded-2xl glass-card hover:border-[#00F0FF]/50 transition-all duration-300 hover:scale-[1.02] cursor-pointer"
+                    className="relative group cursor-pointer flex flex-col items-center text-center p-4 min-w-[300px]"
                 >
-                    {/* Gradient overlay */}
-                    <div className={`absolute inset-0 bg-gradient-to-br ${card.gradient} opacity-50 group-hover:opacity-100 transition-opacity duration-500`}></div>
-
-                    <div className="relative p-6 z-10">
-                        {/* Info Icon Helper */}
-                        <div className="absolute top-4 right-4 text-white/20 group-hover:text-[#00F0FF] transition-colors">
-                            <InformationCircleIcon className="w-5 h-5" />
-                        </div>
-
-                        <div className="flex flex-col h-full justify-between">
-                            <div>
-                                <p className="text-xs font-bold text-gray-400 mb-2 uppercase tracking-wider">{card.title}</p>
-                                <p className={`text-3xl font-black ${card.color === 'cyan' ? 'text-[#00F0FF]' :
-                                    card.color === 'purple' ? 'text-[#6B4FBB]' : 'text-emerald-400'
-                                    } drop-shadow-lg truncate`}>
-                                    {card.value}
-                                </p>
-                            </div>
-
-                            <div className="mt-4 flex justify-end">
-                                <div className={`p-2 rounded-lg bg-white/5 border border-white/10 group-hover:scale-110 transition-transform duration-300`}>
-                                    <card.icon className={`w-6 h-6 ${card.color === 'cyan' ? 'text-[#00F0FF]' :
-                                        card.color === 'purple' ? 'text-[#6B4FBB]' : 'text-emerald-400'
-                                        }`} />
-                                </div>
-                            </div>
-                        </div>
-
-                        {/* Animated bottom border */}
-                        <div className="absolute bottom-0 left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-[#00F0FF] to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                    {/* Glowing effect behind the text */}
+                    <div 
+                        className="absolute inset-0 opacity-0 group-hover:opacity-20 blur-3xl transition-opacity duration-700 pointer-events-none rounded-full"
+                        style={{ background: `radial-gradient(circle, ${item.color} 0%, transparent 60%)` }}
+                    />
+                    
+                    <div className="flex items-center gap-2 mb-2 text-slate-400 group-hover:text-white transition-colors duration-300">
+                        <item.icon className="w-5 h-5 opacity-70" style={{ color: item.color }} />
+                        <span className="text-xs font-bold uppercase tracking-[0.15em]">{item.title}</span>
+                        <InformationCircleIcon className="w-4 h-4 opacity-30 hover:opacity-100 transition-opacity" />
                     </div>
+                    
+                    <h3 
+                        className="text-4xl md:text-5xl font-black drop-shadow-[0_0_20px_rgba(255,255,255,0.1)] transition-transform duration-300 group-hover:scale-105"
+                        style={{ color: item.color, textShadow: `0 0 30px ${item.color}60` }}
+                    >
+                        {item.value}
+                    </h3>
 
-                    {/* Tooltip Overlay (Click activated) */}
-                    {activeTooltip === index && (
-                        <div
-                            className="absolute inset-0 z-50 bg-[#050510]/95 backdrop-blur-md p-6 flex flex-col justify-center animate-fade-in"
-                            onClick={(e) => {
-                                e.stopPropagation();
-                                setActiveTooltip(null);
-                            }}
-                        >
-                            <button className="absolute top-4 right-4 text-white/50 hover:text-white">
-                                <XMarkIcon className="w-5 h-5" />
-                            </button>
-                            <h4 className="text-[#00F0FF] font-bold mb-2">{card.tooltipTitle}</h4>
-                            <p className="text-sm text-gray-300 leading-relaxed">
-                                {card.tooltipContent}
-                            </p>
-                            <span className="text-xs text-white/30 mt-4 text-center">Click to close</span>
-                        </div>
-                    )}
+                    {/* Tooltip Overlay */}
+                    <AnimatePresence>
+                        {activeTooltip === index && (
+                            <motion.div
+                                initial={{ opacity: 0, scale: 0.95, y: 10 }}
+                                animate={{ opacity: 1, scale: 1, y: 0 }}
+                                exit={{ opacity: 0, scale: 0.95, y: 10 }}
+                                className="absolute bottom-full mb-4 z-50 w-72 bg-[#050510]/95 backdrop-blur-xl border border-white/10 rounded-2xl p-5 shadow-2xl text-left cursor-default"
+                                style={{ boxShadow: `0 10px 40px ${item.color}20` }}
+                                onClick={(e) => e.stopPropagation()}
+                            >
+                                <button 
+                                    className="absolute top-3 right-3 text-white/50 hover:text-white"
+                                    onClick={(e) => { e.stopPropagation(); setActiveTooltip(null); }}
+                                >
+                                    <XMarkIcon className="w-4 h-4" />
+                                </button>
+                                <h4 className="text-sm font-bold mb-2 flex items-center gap-2" style={{ color: item.color }}>
+                                    <InformationCircleIcon className="w-4 h-4" />
+                                    {item.tooltipTitle}
+                                </h4>
+                                <p className="text-xs text-slate-300 leading-relaxed">
+                                    {item.tooltipContent}
+                                </p>
+                            </motion.div>
+                        )}
+                    </AnimatePresence>
                 </div>
             ))}
         </div>

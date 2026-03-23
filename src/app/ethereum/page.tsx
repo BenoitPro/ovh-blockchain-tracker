@@ -6,9 +6,13 @@ import WorldMap from '@/components/dashboard/WorldMap';
 import Footer from '@/components/dashboard/Footer';
 import LoadingState from '@/components/dashboard/LoadingState';
 import ErrorState from '@/components/dashboard/ErrorState';
-import Sidebar from '@/components/dashboard/Sidebar';
 import { EthSnapshotMetrics } from '@/types';
-import { ServerIcon, ChartPieIcon, ClockIcon } from '@heroicons/react/24/outline';
+import { ServerIcon, ChartPieIcon, ClockIcon, InformationCircleIcon, XMarkIcon } from '@heroicons/react/24/outline';
+import ParticlesBackground from '@/components/ParticlesBackground';
+import BlockchainCubes from '@/components/BlockchainCubes';
+import AnimatedTagline from '@/components/dashboard/AnimatedTagline';
+import MethodologyModal from '@/components/dashboard/MethodologyModal';
+import { motion, AnimatePresence } from 'framer-motion';
 
 const ETH_COLOR = '#627EEA';
 
@@ -50,14 +54,7 @@ export default function EthereumPage() {
     const [metrics, setMetrics] = useState<EthSnapshotMetrics | null>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
-
-    // Apply light theme on mount, remove on unmount
-    useEffect(() => {
-        document.documentElement.classList.add('eth-theme');
-        return () => {
-            document.documentElement.classList.remove('eth-theme');
-        };
-    }, []);
+    const [activeTooltip, setActiveTooltip] = useState<number | null>(null);
 
     useScrollReveal(!loading && !!metrics);
 
@@ -80,41 +77,21 @@ export default function EthereumPage() {
 
     if (loading) {
         return (
-            <div className="min-h-screen flex items-center justify-center">
-                <div className="text-center space-y-4">
-                    <div className="w-12 h-12 rounded-full border-2 border-[#627EEA]/30 border-t-[#627EEA] animate-spin mx-auto" />
-                    <p className="text-slate-400 text-sm">Loading Ethereum data...</p>
-                </div>
-            </div>
+            <>
+                <BlockchainCubes opacity={0.15} />
+                <ParticlesBackground />
+                <LoadingState />
+            </>
         );
     }
 
     if (error || !metrics) {
         return (
-            <div className="min-h-screen flex items-center justify-center">
-                <div className="text-center space-y-4 max-w-md px-6">
-                    <p className="text-2xl font-bold text-slate-700">
-                        {error?.includes('No Ethereum snapshot') ? 'No snapshot yet' : 'Error'}
-                    </p>
-                    <p className="text-slate-500 text-sm leading-relaxed">{error || 'No data available'}</p>
-                    {error?.includes('No Ethereum snapshot') && (
-                        <div className="mt-4 p-4 bg-[#627EEA]/8 border border-[#627EEA]/20 rounded-xl text-left">
-                            <p className="text-xs font-mono text-slate-600 leading-relaxed">
-                                # Run the crawler first<br />
-                                ./scripts/crawl-ethereum.sh nodes.json 30m<br />
-                                npx tsx scripts/process-eth-snapshot.ts nodes.json
-                            </p>
-                        </div>
-                    )}
-                    <button
-                        onClick={fetchData}
-                        className="px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200"
-                        style={{ background: `${ETH_COLOR}18`, border: `1px solid ${ETH_COLOR}40`, color: ETH_COLOR }}
-                    >
-                        Retry
-                    </button>
-                </div>
-            </div>
+            <>
+                <BlockchainCubes opacity={0.15} />
+                <ParticlesBackground />
+                <ErrorState message={error || 'No data available'} onRetry={fetchData} />
+            </>
         );
     }
 
@@ -122,87 +99,116 @@ export default function EthereumPage() {
     const ovhShare = metrics.totalNodes > 0 ? (ovhCount / metrics.totalNodes) * 100 : 0;
 
     return (
-        <div className="min-h-screen relative">
-            {/* Sidebar */}
-            <Sidebar />
+        <div className="min-h-screen relative overflow-x-hidden overflow-y-auto bg-[#050510]" style={{ backgroundImage: "url('https://unpkg.com/three-globe/example/img/night-sky.png')", backgroundSize: 'cover', backgroundPosition: 'center', backgroundAttachment: 'fixed' }}>
+            {/* Animated Backgrounds */}
+            <BlockchainCubes opacity={0.15} />
+            <ParticlesBackground />
 
-            {/* Main Content — offset by sidebar width */}
-            <div className="relative z-10 ml-60">
+            {/* Main Content */}
+            <div className="relative z-10 flex flex-col min-h-screen">
 
-                {/* ── Main ── */}
-                <main className="container mx-auto px-6 py-6 md:py-8">
+                <main className="flex-1 flex flex-col p-6 w-full max-w-7xl mx-auto">
+                    
+                    {/* Animated Tagline */}
+                    <AnimatedTagline 
+                        title={
+                            <>Distribution of Ethereum Nodes on <span style={{ color: '#627EEA', textShadow: '0 0 20px #627EEA80' }}>OVHcloud</span></>
+                        }
+                        subtitle="Empowering the decentralized network"
+                        accentColor="#627EEA"
+                    />
 
                     {/* 1. World Map */}
                     {Object.keys(metrics.geoDistribution).length > 0 && (
-                        <section className="mb-12 fade-in-up">
-                            <div className="rounded-2xl overflow-hidden shadow-xl"
-                                style={{ boxShadow: '0 8px 40px rgba(98,126,234,0.10), 0 2px 12px rgba(98,126,234,0.06)' }}>
+                        <section className="mb-2 fade-in-up relative z-10 w-full">
+                            <div className="w-full flex items-center justify-center">
                                 <WorldMap geoDistribution={metrics.geoDistribution} />
                             </div>
                         </section>
                     )}
 
-                    {/* 2. KPI Cards */}
-                    <section className="mb-12 fade-in-up delay-100">
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-
-                            {/* Total Nodes */}
-                            <div className="group relative overflow-hidden rounded-2xl glass-card hover:scale-[1.02] transition-all duration-300 cursor-default">
-                                <div className="absolute inset-0 opacity-30 group-hover:opacity-60 transition-opacity duration-500"
-                                    style={{ background: `radial-gradient(ellipse at top left, ${ETH_COLOR}18, transparent 70%)` }} />
-                                <div className="relative p-6 z-10">
-                                    <p className="text-xs font-bold text-slate-400 mb-2 uppercase tracking-wider">Total Execution Nodes</p>
-                                    <p className="text-3xl font-black" style={{ color: ETH_COLOR }}>
-                                        {metrics.totalNodes.toLocaleString()}
-                                    </p>
-                                    <div className="mt-4 flex justify-end">
-                                        <div className="p-2 rounded-lg group-hover:scale-110 transition-transform duration-300"
-                                            style={{ background: `${ETH_COLOR}12`, border: `1px solid ${ETH_COLOR}25` }}>
-                                            <ServerIcon className="w-6 h-6" style={{ color: ETH_COLOR }} />
-                                        </div>
+                    {/* 2. KPI HUD style elements (Moved back down) */}
+                    <section className="mt-0 mb-4 fade-in-up delay-100 flex-shrink-0 relative z-20">
+                        <div className="flex flex-col md:flex-row gap-8 justify-center items-center w-full">
+                            {[
+                                {
+                                    title: 'Total Execution Nodes',
+                                    value: metrics.totalNodes.toLocaleString(),
+                                    icon: ServerIcon,
+                                    color: '#627EEA',
+                                    tooltipTitle: 'Total Execution Nodes',
+                                    tooltipContent: 'Total number of discovered execution-layer nodes across the entire network during the last successful crawl.'
+                                },
+                                {
+                                    title: 'OVHcloud Nodes',
+                                    value: ovhCount.toLocaleString(),
+                                    icon: ChartPieIcon,
+                                    color: '#00F0FF',
+                                    tooltipTitle: 'OVHcloud Nodes',
+                                    tooltipContent: 'Number of nodes accurately mapped to OVHcloud ASNs via MaxMind GeoLite2.'
+                                },
+                                {
+                                    title: 'Market Share',
+                                    value: `${ovhShare.toFixed(2)}%`,
+                                    icon: ClockIcon,
+                                    color: '#6B4FBB',
+                                    tooltipTitle: 'Market Share Info',
+                                    tooltipContent: `Snapshot captured on ${formatTimestamp(metrics.timestamp)}. ${metrics.crawlDurationMin ? `${metrics.crawlDurationMin} min crawl.` : ''}`
+                                }
+                            ].map((item, index) => (
+                                <div
+                                    key={index}
+                                    onClick={() => setActiveTooltip(index)}
+                                    className="relative group cursor-pointer flex flex-col items-center text-center p-4 min-w-[280px]"
+                                >
+                                    {/* Glowing effect behind the text */}
+                                    <div 
+                                        className="absolute inset-0 opacity-0 group-hover:opacity-20 blur-3xl transition-opacity duration-700 pointer-events-none rounded-full"
+                                        style={{ background: `radial-gradient(circle, ${item.color} 0%, transparent 60%)` }}
+                                    />
+                                    
+                                    <div className="flex items-center gap-2 mb-2 text-slate-400 group-hover:text-white transition-colors duration-300">
+                                        <item.icon className="w-5 h-5 opacity-70" style={{ color: item.color }} />
+                                        <span className="text-xs font-bold uppercase tracking-[0.15em]">{item.title}</span>
+                                        <InformationCircleIcon className="w-4 h-4 opacity-30 hover:opacity-100 transition-opacity" />
                                     </div>
-                                </div>
-                            </div>
+                                    
+                                    <h3 
+                                        className="text-4xl md:text-5xl font-black drop-shadow-[0_0_20px_rgba(255,255,255,0.1)] transition-transform duration-300 group-hover:scale-105"
+                                        style={{ color: item.color, textShadow: `0 0 30px ${item.color}60` }}
+                                    >
+                                        {item.value}
+                                    </h3>
 
-                            {/* OVH Nodes */}
-                            <div className="group relative overflow-hidden rounded-2xl glass-card hover:scale-[1.02] transition-all duration-300 cursor-default">
-                                <div className="absolute inset-0 opacity-30 group-hover:opacity-60 transition-opacity duration-500"
-                                    style={{ background: 'radial-gradient(ellipse at top left, rgba(0,240,255,0.10), transparent 70%)' }} />
-                                <div className="relative p-6 z-10">
-                                    <p className="text-xs font-bold text-slate-400 mb-2 uppercase tracking-wider">OVHcloud Nodes</p>
-                                    <p className="text-3xl font-black text-[#00AACC]">
-                                        {ovhCount.toLocaleString()}
-                                    </p>
-                                    <div className="mt-4 flex justify-end">
-                                        <div className="p-2 rounded-lg group-hover:scale-110 transition-transform duration-300"
-                                            style={{ background: 'rgba(0,170,204,0.10)', border: '1px solid rgba(0,170,204,0.22)' }}>
-                                            <ChartPieIcon className="w-6 h-6 text-[#00AACC]" />
-                                        </div>
-                                    </div>
+                                    {/* Tooltip Overlay */}
+                                    <AnimatePresence>
+                                        {activeTooltip === index && (
+                                            <motion.div
+                                                initial={{ opacity: 0, scale: 0.95, y: 10 }}
+                                                animate={{ opacity: 1, scale: 1, y: 0 }}
+                                                exit={{ opacity: 0, scale: 0.95, y: 10 }}
+                                                className="absolute bottom-full mb-4 z-50 w-72 bg-[#050510]/95 backdrop-blur-xl border border-white/10 rounded-2xl p-5 shadow-2xl text-left cursor-default"
+                                                style={{ boxShadow: `0 10px 40px ${item.color}20` }}
+                                                onClick={(e) => e.stopPropagation()}
+                                            >
+                                                <button 
+                                                    className="absolute top-3 right-3 text-white/50 hover:text-white"
+                                                    onClick={(e) => { e.stopPropagation(); setActiveTooltip(null); }}
+                                                >
+                                                    <XMarkIcon className="w-4 h-4" />
+                                                </button>
+                                                <h4 className="text-sm font-bold mb-2 flex items-center gap-2" style={{ color: item.color }}>
+                                                    <InformationCircleIcon className="w-4 h-4" />
+                                                    {item.tooltipTitle}
+                                                </h4>
+                                                <p className="text-xs text-slate-300 leading-relaxed">
+                                                    {item.tooltipContent}
+                                                </p>
+                                            </motion.div>
+                                        )}
+                                    </AnimatePresence>
                                 </div>
-                            </div>
-
-                            {/* Market Share */}
-                            <div className="group relative overflow-hidden rounded-2xl glass-card hover:scale-[1.02] transition-all duration-300 cursor-default">
-                                <div className="absolute inset-0 opacity-30 group-hover:opacity-60 transition-opacity duration-500"
-                                    style={{ background: 'radial-gradient(ellipse at top left, rgba(107,79,187,0.10), transparent 70%)' }} />
-                                <div className="relative p-6 z-10">
-                                    <p className="text-xs font-bold text-slate-400 mb-2 uppercase tracking-wider">OVHcloud Market Share</p>
-                                    <p className="text-3xl font-black text-[#6B4FBB]">
-                                        {ovhShare.toFixed(2)}%
-                                    </p>
-                                    <div className="mt-4 flex justify-between items-end">
-                                        <p className="text-[10px] text-slate-400">
-                                            {formatTimestamp(metrics.timestamp)}
-                                            {metrics.crawlDurationMin && ` · ${metrics.crawlDurationMin}min crawl`}
-                                        </p>
-                                        <div className="p-2 rounded-lg group-hover:scale-110 transition-transform duration-300"
-                                            style={{ background: 'rgba(107,79,187,0.10)', border: '1px solid rgba(107,79,187,0.22)' }}>
-                                            <ClockIcon className="w-6 h-6 text-[#6B4FBB]" />
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
+                            ))}
                         </div>
                     </section>
 
@@ -215,29 +221,9 @@ export default function EthereumPage() {
                     </section>
 
                 </main>
-
-                {/* ── Footer — light variant ── */}
-                <footer className="relative mt-12"
-                    style={{ borderTop: '1px solid rgba(98,126,234,0.12)', background: 'rgba(255,255,255,0.6)', backdropFilter: 'blur(20px)' }}
-                >
-                    <div className="absolute top-0 left-0 right-0 h-[2px]"
-                        style={{ background: `linear-gradient(to right, transparent, ${ETH_COLOR}50, transparent)` }} />
-                    <div className="container mx-auto px-4 md:px-6 py-8 md:py-12">
-                        <div className="text-center">
-                            <p className="text-slate-500 text-sm">
-                                Powered by{' '}
-                                <a href="https://www.ovhcloud.com/en/bare-metal" target="_blank" rel="noopener noreferrer"
-                                    className="font-semibold transition-colors duration-200 hover:underline"
-                                    style={{ color: ETH_COLOR }}>
-                                    OVHcloud Bare Metal
-                                </a>
-                            </p>
-                            <p className="text-slate-400 text-xs mt-2">
-                                Ethereum execution-layer node tracker · Snapshot-based
-                            </p>
-                        </div>
-                    </div>
-                </footer>
+                
+                {/* Methodology Modal */}
+                <MethodologyModal network="ethereum" accentColor="#627EEA" />
             </div>
         </div>
     );

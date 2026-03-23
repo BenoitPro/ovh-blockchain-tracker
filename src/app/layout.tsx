@@ -1,6 +1,8 @@
 import type { Metadata } from 'next';
 import { Inter } from 'next/font/google';
 import './globals.css';
+import Sidebar from '@/components/dashboard/Sidebar';
+import NetworkThemeProvider from '@/components/NetworkThemeProvider';
 
 const inter = Inter({ subsets: ['latin'] });
 
@@ -28,7 +30,40 @@ export default function RootLayout({
 }>) {
     return (
         <html lang="en" suppressHydrationWarning>
-            <body className={`${inter.className} bg-[#000d1e] text-white selection:bg-[#00F0FF]/30`}>{children}</body>
+            <head>
+                <script
+                    dangerouslySetInnerHTML={{
+                        __html: `
+                            (function() {
+                                try {
+                                    var path = window.location.pathname;
+                                    var theme = 'solana';
+                                    if (path === '/' || path.startsWith('/solana')) {
+                                        theme = 'solana';
+                                    } else if (path.startsWith('/ethereum')) {
+                                        theme = 'ethereum';
+                                    } else {
+                                        var savedTheme = localStorage.getItem('network-theme');
+                                        if (savedTheme) {
+                                            theme = savedTheme;
+                                        }
+                                    }
+                                    if (theme === 'ethereum') {
+                                        document.documentElement.classList.add('eth-theme');
+                                    }
+                                } catch (e) {}
+                            })();
+                        `,
+                    }}
+                />
+            </head>
+            <body className={`${inter.className} selection:bg-[#00F0FF]/30`}>
+                <NetworkThemeProvider>
+                    <Sidebar />
+                    <div className="ml-60">{children}</div>
+                </NetworkThemeProvider>
+            </body>
         </html>
     );
 }
+

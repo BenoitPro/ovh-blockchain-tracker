@@ -31,16 +31,16 @@ export default function ParticlesBackground() {
         };
 
         const initParticles = () => {
-            const particleCount = 40;
-            const colors = ['#00F0FF', '#A855F7', '#6B4FBB'];
+            const particleCount = 120; // Increased for a denser starry night
+            const colors = ['#FFFFFF', '#FFFFFF', '#00F0FF', '#A855F7', '#6B4FBB']; // Added more white for stars
             particlesRef.current = Array.from({ length: particleCount }, () => ({
                 x: Math.random() * canvas.width,
                 y: Math.random() * canvas.height,
-                vx: (Math.random() - 0.5) * 0.3,
-                vy: (Math.random() - 0.5) * 0.3,
-                radius: Math.random() * 2 + 1,
+                vx: (Math.random() - 0.5) * 0.15, // Slower movement
+                vy: (Math.random() - 0.5) * 0.15,
+                radius: Math.random() * 1.5 + 0.5, // Slightly smaller sizes on average
                 opacity: Math.random() * 0.5 + 0.1,
-                opacityDir: Math.random() > 0.5 ? 0.005 : -0.005,
+                opacityDir: Math.random() > 0.5 ? 0.003 : -0.003, // Slower twinkling
                 color: colors[Math.floor(Math.random() * colors.length)],
             }));
         };

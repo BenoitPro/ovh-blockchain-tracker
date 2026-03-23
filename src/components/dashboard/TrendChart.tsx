@@ -2,28 +2,26 @@
 
 import { useState, useEffect } from 'react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
-import { TrendPeriod, TrendResponse, TrendDataPoint } from '@/types';
-import PeriodSelector from './PeriodSelector';
+import { TrendResponse, TrendDataPoint } from '@/types';
 import LoadingState from './LoadingState';
 import ErrorState from './ErrorState';
 
 export default function TrendChart() {
-    const [period, setPeriod] = useState<TrendPeriod>(90);
     const [displayMode, setDisplayMode] = useState<'marketShare' | 'absolute'>('marketShare');
     const [data, setData] = useState<TrendDataPoint[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
 
     useEffect(() => {
-        fetchTrendData(period);
-    }, [period]);
+        fetchTrendData();
+    }, []);
 
-    const fetchTrendData = async (selectedPeriod: TrendPeriod) => {
+    const fetchTrendData = async () => {
         setLoading(true);
         setError(null);
 
         try {
-            const response = await fetch(`/api/trends?period=${selectedPeriod}`);
+            const response = await fetch(`/api/trends?period=all`);
             const result: TrendResponse = await response.json();
 
             if (!result.success) {
@@ -31,7 +29,8 @@ export default function TrendChart() {
             }
 
             // Apply aggregation before setting state
-            const aggregated = aggregateData(result.data, selectedPeriod);
+            const aggregated = aggregateData(result.data);
+
             setData(aggregated);
         } catch (err) {
             setError(err instanceof Error ? err.message : 'Unknown error');
@@ -40,9 +39,13 @@ export default function TrendChart() {
         }
     };
 
-    // Aggregation logic: Group strictly by temporal unit
-    const aggregateData = (rawData: TrendDataPoint[], selectedPeriod: TrendPeriod): TrendDataPoint[] => {
+    // Aggregation logic: Group dynamically based on actual data span
+    const aggregateData = (rawData: TrendDataPoint[]): TrendDataPoint[] => {
         if (!rawData || rawData.length === 0) return [];
+
+        const minTime = Math.min(...rawData.map(p => p.timestamp));
+        const maxTime = Math.max(...rawData.map(p => p.timestamp));
+        const spanDays = maxTime > minTime ? (maxTime - minTime) / 86400000 : 0;
 
         const grouped: Record<string, TrendDataPoint[]> = {};
 
@@ -50,14 +53,18 @@ export default function TrendChart() {
             const date = new Date(point.timestamp);
             let key: string;
 
-            if (selectedPeriod === 'all') {
-                // strict temporal unit: 1 point per year
-                key = `${date.getFullYear()}`;
-            } else if (selectedPeriod === 365) {
-                // strict temporal unit: 1 point per month
+            if (spanDays > 730) {
+                // > 2 years: 1 point per month
                 key = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+            } else if (spanDays > 180) {
+                // > 6 months: 1 point per week
+                // Approximate week grouping
+                const firstDayOfYear = new Date(date.getFullYear(), 0, 1);
+                const pastDaysOfYear = (date.getTime() - firstDayOfYear.getTime()) / 86400000;
+                const weekNum = Math.ceil((pastDaysOfYear + firstDayOfYear.getDay() + 1) / 7);
+                key = `${date.getFullYear()}-W${String(weekNum).padStart(2, '0')}`;
             } else {
-                // strict temporal unit: 1 point per day
+                // <= 6 months: 1 point per day
                 key = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
             }
 
@@ -83,37 +90,19 @@ export default function TrendChart() {
         }).sort((a, b) => a.timestamp - b.timestamp);
     };
 
-    const getXDomain = () => {
-        const now = Date.now();
-        if (period === 90) return [now - 90 * 86400000, now];
-        if (period === 365) return [now - 365 * 86400000, now];
-        // 'all' -> 5 years (1825 days) mapping
-        return [now - 1825 * 86400000, now];
-    };
-
-    const getXTicks = () => {
-        const [min, max] = getXDomain();
-        const span = max - min;
-        // 12 ticks for 1y (1 per month), 6 ticks for 90d and All (years)
-        const tickCount = period === 365 ? 12 : 6; 
-        const step = span / (tickCount - 1);
-        const ticks = [];
-        for (let i = 0; i < tickCount; i++) {
-            ticks.push(min + i * step);
-        }
-        return ticks;
-    };
-
     const formatTick = (val: number) => {
         const date = new Date(val);
-        if (period === 365) {
-            // "tous les mois de l'année" -> Just short month name
-            return date.toLocaleDateString('en-US', { month: 'short' });
+        if (data.length === 0) return '';
+        
+        const minTime = data[0].timestamp;
+        const maxTime = data[data.length - 1].timestamp;
+        const spanDays = maxTime > minTime ? (maxTime - minTime) / 86400000 : 0;
+
+        if (spanDays > 730) {
+            return date.toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
+        } else if (spanDays > 180) {
+            return date.toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
         }
-        if (period === 'all') {
-            return date.toLocaleDateString('en-US', { year: 'numeric' }); // e.g. 2026
-        }
-        // 90d -> day and month
         return date.toLocaleDateString('en-US', { day: 'numeric', month: 'short' });
     };
 
@@ -178,7 +167,6 @@ export default function TrendChart() {
                     Node Count
                 </button>
             </div>
-            <PeriodSelector selectedPeriod={period} onPeriodChange={setPeriod} />
         </div>
     );
 
@@ -229,8 +217,8 @@ export default function TrendChart() {
                     <XAxis
                         dataKey="timestamp"
                         type="number"
-                        domain={getXDomain()}
-                        ticks={getXTicks()}
+                        domain={['dataMin', 'dataMax']}
+                        tickCount={6}
                         tickFormatter={formatTick}
                         stroke="#9ca3af"
                         style={{ fontSize: '12px' }}
