@@ -8,11 +8,11 @@ export default function ChainToggle() {
     const isEth = pathname.startsWith('/ethereum');
 
     return (
-        <div className="chain-toggle flex items-center rounded-full p-1 gap-0.5">
+        <div className="chain-toggle flex items-center rounded-full p-1 gap-1 w-full relative">
             {/* Solana option */}
             <Link
                 href="/"
-                className={`chain-toggle-btn sol relative flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[11px] font-bold uppercase tracking-widest transition-all duration-300 ${
+                className={`chain-toggle-btn sol relative flex-1 flex justify-center items-center gap-1.5 px-3 py-2 rounded-full text-[12px] font-bold uppercase tracking-widest transition-all duration-300 ${
                     !isEth
                         ? 'chain-toggle-active-sol text-white'
                         : 'text-white/40 hover:text-white/70'
@@ -28,7 +28,7 @@ export default function ChainToggle() {
             {/* Ethereum option */}
             <Link
                 href="/ethereum"
-                className={`chain-toggle-btn eth relative flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[11px] font-bold uppercase tracking-widest transition-all duration-300 ${
+                className={`chain-toggle-btn eth relative flex-1 flex justify-center items-center gap-1.5 px-3 py-2 rounded-full text-[12px] font-bold uppercase tracking-widest transition-all duration-300 ${
                     isEth
                         ? 'chain-toggle-active-eth'
                         : 'text-white/40 hover:text-white/70'

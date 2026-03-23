@@ -1,13 +1,12 @@
 'use client';
 
 import { useEffect, useState, useCallback } from 'react';
-import Image from 'next/image';
 import ProviderComparison from '@/components/dashboard/ProviderComparison';
 import WorldMap from '@/components/dashboard/WorldMap';
 import Footer from '@/components/dashboard/Footer';
 import LoadingState from '@/components/dashboard/LoadingState';
 import ErrorState from '@/components/dashboard/ErrorState';
-import ChainToggle from '@/components/ChainToggle';
+import Sidebar from '@/components/dashboard/Sidebar';
 import { EthSnapshotMetrics } from '@/types';
 import { ServerIcon, ChartPieIcon, ClockIcon } from '@heroicons/react/24/outline';
 
@@ -124,92 +123,27 @@ export default function EthereumPage() {
 
     return (
         <div className="min-h-screen relative">
-            {/* Main Content */}
-            <div className="relative z-10">
+            {/* Sidebar */}
+            <Sidebar />
 
-                {/* ── Header ── */}
-                <header className="relative border-b border-[#627EEA]/12 bg-white/75 backdrop-blur-xl z-20"
-                    style={{ boxShadow: '0 1px 24px rgba(98,126,234,0.07)' }}
-                >
-                    <div className="container mx-auto px-4 py-4 md:py-5">
-                        <div className="flex flex-col items-center justify-center space-y-2 md:space-y-3">
-                            {/* OVH Logo */}
-                            <a
-                                href="https://www.ovhcloud.com/en/lp/powering-blockchain-ethos"
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="group relative block cursor-pointer"
-                            >
-                                <div className="relative z-10 transition-transform duration-700 group-hover:scale-110">
-                                    <Image
-                                        src="/ovhcloud-logo.png"
-                                        alt="OVHcloud"
-                                        width={400}
-                                        height={100}
-                                        className="h-9 md:h-12 lg:h-14 w-auto"
-                                        style={{ filter: 'brightness(0) saturate(100%) invert(14%) sepia(30%) saturate(500%) hue-rotate(190deg) brightness(90%)' }}
-                                        priority
-                                    />
-                                </div>
-                                <div className="absolute inset-0 blur-3xl opacity-0 group-hover:opacity-40 transition-opacity duration-700 -z-10 scale-[2]"
-                                    style={{ background: `radial-gradient(circle, ${ETH_COLOR}50, transparent)` }} />
-                            </a>
-
-                            {/* Title */}
-                            <div className="text-center">
-                                <h1 className="text-xs md:text-sm lg:text-base font-medium text-slate-500 tracking-[0.2em] md:tracking-[0.4em] uppercase">
-                                    Ethereum Infrastructure{' '}
-                                    <span className="font-black" style={{ color: ETH_COLOR }}>
-                                        Monitor
-                                    </span>
-                                </h1>
-                            </div>
-
-                            {/* Chain Toggle */}
-                            <div className="pt-1">
-                                <ChainToggle />
-                            </div>
-                        </div>
-                    </div>
-
-                    {/* Bottom accent line */}
-                    <div className="absolute bottom-0 left-0 right-0 h-[2px]"
-                        style={{ background: `linear-gradient(to right, transparent, ${ETH_COLOR}60, transparent)` }} />
-                </header>
+            {/* Main Content — offset by sidebar width */}
+            <div className="relative z-10 ml-60">
 
                 {/* ── Main ── */}
                 <main className="container mx-auto px-6 py-6 md:py-8">
 
-                    {/* Methodology */}
-                    <section className="mb-6 fade-in-up flex justify-start">
-                        <details className="group opacity-60 hover:opacity-100 transition-opacity duration-300">
-                            <summary className="text-[10px] md:text-xs text-slate-400 hover:text-[#627EEA] cursor-pointer list-none flex items-center gap-2 font-medium outline-none">
-                                <span>* Methodology</span>
-                                <svg className="w-3 h-3 transition-transform duration-300 group-open:rotate-180" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                                </svg>
-                            </summary>
-                            <div className="mt-3 p-4 text-[10px] md:text-xs text-slate-600 space-y-2 leading-relaxed max-w-2xl shadow-lg rounded-xl"
-                                style={{ background: 'rgba(255,255,255,0.8)', border: '1px solid rgba(98,126,234,0.15)', backdropFilter: 'blur(12px)' }}
-                            >
-                                <p>
-                                    Ethereum execution-layer nodes are discovered via the <strong className="text-slate-800">devp2p/discv4</strong> protocol using the official EF crawler (<code style={{ color: ETH_COLOR }}>go-ethereum/cmd/devp2p</code>).
-                                </p>
-                                <ol className="list-decimal list-inside space-y-1 ml-1 text-slate-500">
-                                    <li><strong className="text-slate-700">Crawl:</strong> 30-60 min P2P crawl, typically discovers 5,000–8,000 execution nodes.</li>
-                                    <li><strong className="text-slate-700">IP Extraction:</strong> Parse enode URLs <code style={{ color: ETH_COLOR }}>enode://pubkey@IP:PORT</code> to extract IPs.</li>
-                                    <li><strong className="text-slate-700">ASN Resolution:</strong> Map IP → ASN via MaxMind GeoLite2 (offline, ~1ms/IP).</li>
-                                    <li><strong className="text-slate-700">Provider Matching:</strong> Match ASN against known cloud provider lists (same as Solana tracker).</li>
-                                </ol>
-                                <p className="pt-2 text-slate-400 italic border-t border-slate-200 mt-2">
-                                    Note: Snapshot-based. Data from a single crawl session, updated manually. Unlike Solana, Ethereum has no <code>getClusterNodes</code> RPC.
-                                </p>
+                    {/* 1. World Map */}
+                    {Object.keys(metrics.geoDistribution).length > 0 && (
+                        <section className="mb-12 fade-in-up">
+                            <div className="rounded-2xl overflow-hidden shadow-xl"
+                                style={{ boxShadow: '0 8px 40px rgba(98,126,234,0.10), 0 2px 12px rgba(98,126,234,0.06)' }}>
+                                <WorldMap geoDistribution={metrics.geoDistribution} />
                             </div>
-                        </details>
-                    </section>
+                        </section>
+                    )}
 
-                    {/* ── KPI Cards ── */}
-                    <section className="mb-12 fade-in-up">
+                    {/* 2. KPI Cards */}
+                    <section className="mb-12 fade-in-up delay-100">
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
 
                             {/* Total Nodes */}
@@ -272,23 +206,14 @@ export default function EthereumPage() {
                         </div>
                     </section>
 
-                    {/* ── Provider Comparison — dark widget on light page ── */}
-                    <section className="mb-12 fade-in-up delay-100">
+                    {/* 3. Provider Comparison */}
+                    <section className="mb-12 fade-in-up delay-200">
                         <div className="rounded-2xl overflow-hidden shadow-xl"
                             style={{ boxShadow: '0 8px 40px rgba(98,126,234,0.10), 0 2px 12px rgba(98,126,234,0.06)' }}>
                             <ProviderComparison providerBreakdown={metrics.providerBreakdown} />
                         </div>
                     </section>
 
-                    {/* ── World Map — dark widget on light page ── */}
-                    {Object.keys(metrics.geoDistribution).length > 0 && (
-                        <section className="mb-12 fade-in-up delay-200">
-                            <div className="rounded-2xl overflow-hidden shadow-xl"
-                                style={{ boxShadow: '0 8px 40px rgba(98,126,234,0.10), 0 2px 12px rgba(98,126,234,0.06)' }}>
-                                <WorldMap geoDistribution={metrics.geoDistribution} />
-                            </div>
-                        </section>
-                    )}
                 </main>
 
                 {/* ── Footer — light variant ── */}

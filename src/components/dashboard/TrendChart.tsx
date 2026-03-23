@@ -31,7 +31,7 @@ export default function TrendChart() {
             }
 
             // Apply aggregation before setting state
-            const aggregated = aggregateData(result.data);
+            const aggregated = aggregateData(result.data, selectedPeriod);
             setData(aggregated);
         } catch (err) {
             setError(err instanceof Error ? err.message : 'Unknown error');
@@ -40,31 +40,37 @@ export default function TrendChart() {
         }
     };
 
-    // Aggregation logic: Limit to ~15 data points maximum based on data's own timeframe
-    const aggregateData = (rawData: TrendDataPoint[]): TrendDataPoint[] => {
-        if (rawData.length <= 15) return rawData;
-        
-        const targetPoints = 15;
-        const start = rawData[0].timestamp;
-        const end = rawData[rawData.length - 1].timestamp;
-        const step = (end - start) / targetPoints;
+    // Aggregation logic: Group strictly by temporal unit
+    const aggregateData = (rawData: TrendDataPoint[], selectedPeriod: TrendPeriod): TrendDataPoint[] => {
+        if (!rawData || rawData.length === 0) return [];
 
-        if (step === 0) return rawData;
+        const grouped: Record<string, TrendDataPoint[]> = {};
 
-        const grouped: Record<number, TrendDataPoint[]> = {};
-        
         rawData.forEach(point => {
-            let bucketIndex = Math.floor((point.timestamp - start) / step);
-            if (bucketIndex >= targetPoints) bucketIndex = targetPoints - 1;
-            
-            if (!grouped[bucketIndex]) grouped[bucketIndex] = [];
-            grouped[bucketIndex].push(point);
+            const date = new Date(point.timestamp);
+            let key: string;
+
+            if (selectedPeriod === 'all') {
+                // strict temporal unit: 1 point per year
+                key = `${date.getFullYear()}`;
+            } else if (selectedPeriod === 365) {
+                // strict temporal unit: 1 point per month
+                key = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+            } else {
+                // strict temporal unit: 1 point per day
+                key = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+            }
+
+            if (!grouped[key]) grouped[key] = [];
+            grouped[key].push(point);
         });
 
         return Object.values(grouped).map(group => {
             const avgMarketShare = group.reduce((sum, p) => sum + p.marketShare, 0) / group.length;
             const avgOvhNodes = Math.round(group.reduce((sum, p) => sum + p.ovhNodes, 0) / group.length);
             const avgTotalNodes = Math.round(group.reduce((sum, p) => sum + p.totalNodes, 0) / group.length);
+            
+            // Representative point for this bucket is the median
             const midPoint = group[Math.floor(group.length / 2)];
 
             return {
@@ -241,7 +247,7 @@ export default function TrendChart() {
                         dataKey={displayMode === 'marketShare' ? 'marketShare' : 'ovhNodes'}
                         stroke="url(#lineGradient)"
                         strokeWidth={4} // Thicker, more premium line
-                        dot={false} // Clean line with no persistent dots
+                        dot={data.length <= 15 ? { fill: '#3b82f6', r: 4, strokeWidth: 0 } : false} // Show point if sparse
                         activeDot={{ r: 8, fill: '#8b5cf6', stroke: '#fff', strokeWidth: 2 }}
                         animationDuration={1500}
                     />
