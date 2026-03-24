@@ -51,3 +51,6 @@ data/*.db-wal
 data/nodes.json
 
 .env*.local
+
+# Git worktrees
+.worktrees/
