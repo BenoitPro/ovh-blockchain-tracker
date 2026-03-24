@@ -81,7 +81,7 @@ export default function KPICards({ totalNodes, ovhNodes, marketShare, network = 
                                 initial={{ opacity: 0, scale: 0.95, y: 10 }}
                                 animate={{ opacity: 1, scale: 1, y: 0 }}
                                 exit={{ opacity: 0, scale: 0.95, y: 10 }}
-                                className="absolute bottom-full mb-4 z-50 w-72 bg-[#050510]/95 backdrop-blur-xl border border-white/10 rounded-2xl p-5 shadow-2xl text-left cursor-default"
+                                className="absolute bottom-full left-1/2 -translate-x-1/2 mb-4 z-50 w-72 max-w-[calc(100vw-2rem)] bg-[#050510]/95 backdrop-blur-xl border border-white/10 rounded-2xl p-5 shadow-2xl text-left cursor-default"
                                 style={{ boxShadow: `0 10px 40px ${item.color}20` }}
                                 onClick={(e) => e.stopPropagation()}
                             >

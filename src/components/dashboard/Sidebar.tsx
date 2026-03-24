@@ -6,7 +6,12 @@ import { usePathname } from 'next/navigation';
 import ChainToggle from '@/components/ChainToggle';
 import { useNetworkTheme } from '@/components/NetworkThemeProvider';
 
-export default function Sidebar() {
+interface SidebarProps {
+    isOpen?: boolean;
+    onClose?: () => void;
+}
+
+export default function Sidebar({ isOpen = false, onClose }: SidebarProps) {
     const pathname = usePathname();
     const { theme } = useNetworkTheme();
     const isEth = theme === 'ethereum';
@@ -47,9 +52,23 @@ export default function Sidebar() {
         : 'border border-white/8 bg-black/50 backdrop-blur-md';
 
     return (
-        <aside className={`fixed left-0 top-0 h-screen w-60 z-30 flex flex-col overflow-y-auto ${sidebarBg}`}
+        <aside
+            className={`fixed left-0 top-0 h-screen w-64 z-30 flex flex-col overflow-y-auto transition-transform duration-300 ease-in-out lg:translate-x-0 ${isOpen ? 'translate-x-0' : '-translate-x-full'} ${sidebarBg}`}
             style={isEth ? { boxShadow: '1px 0 24px rgba(98,126,234,0.06)' } : { boxShadow: '1px 0 30px rgba(0,0,0,0.4)' }}
         >
+
+            {/* ── Close button — mobile only ───────────────────────────────── */}
+            <button
+                className={`lg:hidden absolute top-3 right-3 p-1.5 rounded-lg transition-colors ${
+                    isEth ? 'text-slate-400 hover:text-slate-700 hover:bg-slate-100' : 'text-white/40 hover:text-white hover:bg-white/10'
+                }`}
+                onClick={onClose}
+                aria-label="Close navigation menu"
+            >
+                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+            </button>
 
             {/* ── 1. OVH Logo ─────────────────────────────────────────────── */}
             <div className="px-5 pt-8 pb-4 flex justify-center w-full">
@@ -91,6 +110,7 @@ export default function Sidebar() {
                 {/* Dashboard */}
                 <Link
                     href={isEth ? '/ethereum' : '/'}
+                    onClick={onClose}
                     className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-[11px] font-bold uppercase tracking-widest transition-all duration-200 ${
                         isDashboard ? '' : navInactiveClass
                     }`}
@@ -109,6 +129,7 @@ export default function Sidebar() {
                 {isEth ? (
                     <Link
                         href="/ethereum/nodes"
+                        onClick={onClose}
                         className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-[11px] font-bold uppercase tracking-widest transition-all duration-200 opacity-50 hover:opacity-70 ${navInactiveClass}`}
                     >
                         <svg className="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -124,6 +145,7 @@ export default function Sidebar() {
                 ) : (
                     <Link
                         href="/nodes"
+                        onClick={onClose}
                         className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-[11px] font-bold uppercase tracking-widest transition-all duration-200 ${
                             isNodes ? '' : navInactiveClass
                         }`}
@@ -140,6 +162,7 @@ export default function Sidebar() {
                 {/* Analytics */}
                 <Link
                     href={isEth ? '/ethereum/analytics' : '/analytics'}
+                    onClick={onClose}
                     className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-[11px] font-bold uppercase tracking-widest transition-all duration-200 ${
                         isAnalytics ? '' : navInactiveClass
                     }`}
@@ -155,6 +178,7 @@ export default function Sidebar() {
                 {/* About Us */}
                 <Link
                     href="/about"
+                    onClick={onClose}
                     className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-[11px] font-bold uppercase tracking-widest transition-all duration-200 ${
                         pathname.startsWith('/about') ? '' : navInactiveClass
                     }`}
@@ -169,6 +193,7 @@ export default function Sidebar() {
                 {/* Use Cases */}
                 <Link
                     href={isEth ? '/ethereum/use-cases' : '/use-cases'}
+                    onClick={onClose}
                     className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-[11px] font-bold uppercase tracking-widest transition-all duration-200 ${
                         isUseCases ? '' : navInactiveClass
                     }`}
@@ -188,6 +213,7 @@ export default function Sidebar() {
                 {/* Contact CTA */}
                 <Link
                     href="/about#contact-section"
+                    onClick={onClose}
                     className="w-full group relative flex items-center justify-center gap-3 px-3 py-3 rounded-xl text-[11px] font-black uppercase tracking-widest transition-all duration-300 overflow-hidden text-white"
                     style={{ boxShadow: isEth ? '0 0 20px rgba(98,126,234,0.35)' : '0 0 20px rgba(0,240,255,0.3)' }}
                 >

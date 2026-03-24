@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 import { Inter } from 'next/font/google';
 import './globals.css';
-import Sidebar from '@/components/dashboard/Sidebar';
+import SidebarWrapper from '@/components/SidebarWrapper';
 import NetworkThemeProvider from '@/components/NetworkThemeProvider';
 
 const inter = Inter({ subsets: ['latin'] });
@@ -59,8 +59,7 @@ export default function RootLayout({
             </head>
             <body className={`${inter.className} selection:bg-[#00F0FF]/30`}>
                 <NetworkThemeProvider>
-                    <Sidebar />
-                    <div className="ml-60">{children}</div>
+                    <SidebarWrapper>{children}</SidebarWrapper>
                 </NetworkThemeProvider>
             </body>
         </html>
