@@ -19,9 +19,10 @@ interface Cube {
 
 interface BlockchainCubesProps {
     opacity?: number;
+    network?: 'solana' | 'ethereum';
 }
 
-export default function BlockchainCubes({ opacity = 0.6 }: BlockchainCubesProps) {
+export default function BlockchainCubes({ opacity = 0.6, network = 'solana' }: BlockchainCubesProps) {
     const canvasRef = useRef<HTMLCanvasElement>(null);
     const cubesRef = useRef<Cube[]>([]);
     const animationFrameRef = useRef<number | undefined>(undefined);
@@ -138,22 +139,38 @@ export default function BlockchainCubes({ opacity = 0.6 }: BlockchainCubesProps)
                     p1[0], p1[1], p3[0], p3[1]
                 );
 
-                if (index % 2 === 0) {
-                    gradient.addColorStop(0, `rgba(107, 79, 187, ${cubeOpacity})`); // Purple
-                    gradient.addColorStop(1, `rgba(0, 191, 255, ${cubeOpacity * 0.6})`); // Cyan
+                if (network === 'ethereum') {
+                    // Ethereum: Indigo/Purple/Violet
+                    if (index % 2 === 0) {
+                        gradient.addColorStop(0, `rgba(98, 126, 234, ${cubeOpacity})`); // Eth Blue/Indigo
+                        gradient.addColorStop(1, `rgba(168, 85, 247, ${cubeOpacity * 0.65})`); // Purple
+                    } else {
+                        gradient.addColorStop(0, `rgba(168, 85, 247, ${cubeOpacity})`); // Purple
+                        gradient.addColorStop(1, `rgba(139, 92, 246, ${cubeOpacity * 0.65})`); // Violet
+                    }
                 } else {
-                    gradient.addColorStop(0, `rgba(0, 191, 255, ${cubeOpacity})`); // Cyan
-                    gradient.addColorStop(1, `rgba(107, 79, 187, ${cubeOpacity * 0.6})`); // Purple
+                    // Solana: Purple/Cyan (Current)
+                    if (index % 2 === 0) {
+                        gradient.addColorStop(0, `rgba(107, 79, 187, ${cubeOpacity})`); // Purple
+                        gradient.addColorStop(1, `rgba(0, 191, 255, ${cubeOpacity * 0.6})`); // Cyan
+                    } else {
+                        gradient.addColorStop(0, `rgba(0, 191, 255, ${cubeOpacity})`); // Cyan
+                        gradient.addColorStop(1, `rgba(107, 79, 187, ${cubeOpacity * 0.6})`); // Purple
+                    }
                 }
 
                 ctx.fillStyle = gradient;
                 ctx.fill();
 
                 // Glowing edges
-                ctx.strokeStyle = `rgba(0, 240, 255, ${cubeOpacity * 1.5})`;
+                ctx.strokeStyle = network === 'ethereum' 
+                    ? `rgba(98, 126, 234, ${cubeOpacity * 1.8})` // Slightly stronger for eth light theme
+                    : `rgba(0, 240, 255, ${cubeOpacity * 1.5})`; 
                 ctx.lineWidth = 1.5;
-                ctx.shadowBlur = 15;
-                ctx.shadowColor = 'rgba(0, 240, 255, 0.8)';
+                ctx.shadowBlur = network === 'ethereum' ? 10 : 15;
+                ctx.shadowColor = network === 'ethereum' 
+                    ? 'rgba(98, 126, 234, 0.7)' 
+                    : 'rgba(0, 240, 255, 0.8)';
                 ctx.stroke();
             });
 
@@ -163,10 +180,14 @@ export default function BlockchainCubes({ opacity = 0.6 }: BlockchainCubesProps)
         // Draw connections between cubes
         const drawConnections = () => {
             const cubes = cubesRef.current;
-            ctx.strokeStyle = 'rgba(0, 240, 255, 0.15)';
+            ctx.strokeStyle = network === 'ethereum' 
+                ? 'rgba(98, 126, 234, 0.12)' 
+                : 'rgba(0, 240, 255, 0.15)';
             ctx.lineWidth = 1;
             ctx.shadowBlur = 10;
-            ctx.shadowColor = 'rgba(0, 240, 255, 0.5)';
+            ctx.shadowColor = network === 'ethereum' 
+                ? 'rgba(98, 126, 234, 0.4)' 
+                : 'rgba(0, 240, 255, 0.5)';
 
             for (let i = 0; i < cubes.length; i++) {
                 for (let j = i + 1; j < cubes.length; j++) {

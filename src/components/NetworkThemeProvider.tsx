@@ -39,11 +39,16 @@ export default function NetworkThemeProvider({ children }: { children: React.Rea
 
         let newTheme: Theme = theme;
 
-        if (pathname === '/' || pathname.startsWith('/solana')) {
-            newTheme = 'solana';
-        } else if (pathname.startsWith('/ethereum')) {
+        // Force Ethereum theme on ethereum specific pages
+        if (pathname.startsWith('/ethereum')) {
             newTheme = 'ethereum';
+        } 
+        // Force Solana theme on solana specific pages or home
+        else if (pathname === '/' || pathname.startsWith('/solana')) {
+            newTheme = 'solana';
         }
+        // If on a global page like /about, do not override CURRENT known theme
+        // Let it stay as it is (preserved from last dashboard/page visit)
 
         if (newTheme !== theme) {
             setTheme(newTheme);

@@ -13,7 +13,11 @@ interface Particle {
     color: string;
 }
 
-export default function ParticlesBackground() {
+interface ParticlesBackgroundProps {
+    network?: 'ethereum' | 'solana';
+}
+
+export default function ParticlesBackground({ network = 'solana' }: ParticlesBackgroundProps) {
     const canvasRef = useRef<HTMLCanvasElement>(null);
     const particlesRef = useRef<Particle[]>([]);
     const animationFrameId = useRef<number>(0);
@@ -31,16 +35,19 @@ export default function ParticlesBackground() {
         };
 
         const initParticles = () => {
-            const particleCount = 120; // Increased for a denser starry night
-            const colors = ['#FFFFFF', '#FFFFFF', '#00F0FF', '#A855F7', '#6B4FBB']; // Added more white for stars
+            const particleCount = network === 'ethereum' ? 150 : 120; // Slightly more for Eth as they are subtler
+            const colors = network === 'ethereum' 
+                ? ['#FFFFFF', '#FFFFFF', '#627EEA', '#A855F7', '#C084FC', '#818CF8', '#FB7185'] // Added White for better contrast on deeper Eth bg
+                : ['#FFFFFF', '#FFFFFF', '#00F0FF', '#A855F7', '#6B4FBB']; // Solana colors
+
             particlesRef.current = Array.from({ length: particleCount }, () => ({
                 x: Math.random() * canvas.width,
                 y: Math.random() * canvas.height,
-                vx: (Math.random() - 0.5) * 0.15, // Slower movement
-                vy: (Math.random() - 0.5) * 0.15,
-                radius: Math.random() * 1.5 + 0.5, // Slightly smaller sizes on average
-                opacity: Math.random() * 0.5 + 0.1,
-                opacityDir: Math.random() > 0.5 ? 0.003 : -0.003, // Slower twinkling
+                vx: (Math.random() - 0.5) * (network === 'ethereum' ? 0.12 : 0.15), // Slightly slower for Eth
+                vy: (Math.random() - 0.5) * (network === 'ethereum' ? 0.12 : 0.15),
+                radius: Math.random() * (network === 'ethereum' ? 1.2 : 1.5) + 0.5,
+                opacity: Math.random() * (network === 'ethereum' ? 0.4 : 0.5) + 0.1,
+                opacityDir: Math.random() > 0.5 ? 0.003 : -0.003,
                 color: colors[Math.floor(Math.random() * colors.length)],
             }));
         };
@@ -61,19 +68,31 @@ export default function ParticlesBackground() {
                 if (p.y > canvas.height) p.y = 0;
 
                 p.opacity += p.opacityDir;
-                if (p.opacity >= 0.6 || p.opacity <= 0.05) p.opacityDir *= -1;
+                if (network === 'ethereum') {
+                    if (p.opacity >= 0.5 || p.opacity <= 0.05) p.opacityDir *= -1;
+                } else {
+                    if (p.opacity >= 0.6 || p.opacity <= 0.05) p.opacityDir *= -1;
+                }
 
                 ctx.beginPath();
                 ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
-                ctx.fillStyle = `${p.color}${Math.floor(p.opacity * 255).toString(16).padStart(2, '0')})`;
-                // Use rgba for cleaner coloring
+                
+                // Convert hex to rgb
                 const r = parseInt(p.color.slice(1, 3), 16);
                 const g = parseInt(p.color.slice(3, 5), 16);
                 const b = parseInt(p.color.slice(5, 7), 16);
+                
                 ctx.fillStyle = `rgba(${r}, ${g}, ${b}, ${p.opacity})`;
                 
-                ctx.shadowBlur = 8;
-                ctx.shadowColor = `rgba(${r}, ${g}, ${b}, 0.8)`;
+                if (network === 'solana') {
+                    ctx.shadowBlur = 8;
+                    ctx.shadowColor = `rgba(${r}, ${g}, ${b}, 0.8)`;
+                } else {
+                    // Less glow for Ethereum to keep it "clear" and subtle
+                    ctx.shadowBlur = 4;
+                    ctx.shadowColor = `rgba(${r}, ${g}, ${b}, 0.4)`;
+                }
+                
                 ctx.fill();
             });
             animationFrameId.current = requestAnimationFrame(animate);
@@ -85,7 +104,7 @@ export default function ParticlesBackground() {
             window.removeEventListener('resize', resizeCanvas);
             cancelAnimationFrame(animationFrameId.current);
         };
-    }, []);
+    }, [network]);
 
     return (
         <canvas

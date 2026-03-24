@@ -1,8 +1,17 @@
 'use client';
 
+import ParticlesBackground from '@/components/ParticlesBackground';
+import BlockchainCubes from '@/components/BlockchainCubes';
+
 export default function EthereumNodesPage() {
     return (
-        <div className="min-h-screen relative overflow-hidden">
+        <div className="min-h-screen relative overflow-x-hidden overflow-y-auto">
+            {/* Animated Blockchain Cubes Background (Subtle for Eth) */}
+            <BlockchainCubes opacity={0.03} network="ethereum" />
+
+            {/* Floating Starry Points Background */}
+            <ParticlesBackground network="ethereum" />
+
             <main className="relative z-10 container mx-auto px-6 py-12 max-w-3xl">
 
                 {/* Header */}
@@ -16,8 +25,8 @@ export default function EthereumNodesPage() {
                         Ethereum Node Explorer
                     </h1>
                     <p className="text-slate-500 text-base leading-relaxed">
-                        Nous travaillons à rendre l&apos;exploration individuelle des nœuds Ethereum possible.
-                        Voici pourquoi c&apos;est plus complexe que pour Solana.
+                        We are working on making individual Ethereum node exploration possible.
+                        Here is why it is more complex than Solana.
                     </p>
                 </div>
 
@@ -26,38 +35,38 @@ export default function EthereumNodesPage() {
 
                     <div className="rounded-2xl p-6 border border-[#627EEA]/15 bg-white/60 backdrop-blur-sm">
                         <h2 className="text-sm font-black uppercase tracking-widest text-[#627EEA] mb-3">
-                            Des données agrégées, pas individuelles
+                            Aggregated data, not individual nodes
                         </h2>
                         <p className="text-slate-600 text-sm leading-relaxed">
-                            Notre source actuelle — l&apos;API MigaLabs — ne retourne que des distributions statistiques :
-                            nombre de nœuds par fournisseur, par pays, par client. Il n&apos;existe aucun endpoint exposant
-                            une liste de nœuds individuels avec leurs adresses IP. C&apos;est suffisant pour mesurer les parts
-                            de marché, mais impossible à lister nœud par nœud.
+                            Our current source — the MigaLabs API — only returns statistical distributions:
+                            number of nodes per provider, per country, per client. There is no endpoint exposing
+                            a list of individual nodes with their IP addresses. This is sufficient to measure market
+                            share, but makes node-by-node listing impossible.
                         </p>
                     </div>
 
                     <div className="rounded-2xl p-6 border border-[#627EEA]/15 bg-white/60 backdrop-blur-sm">
                         <h2 className="text-sm font-black uppercase tracking-widest text-[#627EEA] mb-3">
-                            Un protocole de découverte différent de Solana
+                            A different discovery protocol than Solana
                         </h2>
                         <p className="text-slate-600 text-sm leading-relaxed">
-                            Sur Solana, chaque nœud annonce son IP via le protocole Gossip — une simple requête RPC
-                            retourne la liste complète des participants. Sur Ethereum, les nœuds sont découverts via
-                            deux protocoles distincts : <strong>devp2p</strong> pour la couche d&apos;exécution (Geth, Reth...)
-                            et <strong>libp2p</strong> pour la couche de consensus (Lighthouse, Prysm...). Crawler ces
-                            deux réseaux nécessite un nœud dédié en permanence.
+                            On Solana, each node broadcasts its IP via the Gossip protocol — a single RPC request
+                            returns the full list of participants. On Ethereum, nodes are discovered via two distinct
+                            protocols: <strong>devp2p</strong> for the execution layer (Geth, Reth...)
+                            and <strong>libp2p</strong> for the consensus layer (Lighthouse, Prysm...). Crawling
+                            both networks requires a dedicated node running continuously.
                         </p>
                     </div>
 
                     <div className="rounded-2xl p-6 border border-[#627EEA]/15 bg-white/60 backdrop-blur-sm">
                         <h2 className="text-sm font-black uppercase tracking-widest text-[#627EEA] mb-3">
-                            Ce qui est envisagé
+                            What is planned
                         </h2>
                         <p className="text-slate-600 text-sm leading-relaxed">
-                            L&apos;intégration d&apos;une source comme <strong>Ethernodes.org</strong> permettrait de lister
-                            les nœuds execution layer avec leur IP, client, pays et OS — et d&apos;y appliquer notre
-                            enrichissement MaxMind pour identifier les infrastructures OVHcloud. Une piste concrète,
-                            à court terme.
+                            Integrating a source like <strong>Ethernodes.org</strong> would allow us to list
+                            execution-layer nodes with their IP, client, country, and OS — and apply our
+                            MaxMind enrichment to identify OVHcloud infrastructure. A concrete path forward,
+                            in the near term.
                         </p>
                     </div>
 

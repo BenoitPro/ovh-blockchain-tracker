@@ -2,6 +2,8 @@
 
 import Link from 'next/link';
 import AnimatedTagline from '@/components/dashboard/AnimatedTagline';
+import ParticlesBackground from '@/components/ParticlesBackground';
+import BlockchainCubes from '@/components/BlockchainCubes';
 
 const ACCENT = '#627EEA';
 
@@ -232,8 +234,14 @@ function UseCaseCard({ company, role, chains, description, quote, person, highli
 
 export default function EthereumUseCasesPage() {
     return (
-        <div className="min-h-screen relative overflow-hidden">
-            <div className="relative z-10">
+        <div className="min-h-screen relative overflow-x-hidden overflow-y-auto">
+            {/* Animated Blockchain Cubes Background (Subtle for Eth) */}
+            <BlockchainCubes opacity={0.03} network="ethereum" />
+
+            {/* Floating Starry Points Background */}
+            <ParticlesBackground network="ethereum" />
+            
+            <div className="relative z-10 flex flex-col min-h-screen">
                 <main className="p-6 w-full max-w-4xl mx-auto">
                     <AnimatedTagline
                         title="Use Cases"

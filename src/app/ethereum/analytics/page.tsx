@@ -9,9 +9,11 @@ import KPICards from '@/components/dashboard/KPICards';
 import { EthSnapshotMetrics } from '@/types';
 import { useScrollReveal } from '@/hooks/useScrollReveal';
 import { GlobeEuropeAfricaIcon } from '@heroicons/react/24/outline';
+import ParticlesBackground from '@/components/ParticlesBackground';
+import BlockchainCubes from '@/components/BlockchainCubes';
 
 function formatTimestamp(ts: number): string {
-    return new Date(ts * 1000).toLocaleString('fr-FR', {
+    return new Date(ts * 1000).toLocaleString('en-US', {
         day: '2-digit', month: 'short', year: 'numeric',
         hour: '2-digit', minute: '2-digit', timeZone: 'UTC',
     }) + ' UTC';
@@ -86,15 +88,38 @@ export default function EthereumAnalyticsPage() {
 
     useEffect(() => { fetchData(); }, []);
 
-    if (loading) return <LoadingState />;
-    if (error || !metrics) return <ErrorState message={error || 'No data available'} onRetry={fetchData} />;
+    if (loading) {
+        return (
+            <>
+                <BlockchainCubes opacity={0.03} network="ethereum" />
+                <ParticlesBackground network="ethereum" />
+                <LoadingState />
+            </>
+        );
+    }
+
+    if (error || !metrics) {
+        return (
+            <>
+                <BlockchainCubes opacity={0.03} network="ethereum" />
+                <ParticlesBackground network="ethereum" />
+                <ErrorState message={error || 'No data available'} onRetry={fetchData} />
+            </>
+        );
+    }
 
     const ovhEntry = metrics.providerBreakdown.find(p => p.key === 'ovh');
     const ovhNodes = ovhEntry?.nodeCount ?? 0;
     const ovhMarketShare = ovhEntry?.marketShare ?? 0;
 
     return (
-        <div className="min-h-screen relative overflow-hidden">
+        <div className="min-h-screen relative overflow-x-hidden overflow-y-auto">
+            {/* Animated Blockchain Cubes Background (Subtle for Eth) */}
+            <BlockchainCubes opacity={0.03} network="ethereum" />
+
+            {/* Floating Starry Points Background */}
+            <ParticlesBackground network="ethereum" />
+
             <div className="relative z-10 flex flex-col min-h-screen">
                 <main className="flex-1 container mx-auto px-6 py-10 md:py-12 max-w-[1400px]">
 
@@ -106,13 +131,13 @@ export default function EthereumAnalyticsPage() {
                                     Ethereum Analytics
                                 </h1>
                                 <p className="text-slate-500 text-sm">
-                                    Distribution des fournisseurs sur le réseau Ethereum execution-layer.
+                                    Cloud provider distribution across the Ethereum execution-layer network.
                                 </p>
                             </div>
                             {metrics.timestamp && (
                                 <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-white/60 border border-slate-200 text-xs text-slate-400 self-start mt-1">
                                     <div className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
-                                    Mis à jour : {formatTimestamp(metrics.timestamp)}
+                                    Updated: {formatTimestamp(metrics.timestamp)}
                                 </div>
                             )}
                         </div>

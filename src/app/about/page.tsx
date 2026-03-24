@@ -14,30 +14,80 @@ const teamMembers = [
         linkedin: 'https://www.linkedin.com/in/alexandre-al-ajroudi-897b7890/',
     },
     {
-        name: 'Omar Abi Issa',
-        role: 'Blockchain & Web3 Global lead',
-        image: '/assets/team/Omar.jpeg',
-        linkedin: 'https://www.linkedin.com/in/omar-abi-issa-19106093/',
-    },
-    {
         name: 'Benoit Baillon',
-        role: 'Corporate Blockchain Account manager - France',
+        role: 'Corporate & Regulated Blockchain Account - France',
         image: '/assets/team/Benoit.jpeg',
         linkedin: 'https://www.linkedin.com/in/benoit-baillon-6b8398114/',
     },
     {
+        name: 'Omar Abi Issa',
+        role: 'Blockchain & Web3 Global lead',
+        image: '/assets/team/Omar.jpeg',
+        linkedin: 'https://www.linkedin.com/in/omar-abi-issa-19106093/',
+        isLead: true,
+    },
+    {
         name: 'Dorota Bilińska',
-        role: 'Account Manager & Web3 lead - Spain',
+        role: 'Blockchain Lead- Spain & Southern Europe',
         image: '/assets/team/Dorota.jpeg',
-        linkedin: 'https://www.linkedin.com/in/dorota-bili%C5%84ska-97534511/',
+        linkedin: 'https://www.linkedin.com/in/dorota-bilinska/',
     },
     {
         name: 'Camann MANGOPI',
-        role: 'Regional Account Manager - Africa & Middle East',
+        role: 'Blockchain Lead - Middle East Africa',
         image: '/assets/team/Camann.jpeg',
-        linkedin: 'https://www.linkedin.com/in/kamen-mangopi/',
+        linkedin: 'https://www.linkedin.com/in/camann-mangopi-2555b1211/',
     },
 ];
+
+const TeamCard = ({ member, isEth }: { member: any, isEth: boolean }) => (
+    <div 
+        className={`glass-card p-4 md:p-5 flex items-center gap-4 group transition-all duration-500 hover:scale-110 w-[280px] md:w-[320px] flex-shrink-0 relative overflow-hidden ${
+            member.isLead ? 'border-2' : ''
+        }`}
+        style={{
+            borderColor: member.isLead ? (isEth ? 'rgba(98,126,234,0.6)' : 'rgba(0,240,255,0.6)') : 'rgba(255,255,255,0.1)',
+            boxShadow: member.isLead ? (isEth ? '0 0 40px rgba(98,126,234,0.2)' : '0 0 40px rgba(0,240,255,0.2)') : 'none',
+            background: isEth ? 'rgba(255, 255, 255, 0.9)' : 'rgba(10, 10, 22, 0.85)'
+        }}
+    >
+        <div 
+            className="relative w-16 h-16 md:w-20 md:h-20 flex-shrink-0 rounded-xl overflow-hidden border-2 transition-all duration-500 group-hover:rotate-2 shadow-lg"
+            style={{
+                borderColor: isEth ? 'rgba(98,126,234,0.4)' : 'rgba(0,240,255,0.4)',
+            }}
+        >
+            <Image
+                src={member.image}
+                alt={member.name}
+                width={80}
+                height={80}
+                className="object-cover w-full h-full"
+            />
+        </div>
+        
+        <div className="flex flex-col text-left overflow-hidden">
+            <h3 className="text-base md:text-lg font-bold mb-0.5 truncate">{member.name}</h3>
+            <p className={`text-[10px] md:text-xs font-semibold mb-2 transition-colors duration-1000 ${isEth ? 'text-indigo-600' : 'text-cyan-400'}`}>
+                {member.role}
+            </p>
+            
+            <a
+                href={member.linkedin}
+                target="_blank"
+                rel="noopener noreferrer"
+                className={`flex items-center gap-1.5 text-[9px] font-bold uppercase tracking-widest transition-opacity ${
+                    isEth ? 'opacity-60 hover:opacity-100 hover:text-indigo-600' : 'opacity-50 hover:opacity-100 hover:text-cyan-400'
+                }`}
+            >
+                <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z"/>
+                </svg>
+                Connect
+            </a>
+        </div>
+    </div>
+);
 
 export default function AboutUsPage() {
     const { theme } = useNetworkTheme();
@@ -68,71 +118,67 @@ export default function AboutUsPage() {
                 }}
             />
 
-            <div className="relative z-10 w-full max-w-6xl px-6 py-20 flex flex-col items-center">
+            <div className="relative z-10 w-full max-w-4xl px-6 py-20 flex flex-col items-center">
                 
                 {/* Hero Section */}
                 <motion.div 
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.8 }}
-                    className="text-center max-w-3xl mb-24"
+                    className="text-center max-w-3xl mb-16 md:mb-24"
                 >
                     <h1 className={`text-5xl md:text-6xl font-black mb-6 bg-clip-text text-transparent drop-shadow-lg transition-all duration-1000 ${
                         isEth ? 'bg-gradient-to-r from-blue-500 via-indigo-500 to-indigo-700' : 'bg-gradient-to-r from-teal-300 via-cyan-400 to-blue-500'
                     }`}>
-                        Meet the OVHcloud Web3 Team
+                        The OVHcloud Web3 Team
                     </h1>
                     <p className="text-xl opacity-70 leading-relaxed">
-                        We are a dedicated group of Web3 native experts, solution architects, and engineers. Our mission is to provide the most robust, decentralized, and scalable bare metal infrastructure for the blockchain ecosystem.
+                        A dedicated group of Web3 native experts connecting the infrastructure you trust.
                     </p>
                 </motion.div>
 
-                {/* Team Grid */}
-                <div className="flex flex-wrap justify-center gap-8 mb-32 w-full">
-                    {teamMembers.map((member, idx) => (
-                        <motion.div
-                            key={member.name}
-                            initial={{ opacity: 0, y: 30 }}
-                            whileInView={{ opacity: 1, y: 0 }}
-                            viewport={{ once: true }}
-                            transition={{ duration: 0.5, delay: idx * 0.2 }}
-                            className="glass-card p-8 flex flex-col items-center text-center group w-full md:w-[calc(33.333%-2rem)] min-w-[300px]"
+                {/* Team Section - Infinite Horizontal Marquee */}
+                <div className="w-[110vw] relative py-12 overflow-hidden flex flex-col gap-10 left-1/2 -translate-x-1/2">
+                    
+                    {/* Row 1 - Left to Right */}
+                    <div className="relative flex overflow-hidden">
+                        <motion.div 
+                            className="flex gap-8 px-4"
+                            animate={{ x: [-1760, 0] }} // Seamless loop for 5 cards * 352px
+                            transition={{ 
+                                repeat: Infinity, 
+                                ease: "linear", 
+                                duration: 35,
+                                repeatType: "loop"
+                            }}
                         >
-                            <div 
-                                className="w-32 h-32 rounded-full overflow-hidden border-2 mb-6 group-hover:scale-105 transition-all duration-300"
-                                style={{
-                                    borderColor: isEth ? 'rgba(98,126,234,0.5)' : 'rgba(0,240,255,0.5)',
-                                    boxShadow: isEth ? '0 0 30px rgba(98,126,234,0.2)' : '0 0 30px rgba(0,240,255,0.2)'
-                                }}
-                            >
-                                <Image
-                                    src={member.image}
-                                    alt={member.name}
-                                    width={128}
-                                    height={128}
-                                    className="object-cover w-full h-full"
-                                />
-                            </div>
-                            <h3 className="text-2xl font-bold mb-2">{member.name}</h3>
-                            <p className={`text-sm mb-6 h-10 transition-colors duration-1000 ${isEth ? 'text-indigo-600' : 'text-cyan-400'}`}>
-                                {member.role}
-                            </p>
-                            
-                            <a
-                                href={member.linkedin}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className={`mt-auto flex items-center gap-2 text-sm font-semibold transition-colors ${
-                                    isEth ? 'opacity-60 hover:opacity-100 hover:text-indigo-600' : 'opacity-50 hover:opacity-100 hover:text-cyan-400'
-                                }`}
-                            >
-                                <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
-                                    <path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z"/>
-                                </svg>
-                                Connect on LinkedIn
-                            </a>
+                            {[...teamMembers, ...teamMembers, ...teamMembers, ...teamMembers].map((member, idx) => (
+                                <TeamCard key={`${member.name}-r1-${idx}`} member={member} isEth={isEth} />
+                            ))}
                         </motion.div>
-                    ))}
+                    </div>
+
+                    {/* Row 2 - Left to Right (Staggered) */}
+                    <div className="relative flex overflow-hidden">
+                        <motion.div 
+                            className="flex gap-8 px-4"
+                            animate={{ x: [-2640, -880] }} // Offset by 880px to create quinconce
+                            transition={{ 
+                                repeat: Infinity, 
+                                ease: "linear", 
+                                duration: 40,
+                                repeatType: "loop"
+                            }}
+                        >
+                            {[...teamMembers, ...teamMembers, ...teamMembers, ...teamMembers].map((member, idx) => (
+                                <TeamCard key={`${member.name}-r2-${idx}`} member={member} isEth={isEth} />
+                            ))}
+                        </motion.div>
+                    </div>
+
+                    {/* Gradient Fades for the edges */}
+                    <div className={`absolute inset-y-0 left-0 w-48 z-10 pointer-events-none transition-all duration-1000 ${isEth ? 'bg-gradient-to-r from-[#f0f4ff] to-transparent' : 'bg-gradient-to-r from-[#050510] to-transparent'}`} />
+                    <div className={`absolute inset-y-0 right-0 w-48 z-10 pointer-events-none transition-all duration-1000 ${isEth ? 'bg-gradient-to-l from-[#f0f4ff] to-transparent' : 'bg-gradient-to-l from-[#050510] to-transparent'}`} />
                 </div>
 
                 {/* Professional Services & Solutions Architects */}

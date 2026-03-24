@@ -7,19 +7,19 @@ import NetworkThemeProvider from '@/components/NetworkThemeProvider';
 const inter = Inter({ subsets: ['latin'] });
 
 export const metadata: Metadata = {
-    title: 'OVHcloud Blockchain Infrastructure Monitor',
-    description: 'Real-time monitoring of OVHcloud market share in blockchain infrastructure. Track nodes, validators, and geographic distribution across multiple networks.',
+    title: 'Solana Dashboard | OVHcloud Blockchain Monitor',
+    description: 'Real-time monitoring of OVHcloud market share in blockchain infrastructure. Track nodes, validators, and geographic distribution across Solana and Ethereum.',
     keywords: ['OVHcloud', 'Solana', 'Ethereum', 'Blockchain', 'Infrastructure', 'Validators', 'Bare Metal'],
     authors: [{ name: 'OVHcloud' }],
     openGraph: {
-        title: 'OVHcloud Blockchain Infrastructure Monitor',
-        description: 'Real-time monitoring of OVHcloud market share in blockchain infrastructure',
+        title: 'Solana Dashboard | OVHcloud Blockchain Monitor',
+        description: 'Real-time monitoring of OVHcloud market share across Solana and Ethereum networks.',
         type: 'website',
     },
     twitter: {
         card: 'summary_large_image',
-        title: 'OVHcloud Blockchain Infrastructure Monitor',
-        description: 'Real-time monitoring of OVHcloud market share in blockchain infrastructure',
+        title: 'Solana Dashboard | OVHcloud Blockchain Monitor',
+        description: 'Real-time monitoring of OVHcloud market share across Solana and Ethereum networks.',
     },
 };
 
@@ -60,7 +60,7 @@ export default function RootLayout({
             <body className={`${inter.className} selection:bg-[#00F0FF]/30`}>
                 <NetworkThemeProvider>
                     <Sidebar />
-                    <div className="ml-60">{children}</div>
+                    <div className="lg:ml-60">{children}</div>
                 </NetworkThemeProvider>
             </body>
         </html>

@@ -3,6 +3,8 @@
 import { useMemo, useState, useEffect, useRef } from 'react';
 import dynamic from 'next/dynamic';
 import { useNetworkTheme } from '@/components/NetworkThemeProvider';
+import { motion, AnimatePresence } from 'framer-motion';
+import { ServerIcon, ChartPieIcon, InformationCircleIcon, XMarkIcon } from '@heroicons/react/24/outline';
 
 const Globe = dynamic(() => import('react-globe.gl'), {
     ssr: false,
@@ -18,6 +20,10 @@ interface WorldMapProps {
     globalGeoDistribution?: Record<string, number>;
     /** Called when user clicks a country dot; receives the 2-letter ISO code */
     onCountryClick?: (isoCode: string) => void;
+    // New KPI props for discrete display
+    totalNodes?: number;
+    ovhNodes?: number;
+    marketShare?: number;
 }
 
 const COUNTRY_COORDS: Record<string, { coordinates: [number, number]; name: string; code: string }> = {
@@ -44,7 +50,14 @@ const COUNTRY_COORDS: Record<string, { coordinates: [number, number]; name: stri
     'Brazil': { coordinates: [-51.9253, -14.2350], name: 'Brazil', code: 'BR' },
 };
 
-export default function WorldMap({ geoDistribution, globalGeoDistribution, onCountryClick }: WorldMapProps) {
+export default function WorldMap({ 
+    geoDistribution, 
+    globalGeoDistribution, 
+    onCountryClick,
+    totalNodes,
+    ovhNodes,
+    marketShare
+}: WorldMapProps) {
     const globeRef = useRef<any>(null);
     const containerRef = useRef<HTMLDivElement>(null);
     const [viewMode, setViewMode] = useState<'ovh' | 'global'>('ovh');
@@ -55,6 +68,7 @@ export default function WorldMap({ geoDistribution, globalGeoDistribution, onCou
     const isEth = theme === 'ethereum';
     const accent = isEth ? '#627EEA' : '#00F0FF';
     const accentRgb = isEth ? '98, 126, 234' : '0, 240, 255';
+    const [activeTooltip, setActiveTooltip] = useState<string | null>(null);
 
     const activeDistribution = (viewMode === 'global' && globalGeoDistribution)
         ? globalGeoDistribution
@@ -122,23 +136,23 @@ export default function WorldMap({ geoDistribution, globalGeoDistribution, onCou
 
             <div
                 ref={containerRef}
-                className="w-full h-[400px] md:h-[500px] relative flex items-center justify-center"
+                className="w-full h-[550px] md:h-[700px] relative flex items-center justify-center"
                 style={{ background: 'transparent' }}
             >
                 {dimensions.width > 0 && dimensions.height > 0 && (
                     <Globe
                         ref={globeRef}
                         width={dimensions.width}
-                        height={dimensions.height}
+                        height={dimensions.height} // Reverted to full container height for better control
                         backgroundColor="rgba(0,0,0,0)"
                         globeImageUrl={isEth
-                            ? "//unpkg.com/three-globe/example/img/earth-blue-marble.jpg"
+                            ? "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8/+8fAwAJBwH/68Z9HwAAAABJRU5ErkJggg=="
                             : "//unpkg.com/three-globe/example/img/earth-dark.jpg"}
                         bumpImageUrl="//unpkg.com/three-globe/example/img/earth-topology.png"
 
                         onGlobeReady={() => {
                             if (globeRef.current) {
-                                globeRef.current.pointOfView({ altitude: 1.8, lat: 30, lng: -10 }, 1500);
+                                globeRef.current.pointOfView({ altitude: 1.98, lat: 25, lng: -10 }, 1500);
                                 setTimeout(() => {
                                     if (globeRef.current) {
                                         globeRef.current.controls().autoRotate = true;
@@ -147,21 +161,24 @@ export default function WorldMap({ geoDistribution, globalGeoDistribution, onCou
                                 }, 1550);
                             }
                         }}
-
                         polygonsData={countriesGeoJson.features}
                         polygonAltitude={(d: any) => d === hoveredPolygon ? 0.015 : 0.005}
                         polygonCapColor={(d: any) => {
                             const nodeData = dataPoints.find(p => p.isoCode === d.properties.ISO_A2 || p.fullCountry === d.properties.ADMIN || p.country === d.properties.NAME || (p.isoCode === 'FR' && d.properties.NAME === 'France'));
-                            if (d === hoveredPolygon) return `rgba(${accentRgb}, 0.3)`;
-                            if (nodeData) return `rgba(${accentRgb}, 0.08)`;
-                            return 'rgba(255, 255, 255, 0.0)';
+                            if (d === hoveredPolygon) return `rgba(${accentRgb}, 0.5)`;
+                            if (nodeData) {
+                                // For node countries: vibrant Ethereum blue
+                                return isEth ? 'rgba(98, 126, 234, 0.25)' : `rgba(${accentRgb}, 0.08)`;
+                            }
+                            // For non-node countries: clean white fill to distinguish land from water in light theme
+                            return isEth ? 'rgba(255, 255, 255, 0.5)' : 'rgba(255, 255, 255, 0.0)';
                         }}
                         polygonSideColor={() => `rgba(${accentRgb}, 0.05)`}
                         polygonStrokeColor={(d: any) => {
                             const nodeData = dataPoints.find(p => p.isoCode === d.properties.ISO_A2 || p.fullCountry === d.properties.ADMIN || p.country === d.properties.NAME || (p.isoCode === 'FR' && d.properties.NAME === 'France'));
                             if (d === hoveredPolygon) return `rgba(${accentRgb}, 1)`;
-                            if (nodeData) return `rgba(${accentRgb}, 0.4)`;
-                            return isEth ? 'rgba(98, 126, 234, 0.08)' : 'rgba(255, 255, 255, 0.05)';
+                            if (nodeData) return `rgba(${accentRgb}, 0.5)`;
+                            return isEth ? 'rgba(98, 126, 234, 0.12)' : 'rgba(255, 255, 255, 0.05)';
                         }}
                         onPolygonHover={setHoveredPolygon}
                         polygonLabel={(d: any) => {
@@ -197,35 +214,150 @@ export default function WorldMap({ geoDistribution, globalGeoDistribution, onCou
             </div>
 
             {/* Legend overlay */}
-            <div className="absolute top-4 right-4 md:top-6 md:right-6 flex flex-col items-end gap-2 z-20 pointer-events-none">
+            <div className="absolute top-4 right-4 md:top-8 md:right-8 lg:right-12 flex flex-col items-end gap-2.5 z-20 pointer-events-none">
 
                 {/* Active Node + Heatmap */}
-                <div className={`flex items-center gap-4 px-4 py-2 rounded-full backdrop-blur-md shadow-lg border pointer-events-auto ${isEth ? 'bg-white/60 border-[#627EEA]/20' : 'bg-black/40 border-white/10'}`}>
-                    <div className={`flex items-center gap-2 pr-4 border-r ${isEth ? 'border-[#627EEA]/20' : 'border-white/10'}`}>
-                        <span className={`font-medium text-[10px] tracking-widest uppercase ${isEth ? 'text-slate-500' : 'text-gray-300'}`}>Active Node</span>
+                <div className={`flex items-center gap-4 px-4 py-2 rounded-full backdrop-blur-md shadow-lg border pointer-events-auto ${isEth ? 'bg-[#1e2b5e]/40 border-[#627EEA]/30' : 'bg-black/40 border-white/10'}`}>
+                    <div className={`flex items-center gap-2 pr-4 border-r ${isEth ? 'border-[#627EEA]/30' : 'border-white/10'}`}>
+                        <span className={`font-medium text-[10px] tracking-widest uppercase ${isEth ? 'text-blue-200' : 'text-gray-300'}`}>Active Node</span>
                         <div className="relative">
                             <div className="w-2 h-2 rounded-full animate-ping opacity-60" style={{ backgroundColor: accent }} />
                             <div className="absolute inset-0 w-2 h-2 rounded-full" style={{ backgroundColor: accent, boxShadow: `0 0 8px ${accent}` }} />
                         </div>
                     </div>
                     <div className="flex items-center gap-2 pl-1">
-                        <span className={`text-[9px] uppercase font-bold tracking-wider ${isEth ? 'text-slate-400' : 'text-gray-500'}`}>Low</span>
+                        <span className={`text-[9px] uppercase font-bold tracking-wider ${isEth ? 'text-blue-300/70' : 'text-gray-500'}`}>Low</span>
                         <div className="w-16 h-1 rounded-full" style={{ background: `linear-gradient(to right, rgba(${accentRgb}, 0.2), rgba(${accentRgb}, 0.6), rgba(${accentRgb}, 1))`, boxShadow: `0 0 5px rgba(${accentRgb}, 0.5)` }} />
-                        <span className={`text-[9px] uppercase font-bold tracking-wider ${isEth ? 'text-slate-700' : 'text-white/90'}`}>High</span>
+                        <span className={`text-[9px] uppercase font-bold tracking-wider ${isEth ? 'text-blue-100' : 'text-white/90'}`}>High</span>
                     </div>
                 </div>
 
-                {/* Countries count */}
-                <div className={`flex items-center gap-2.5 px-3 py-1.5 rounded-full backdrop-blur-md shadow-lg border pointer-events-auto ${isEth ? 'bg-white/60 border-[#627EEA]/20' : 'bg-black/40 border-white/10'}`}>
-                    <span className={`font-medium text-[10px] tracking-widest uppercase ${isEth ? 'text-slate-500' : 'text-gray-300'}`}>Countries</span>
-                    <div className="flex items-center justify-center min-w-[20px] h-[20px] px-1.5 rounded-md" style={{ background: `rgba(${accentRgb}, 0.15)`, border: `1px solid rgba(${accentRgb}, 0.3)` }}>
-                        <span className="text-[10px] font-bold leading-none" style={{ color: accent }}>{Object.keys(activeDistribution).length}</span>
+                {/* Row for Countries and basic stats */}
+                <div className="flex flex-col items-end gap-2">
+                    {/* Countries count */}
+                    <div className={`flex items-center gap-2.5 px-3 py-1.5 rounded-full backdrop-blur-md shadow-lg border pointer-events-auto ${isEth ? 'bg-[#1e2b5e]/40 border-[#627EEA]/30' : 'bg-black/40 border-white/10'}`}>
+                        <span className={`font-medium text-[10px] tracking-widest uppercase ${isEth ? 'text-blue-200' : 'text-gray-300'}`}>Countries</span>
+                        <div className="flex items-center justify-center min-w-[20px] h-[20px] px-1.5 rounded-md" style={{ background: `rgba(${accentRgb}, 0.15)`, border: `1px solid rgba(${accentRgb}, 0.3)` }}>
+                            <span className="text-[10px] font-bold leading-none" style={{ color: isEth ? '#94a3b8' : accent }}>{Object.keys(activeDistribution).length}</span>
+                        </div>
                     </div>
+
+                    {/* Additional KPI pills - Discrete format with Tooltips */}
+                    {totalNodes !== undefined && (
+                        <div className="relative pointer-events-auto">
+                            <div 
+                                onClick={() => setActiveTooltip(activeTooltip === 'total' ? null : 'total')}
+                                className={`flex items-center gap-2.5 px-3 py-1.5 rounded-full backdrop-blur-md shadow-lg border cursor-pointer hover:scale-105 transition-transform ${isEth ? 'bg-[#1e2b5e]/40 border-[#627EEA]/30' : 'bg-black/40 border-white/10'}`}
+                            >
+                                <span className={`font-medium text-[10px] tracking-widest uppercase ${isEth ? 'text-blue-300/70' : 'text-gray-400'}`}>Network Tot.</span>
+                                <span className="text-[10px] font-bold" style={{ color: isEth ? '#818cf8' : '#A855F7' }}>{totalNodes.toLocaleString()}</span>
+                            </div>
+                            
+                            <AnimatePresence>
+                                {activeTooltip === 'total' && (
+                                    <motion.div
+                                        initial={{ opacity: 0, scale: 0.9, x: 20 }}
+                                        animate={{ opacity: 1, scale: 1, x: 0 }}
+                                        exit={{ opacity: 0, scale: 0.9, x: 20 }}
+                                        className="absolute right-full mr-4 top-0 z-50 w-64 bg-[#050510]/95 backdrop-blur-xl border border-white/10 rounded-xl p-4 shadow-2xl text-left"
+                                        style={{ boxShadow: `0 10px 40px ${isEth ? '#818cf820' : '#A855F720'}` }}
+                                    >
+                                        <button className="absolute top-2 right-2 text-white/30 hover:text-white" onClick={() => setActiveTooltip(null)}>
+                                            <XMarkIcon className="w-3.5 h-3.5" />
+                                        </button>
+                                        <h4 className="text-xs font-bold mb-1.5 flex items-center gap-1.5" style={{ color: isEth ? '#818cf8' : '#A855F7' }}>
+                                            <ServerIcon className="w-3.5 h-3.5" />
+                                            {isEth ? 'Total Execution Nodes' : 'Total Network Nodes'}
+                                        </h4>
+                                        <p className="text-[10px] text-slate-400 leading-relaxed">
+                                            {isEth 
+                                                ? 'Total number of discovered execution-layer nodes across the entire Ethereum network during the last crawl.'
+                                                : 'Total number of active nodes detected globally on the network.'}
+                                        </p>
+                                    </motion.div>
+                                )}
+                            </AnimatePresence>
+                        </div>
+                    )}
+
+                    {ovhNodes !== undefined && (
+                        <div className="relative pointer-events-auto">
+                            <div 
+                                onClick={() => setActiveTooltip(activeTooltip === 'ovh' ? null : 'ovh')}
+                                className={`flex items-center gap-2.5 px-3 py-1.5 rounded-full backdrop-blur-md shadow-lg border cursor-pointer hover:scale-105 transition-transform ${isEth ? 'bg-[#1e2b5e]/40 border-[#627EEA]/30' : 'bg-black/40 border-white/10'}`}
+                            >
+                                <span className={`font-medium text-[10px] tracking-widest uppercase ${isEth ? 'text-blue-300/70' : 'text-gray-400'}`}>OVH Nodes</span>
+                                <span className="text-[10px] font-bold" style={{ color: isEth ? '#4fd1c5' : '#00F0FF' }}>{ovhNodes.toLocaleString()}</span>
+                            </div>
+
+                            <AnimatePresence>
+                                {activeTooltip === 'ovh' && (
+                                    <motion.div
+                                        initial={{ opacity: 0, scale: 0.9, x: 20 }}
+                                        animate={{ opacity: 1, scale: 1, x: 0 }}
+                                        exit={{ opacity: 0, scale: 0.9, x: 20 }}
+                                        className="absolute right-full mr-4 top-0 z-50 w-64 bg-[#050510]/95 backdrop-blur-xl border border-white/10 rounded-xl p-4 shadow-2xl text-left"
+                                        style={{ boxShadow: `0 10px 40px ${isEth ? '#4fd1c520' : '#00F0FF20'}` }}
+                                    >
+                                        <button className="absolute top-2 right-2 text-white/30 hover:text-white" onClick={() => setActiveTooltip(null)}>
+                                            <XMarkIcon className="w-3.5 h-3.5" />
+                                        </button>
+                                        <h4 className="text-xs font-bold mb-1.5 flex items-center gap-1.5" style={{ color: isEth ? '#4fd1c5' : '#00F0FF' }}>
+                                            <ServerIcon className="w-3.5 h-3.5" />
+                                            {isEth ? 'Active OVH Nodes' : 'Active OVH Nodes (RPC + Staking)'}
+                                        </h4>
+                                        <p className="text-[10px] text-slate-400 leading-relaxed">
+                                            {isEth 
+                                                ? 'Number of Ethereum execution-layer nodes mapped to OVHcloud ASNs via MaxMind GeoLite2.'
+                                                : 'Total number of Solana network nodes (both RPC and voting validators) currently identifying as hosting on OVHcloud infrastructure via their ASN.'}
+                                        </p>
+                                    </motion.div>
+                                )}
+                            </AnimatePresence>
+                        </div>
+                    )}
+
+                    {marketShare !== undefined && (
+                        <div className="relative pointer-events-auto">
+                            <div 
+                                onClick={() => setActiveTooltip(activeTooltip === 'market' ? null : 'market')}
+                                className={`flex items-center gap-2.5 px-3 py-1.5 rounded-full backdrop-blur-md shadow-lg border cursor-pointer hover:scale-105 transition-transform ${isEth ? 'bg-[#1e2b5e]/40 border-[#627EEA]/30' : 'bg-black/40 border-white/10'}`}
+                            >
+                                <span className={`font-medium text-[10px] tracking-widest uppercase ${isEth ? 'text-blue-300/70' : 'text-gray-400'}`}>Market</span>
+                                <span className="text-[10px] font-bold" style={{ color: isEth ? '#93c5fd' : '#1fb1ff' }}>{(marketShare).toFixed(2)}%</span>
+                            </div>
+
+                            <AnimatePresence>
+                                {activeTooltip === 'market' && (
+                                    <motion.div
+                                        initial={{ opacity: 0, scale: 0.9, x: 20 }}
+                                        animate={{ opacity: 1, scale: 1, x: 0 }}
+                                        exit={{ opacity: 0, scale: 0.9, x: 20 }}
+                                        className="absolute right-full mr-4 top-0 z-50 w-64 bg-[#050510]/95 backdrop-blur-xl border border-white/10 rounded-xl p-4 shadow-2xl text-left"
+                                        style={{ boxShadow: `0 10px 40px ${isEth ? '#93c5fd20' : '#1fb1ff20'}` }}
+                                    >
+                                        <button className="absolute top-2 right-2 text-white/30 hover:text-white" onClick={() => setActiveTooltip(null)}>
+                                            <XMarkIcon className="w-3.5 h-3.5" />
+                                        </button>
+                                        <h4 className="text-xs font-bold mb-1.5 flex items-center gap-1.5" style={{ color: isEth ? '#93c5fd' : '#1fb1ff' }}>
+                                            <ChartPieIcon className="w-3.5 h-3.5" />
+                                            Node Market Share
+                                        </h4>
+                                        <p className="text-[10px] text-slate-400 leading-relaxed">
+                                            {isEth 
+                                                ? 'Percentage of total Ethereum execution-layer nodes hosted on OVHcloud infrastructure.'
+                                                : 'Percentage of total network nodes (RPC + Staking) hosted on OVH.'}
+                                        </p>
+                                    </motion.div>
+                                )}
+                            </AnimatePresence>
+                        </div>
+                    )}
                 </div>
 
                 {/* OVH / GLOBAL toggle */}
                 {globalGeoDistribution && (
-                    <div className={`flex items-center p-1 rounded-full backdrop-blur-xl shadow-lg border pointer-events-auto ${isEth ? 'bg-white/70 border-[#627EEA]/25' : 'bg-black/50 border-white/15'}`}>
+                    <div className={`flex items-center p-1 rounded-full backdrop-blur-xl shadow-lg border pointer-events-auto ${isEth ? 'bg-[#1e2b5e]/50 border-[#627EEA]/40' : 'bg-black/50 border-white/15'}`}>
                         <button
                             onClick={() => setViewMode('ovh')}
                             className="px-3 py-1 rounded-full text-[9px] font-bold uppercase tracking-wider transition-all duration-200"
