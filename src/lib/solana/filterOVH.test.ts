@@ -7,6 +7,7 @@ import * as maxmind from '@/lib/asn/maxmind';
 // Mock MaxMind module
 vi.mock('@/lib/asn/maxmind', () => ({
     getASNFromMaxMind: vi.fn(),
+    getCountryFromMaxMind: vi.fn(),
     isOVHIP: vi.fn(),
     batchGetASN: vi.fn(),
 }));
@@ -94,34 +95,28 @@ describe('filterOVHNodes', () => {
         expect(result).toHaveLength(0);
     });
 
-    it('should enrich OVH nodes with geolocation data', async () => {
-        const nodes = [mockSolanaNode('node1', '99.88.77.66')]; // Different IP to avoid cache
+    it('should enrich OVH nodes with geolocation data from MaxMind', async () => {
+        const nodes = [mockSolanaNode('node1', '99.88.77.66')];
 
         vi.mocked(maxmind.isOVHIP).mockReturnValue(true);
         vi.mocked(maxmind.getASNFromMaxMind).mockReturnValue({
             asn: 'AS16276',
             org: 'OVH SAS',
         });
-
-        (global.fetch as any).mockResolvedValueOnce({
-            ok: true,
-            json: async () => ({
-                status: 'success',
-                countryCode: 'DE',
-                country: 'Germany',
-                city: 'Frankfurt',
-                lat: 50.1109,
-                lon: 8.6821,
-            }),
+        vi.mocked(maxmind.getCountryFromMaxMind).mockReturnValue({
+            country: 'Germany',
+            countryCode: 'DE',
         });
 
         const result = await filterOVHNodes(nodes);
 
+        // Country comes from MaxMind; city/coords default to Unknown/0
+        // (city enrichment requires pre-enriched node data)
         expect(result[0].ipInfo.country).toBe('DE');
         expect(result[0].ipInfo.country_name).toBe('Germany');
-        expect(result[0].ipInfo.city).toBe('Frankfurt');
-        expect(result[0].ipInfo.latitude).toBe(50.1109);
-        expect(result[0].ipInfo.longitude).toBe(8.6821);
+        expect(result[0].ipInfo.city).toBe('Unknown');
+        expect(result[0].ipInfo.latitude).toBe(0);
+        expect(result[0].ipInfo.longitude).toBe(0);
     });
 });
 

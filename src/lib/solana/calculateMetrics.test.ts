@@ -48,12 +48,12 @@ describe('calculateMetrics', () => {
         expect(result.ovhNodes).toBe(2);
         expect(result.marketShare).toBe(50); // 2/4 = 50%
         expect(result.geoDistribution).toEqual({ France: 1, Germany: 1 });
-        expect(result.providerDistribution).toEqual(providerDistribution);
+        expect(result.providerDistribution).toEqual(providerDistribution.distribution);
         expect(result.topValidators).toHaveLength(2);
     });
 
     it('should handle empty node arrays', () => {
-        const result = calculateMetrics([], [], ({} as any));
+        const result = calculateMetrics([], [], { distribution: {}, othersBreakdown: {} });
 
         expect(result.totalNodes).toBe(0);
         expect(result.ovhNodes).toBe(0);
@@ -64,7 +64,7 @@ describe('calculateMetrics', () => {
 
     it('should calculate 0% market share when no OVH nodes', () => {
         const allNodes = [mockSolanaNode('node1'), mockSolanaNode('node2')];
-        const result = calculateMetrics(allNodes, [], ({} as any));
+        const result = calculateMetrics(allNodes, [], { distribution: {}, othersBreakdown: {} });
 
         expect(result.totalNodes).toBe(2);
         expect(result.ovhNodes).toBe(0);
@@ -77,7 +77,7 @@ describe('calculateMetrics', () => {
             mockOVHNode(`node${i}`, 'France', 'Paris')
         );
 
-        const result = calculateMetrics(allNodes, ovhNodes, ({} as any));
+        const result = calculateMetrics(allNodes, ovhNodes, { distribution: {}, othersBreakdown: {} });
 
         expect(result.topValidators).toHaveLength(10);
     });
@@ -89,7 +89,7 @@ describe('calculateMetrics', () => {
             mockOVHNode('node2', 'France', 'Lyon'),
         ];
 
-        const result = calculateMetrics(allNodes, ovhNodes, ({} as any));
+        const result = calculateMetrics(allNodes, ovhNodes, { distribution: {}, othersBreakdown: {} });
 
         expect(result.geoDistribution).toEqual({ France: 2 });
     });
