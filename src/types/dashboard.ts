@@ -5,6 +5,7 @@ export interface DashboardMetrics {
     ovhNodes: number;
     marketShare: number;
     geoDistribution: Record<string, number>;
+    globalGeoDistribution?: Record<string, number>;
     providerDistribution: Record<string, number>;
     topValidators: EnrichedNode[];
     // New Stake Metrics

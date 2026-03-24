@@ -11,6 +11,7 @@ import {
     Cell,
 } from 'recharts';
 import { ProviderBreakdownEntry } from '@/types';
+import { useNetworkTheme } from '@/components/NetworkThemeProvider';
 
 interface ProviderComparisonProps {
     providerBreakdown?: ProviderBreakdownEntry[];
@@ -68,11 +69,15 @@ function CustomTooltip({ active, payload }: CustomTooltipProps) {
 }
 
 export default function ProviderComparison({ providerBreakdown }: ProviderComparisonProps) {
+    const { theme } = useNetworkTheme();
+    const isEth = theme === 'ethereum';
+    const accent = isEth ? '#627EEA' : '#00F0FF';
+
     if (!providerBreakdown || providerBreakdown.length === 0) {
         return (
-            <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-white/5 to-white/[0.02] backdrop-blur-xl border border-white/10 p-8">
-                <h2 className="text-xl font-bold text-white mb-6">Provider Comparison</h2>
-                <p className="text-gray-400 text-center py-8">No provider data available</p>
+            <div className={`relative overflow-hidden rounded-2xl backdrop-blur-xl border p-8 ${isEth ? 'bg-white/70 border-[#627EEA]/15' : 'bg-gradient-to-br from-white/5 to-white/[0.02] border-white/10'}`}>
+                <h2 className={`text-xl font-bold mb-6 ${isEth ? 'text-slate-800' : 'text-white'}`}>Provider Comparison</h2>
+                <p className={`text-center py-8 ${isEth ? 'text-slate-400' : 'text-gray-400'}`}>No provider data available</p>
             </div>
         );
     }
@@ -83,52 +88,57 @@ export default function ProviderComparison({ providerBreakdown }: ProviderCompar
         .slice(0, 8);
 
     return (
-        <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-white/5 to-white/[0.02] backdrop-blur-xl border border-white/10 p-8 glass-card">
+        <div className={`relative overflow-hidden rounded-2xl backdrop-blur-xl border p-8 ${isEth ? 'bg-white/70 border-[#627EEA]/15 shadow-sm' : 'bg-gradient-to-br from-white/5 to-white/[0.02] border-white/10 glass-card'}`}>
             {/* Header */}
             <div className="flex items-center justify-between mb-8">
                 <div>
-                    <h2 className="text-xl font-bold text-white">Provider Comparison</h2>
-                    <p className="text-sm text-gray-400 mt-1">Solana nodes distribution by provider</p>
+                    <h2 className={`text-xl font-bold ${isEth ? 'text-slate-800' : 'text-white'}`}>Provider Comparison</h2>
+                    <p className={`text-sm mt-1 ${isEth ? 'text-slate-500' : 'text-gray-400'}`}>Ethereum execution-layer nodes by cloud provider</p>
                 </div>
-                <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-[#00F0FF]/10 border border-[#00F0FF]/20">
-                    <div className="w-2 h-2 rounded-full bg-[#00F0FF] animate-pulse" />
-                    <span className="text-xs font-medium text-[#00F0FF]">Live</span>
+                <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg" style={{ background: `${accent}18`, border: `1px solid ${accent}30` }}>
+                    <div className="w-2 h-2 rounded-full animate-pulse" style={{ background: accent }} />
+                    <span className="text-xs font-medium" style={{ color: accent }}>Live</span>
                 </div>
             </div>
 
             {/* Bar Chart */}
-            <div style={{ height: 320 }}>
+            <div style={{ height: Math.max(360, chartData.length * 52) }}>
                 <ResponsiveContainer width="100%" height="100%">
                     <BarChart
                         data={chartData}
                         layout="vertical"
-                        margin={{ top: 0, right: 20, left: 8, bottom: 0 }}
-                        barCategoryGap="25%"
+                        margin={{ top: 4, right: 60, left: 8, bottom: 4 }}
+                        barCategoryGap="30%"
                     >
                         <CartesianGrid
                             strokeDasharray="3 3"
-                            stroke="rgba(255,255,255,0.05)"
+                            stroke={isEth ? 'rgba(98,126,234,0.1)' : 'rgba(255,255,255,0.05)'}
                             horizontal={false}
                         />
                         <XAxis
                             type="number"
-                            tick={{ fill: '#6B7280', fontSize: 11 }}
-                            axisLine={{ stroke: 'rgba(255,255,255,0.08)' }}
+                            tick={{ fill: isEth ? '#64748B' : '#6B7280', fontSize: 11 }}
+                            axisLine={{ stroke: isEth ? 'rgba(98,126,234,0.15)' : 'rgba(255,255,255,0.08)' }}
                             tickLine={false}
+                            tickFormatter={(v: number) => v >= 1000 ? `${(v / 1000).toFixed(0)}k` : String(v)}
                         />
                         <YAxis
                             type="category"
                             dataKey="label"
-                            width={100}
-                            tick={{ fill: '#D1D5DB', fontSize: 12, fontWeight: 500 }}
+                            width={110}
+                            tick={{ fill: isEth ? '#475569' : '#D1D5DB', fontSize: 12, fontWeight: 500 }}
                             axisLine={false}
                             tickLine={false}
                         />
                         <Tooltip
                             content={<CustomTooltip />}
-                            cursor={{ fill: 'rgba(255,255,255,0.03)' }}
+                            cursor={{ fill: isEth ? 'rgba(98,126,234,0.05)' : 'rgba(255,255,255,0.03)' }}
                         />
-                        <Bar dataKey="nodeCount" radius={[0, 6, 6, 0]} maxBarSize={32}>
+                        <Bar dataKey="nodeCount" radius={[0, 6, 6, 0]} maxBarSize={36}
+                            label={{ position: 'right', fill: isEth ? '#64748B' : '#9CA3AF', fontSize: 11,
+                                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                                formatter: (v: any) => typeof v === 'number' ? v.toLocaleString() : v }}
+                        >
                             {chartData.map((entry, index) => (
                                 <Cell key={`cell-${index}`} fill={entry.color} />
                             ))}
@@ -144,9 +154,9 @@ export default function ProviderComparison({ providerBreakdown }: ProviderCompar
                         key={entry.key}
                         className="flex items-center gap-2 px-3 py-1.5 rounded-lg border text-xs font-medium"
                         style={{
-                            background: `${entry.color}12`,
-                            borderColor: `${entry.color}30`,
-                            color: entry.color,
+                            background: `${entry.color}${isEth ? '15' : '12'}`,
+                            borderColor: `${entry.color}${isEth ? '40' : '30'}`,
+                            color: isEth ? entry.color : entry.color,
                         }}
                     >
                         <div

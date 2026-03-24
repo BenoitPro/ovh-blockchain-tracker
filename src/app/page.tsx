@@ -89,26 +89,45 @@ export default function Home() {
                         accentColor="#00F0FF"
                     />
 
-                    {/* 1. Geographic Distribution - World Map (Takes remaining space) */}
-                    {Object.keys(metrics.geoDistribution).length > 0 && (
-                        <section className="flex-1 flex flex-col mb-1 fade-in-up relative z-10 w-full">
-                            <div className="w-full flex-grow flex items-center justify-center">
-                                <WorldMap
-                                    geoDistribution={metrics.geoDistribution}
-                                    onCountryClick={handleCountryClick}
+                    <div className="flex-1 flex flex-col lg:flex-row items-center lg:items-stretch gap-4 overflow-hidden">
+                        {/* 1. Geographic Distribution - World Map (Left on desktop) */}
+                        {Object.keys(metrics.geoDistribution).length > 0 && (
+                            <section className="flex-[3] flex flex-col fade-in-up relative z-10 w-full min-h-[450px] md:min-h-[550px]">
+                                <div className="w-full flex-grow flex items-center justify-center">
+                                    <WorldMap
+                                        geoDistribution={metrics.geoDistribution}
+                                        globalGeoDistribution={metrics.globalGeoDistribution}
+                                        onCountryClick={handleCountryClick}
+                                    />
+                                </div>
+                            </section>
+                        )}
+
+                        {/* 2. KPI Cards (Right Sidebar on desktop, Bottom on mobile) */}
+                        <section className="flex-1 flex flex-col justify-center fade-in-up delay-100 relative z-20 w-full lg:w-auto lg:min-w-[300px] lg:max-w-[350px] lg:gap-2">
+                            {/* Desktop Version: Vertical Sidebar */}
+                            <div className="hidden lg:block">
+                                <KPICards
+                                    totalNodes={metrics.totalNodes}
+                                    ovhNodes={metrics.ovhNodes}
+                                    marketShare={metrics.marketShare}
+                                    vertical={true}
+                                    align="right"
+                                />
+                            </div>
+                            
+                            {/* Mobile/Tablet Version: Vertical stacked below globe */}
+                            <div className="lg:hidden w-full mt-2">
+                                <KPICards
+                                    totalNodes={metrics.totalNodes}
+                                    ovhNodes={metrics.ovhNodes}
+                                    marketShare={metrics.marketShare}
+                                    vertical={true}
+                                    align="center"
                                 />
                             </div>
                         </section>
-                    )}
-
-                    {/* 2. KPI Cards (Moved back down) */}
-                    <section className="mt-0 mb-2 fade-in-up delay-100 flex-shrink-0 relative z-20">
-                        <KPICards
-                            totalNodes={metrics.totalNodes}
-                            ovhNodes={metrics.ovhNodes}
-                            marketShare={metrics.marketShare}
-                        />
-                    </section>
+                    </div>
 
                 </main>
                 

@@ -13,7 +13,7 @@ export function calculateMetrics(
 ): DashboardMetrics {
     const totalNodes = allNodes.length;
     const ovhNodeCount = ovhNodes.length;
-    const { distribution, othersBreakdown } = providerCategorization;
+    const { distribution, othersBreakdown, globalGeoDistribution } = providerCategorization;
 
     // Calculate market share percentage
     const marketShare = totalNodes > 0 ? (ovhNodeCount / totalNodes) * 100 : 0;
@@ -22,11 +22,11 @@ export function calculateMetrics(
     const totalStake = allNodes.reduce((acc, node) => acc + ((node as any).activatedStake || 0), 0);
     const ovhStake = ovhNodes.reduce((acc, node) => acc + (node.activatedStake || 0), 0);
 
-    // Geographic distribution
+    // Geographic distribution (OVH only)
     const geoDistribution: Record<string, number> = {};
     ovhNodes.forEach((node) => {
         const country = node.ipInfo.country_name;
-        geoDistribution[country] = (geoDistribution[country] || 0) + 1;
+        if (country) geoDistribution[country] = (geoDistribution[country] || 0) + 1;
     });
 
     // Top validators (sorted by country)
@@ -51,42 +51,42 @@ export function calculateMetrics(
 
     const eligibleEntries: ProviderBreakdownEntry[] = [];
     // Start "others" count from the existing "others" bucket, then adjust below
-    let totalOthersCount = distribution.others || 0;
+    let totalOthersCount = (distribution as any).others || 0;
     const newOthersBreakdown: Record<string, number> = { ...(othersBreakdown ?? {}) };
 
     // 1. Process known providers (fixed categories)
     for (const [key, count] of Object.entries(distribution)) {
-        if (key === 'others' || count === 0) continue;
-        const marketShare = totalNodes > 0 ? (count / totalNodes) * 100 : 0;
+        if (key === 'others' || (count as number) === 0) continue;
+        const marketShare = totalNodes > 0 ? ((count as number) / totalNodes) * 100 : 0;
         if (marketShare > MARKET_SHARE_THRESHOLD) {
             eligibleEntries.push({
                 key,
                 label: PROVIDER_LABELS[key] ?? key,
-                nodeCount: count,
+                nodeCount: (count as number),
                 marketShare,
                 color: PROVIDER_COLORS[key] ?? '#6B7280',
             });
         } else {
             // Below threshold: merge into "others"
-            totalOthersCount += count;
-            newOthersBreakdown[PROVIDER_LABELS[key] ?? key] = count;
+            totalOthersCount += (count as number);
+            newOthersBreakdown[PROVIDER_LABELS[key] ?? key] = (count as number);
         }
     }
 
     // 2. Promote any org from othersBreakdown that exceeds the threshold
     if (othersBreakdown) {
         for (const [org, orgCount] of Object.entries(othersBreakdown)) {
-            const orgMarketShare = totalNodes > 0 ? (orgCount / totalNodes) * 100 : 0;
+            const orgMarketShare = totalNodes > 0 ? ((orgCount as number) / totalNodes) * 100 : 0;
             if (orgMarketShare > MARKET_SHARE_THRESHOLD) {
                 eligibleEntries.push({
                     key: org.toLowerCase().replace(/[^a-z0-9]/g, '_'),
                     label: org,
-                    nodeCount: orgCount,
+                    nodeCount: (orgCount as number),
                     marketShare: orgMarketShare,
                     color: '#6B7280',
                 });
                 // Remove from the "others" pool
-                totalOthersCount -= orgCount;
+                totalOthersCount -= (orgCount as number);
                 delete newOthersBreakdown[org];
             }
         }
@@ -122,7 +122,8 @@ export function calculateMetrics(
         ovhNodes: ovhNodeCount,
         marketShare,
         geoDistribution,
-        providerDistribution: distribution, // Now dynamic from the worker
+        globalGeoDistribution,
+        providerDistribution: distribution, 
         providerBreakdown,
         othersBreakdown,
         topValidators,

@@ -25,6 +25,18 @@ const teamMembers = [
         image: '/assets/team/Benoit.jpeg',
         linkedin: 'https://www.linkedin.com/in/benoit-baillon-6b8398114/',
     },
+    {
+        name: 'Dorota Bilińska',
+        role: 'Account Manager & Web3 lead - Spain',
+        image: '/assets/team/Dorota.jpeg',
+        linkedin: 'https://www.linkedin.com/in/dorota-bili%C5%84ska-97534511/',
+    },
+    {
+        name: 'Camann MANGOPI',
+        role: 'Regional Account Manager - Africa & Middle East',
+        image: '/assets/team/Camann.jpeg',
+        linkedin: 'https://www.linkedin.com/in/kamen-mangopi/',
+    },
 ];
 
 export default function AboutUsPage() {
@@ -76,7 +88,7 @@ export default function AboutUsPage() {
                 </motion.div>
 
                 {/* Team Grid */}
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-32 w-full">
+                <div className="flex flex-wrap justify-center gap-8 mb-32 w-full">
                     {teamMembers.map((member, idx) => (
                         <motion.div
                             key={member.name}
@@ -84,7 +96,7 @@ export default function AboutUsPage() {
                             whileInView={{ opacity: 1, y: 0 }}
                             viewport={{ once: true }}
                             transition={{ duration: 0.5, delay: idx * 0.2 }}
-                            className="glass-card p-8 flex flex-col items-center text-center group"
+                            className="glass-card p-8 flex flex-col items-center text-center group w-full md:w-[calc(33.333%-2rem)] min-w-[300px]"
                         >
                             <div 
                                 className="w-32 h-32 rounded-full overflow-hidden border-2 mb-6 group-hover:scale-105 transition-all duration-300"

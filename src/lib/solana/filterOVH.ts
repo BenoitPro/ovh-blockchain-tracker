@@ -165,6 +165,7 @@ export async function filterOVHNodes(nodes: SolanaNode[]): Promise<OVHNode[]> {
 export interface ProviderCategorizationResult {
     distribution: Record<string, number>;
     othersBreakdown: Record<string, number>;
+    globalGeoDistribution: Record<string, number>;
 }
 
 /**
@@ -176,6 +177,7 @@ export async function categorizeNodesByProvider(
 ): Promise<ProviderCategorizationResult> {
     const distribution: Record<string, number> = {};
     const othersBreakdown: Record<string, number> = {};
+    const globalGeoDistribution: Record<string, number> = {};
 
     // Initialize distribution for all known providers
     for (const key of Object.keys(PROVIDER_ASN_MAP)) {
@@ -199,6 +201,14 @@ export async function categorizeNodesByProvider(
     // Batch process all IPs with MaxMind
     const asnResults = batchGetASN(ips);
 
+    // Step: Get country info for all IPs too
+    ips.forEach(ip => {
+        const countryInfo = getCountryFromMaxMind(ip);
+        if (countryInfo?.country) {
+            globalGeoDistribution[countryInfo.country] = (globalGeoDistribution[countryInfo.country] || 0) + 1;
+        }
+    });
+
     // Categorize by ASN
     for (const asnInfo of asnResults.values()) {
         let categorized = false;
@@ -220,7 +230,7 @@ export async function categorizeNodesByProvider(
 
     logger.debug(`[MaxMind] Provider distribution:`, distribution);
 
-    return { distribution, othersBreakdown };
+    return { distribution, othersBreakdown, globalGeoDistribution };
 }
 
 

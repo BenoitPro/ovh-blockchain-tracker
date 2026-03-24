@@ -8,6 +8,20 @@ const ACCENT = '#00F0FF';
 
 const cases = [
     {
+        company: 'Diomedes Technologies',
+        role: 'High-Frequency Trading & Liquidity',
+        chains: ['SOL', 'ETH', 'BTC'],
+        description:
+            'Diomedes Technologies is a high-frequency trading firm focused on cryptocurrency markets. They leverage advanced trading algorithms to swiftly and effectively capitalize on market movements, with a strong emphasis on continuous performance optimization and innovation.',
+        quote:
+            'As a company focused on high-frequency trading, we needed infrastructure that could keep up with our pace - both in terms of performance and flexibility. OVHcloud gave us the technical foundation to grow fast and offer the best solutions for our clients.',
+        person: 'Diomedes Team',
+        highlights: ['Ultra-low latency', 'High-speed networking', 'Bare Metal performance', 'Global connectivity'],
+        source: 'https://www.ovhcloud.com/en/case-studies/diomedes/',
+        logo: 'https://logo.clearbit.com/diomedestech.com',
+        image: 'https://images.unsplash.com/photo-1639762681485-074b7f938ba0?q=80&w=2832&auto=format&fit=crop',
+    },
+    {
         company: 'Dysnix / Mizar',
         role: 'Dedicated Solana RPC & Base Full Nodes',
         chains: ['SOL', 'ETH'],
@@ -18,6 +32,7 @@ const cases = [
         person: 'Francesco Ciuci, CEO & Co-Founder, Mizar',
         highlights: ['2–3 day provisioning', 'Minimal RPC latency', 'gRPC stream access', 'Custom monitoring dashboard'],
         source: 'https://www.ovhcloud.com/en/case-studies/dysnix/',
+        logo: 'https://logo.clearbit.com/mizar.ai',
         image: '/images/use-cases/mizar-solana.png',
     },
     {
@@ -31,7 +46,22 @@ const cases = [
         person: 'Denys Avierin, CIO at Everstake',
         highlights: ['$7B+ staked assets', '1M+ delegators', '80+ PoS networks', '99.98% reliability'],
         source: 'https://www.ovhcloud.com/en/case-studies/everstake/',
+        logo: 'https://logo.clearbit.com/everstake.one',
         image: '/images/use-cases/everstake-solana.png',
+    },
+    {
+        company: 'Secretarium',
+        role: 'Confidential Computing & TPaaS',
+        chains: ['ETH', 'Multi-Cloud'],
+        description:
+            'Secretarium partnered with OVHcloud to build and deliver its pioneering TPaaS (Trust Platform as a Service) solution, Klave, leveraging confidential computing to ensure data privacy and security for institutional clients.',
+        quote:
+            "OVHcloud's solutions gave us the capabilities and flexibility to grow according to our business and technical needs. Their commitment to sovereignty and security aligns perfectly with our vision for Klave.",
+        person: 'Secretarium Team',
+        highlights: ['TPaaS Solution', 'Intel SGX Support', 'Data Sovereignty', 'Confidential Computing'],
+        source: 'https://www.ovhcloud.com/en/case-studies/secretarium/',
+        logo: 'https://logo.clearbit.com/secretarium.com',
+        image: 'https://images.unsplash.com/photo-1550751827-4bd374c3f58b?q=80&w=2940&auto=format&fit=crop',
     },
     {
         company: 'Stakely',
@@ -44,6 +74,7 @@ const cases = [
         person: 'Jose Antonio Hernandez, CEO at Stakely',
         highlights: ['40+ PoS networks', 'Global geo-distribution', '1.3 Tbit/s Anti-DDoS', 'Water-cooled infra'],
         source: 'https://www.ovhcloud.com/en/case-studies/stakely/',
+        logo: 'https://logo.clearbit.com/stakely.io',
         image: '/images/use-cases/stakely-solana.png',
     },
 ];
@@ -74,83 +105,104 @@ interface UseCaseCardProps {
     highlights: string[];
     source: string;
     accent: string;
-    image: string;
+    logo?: string;
+    image?: string;
 }
 
-function UseCaseCard({ company, role, chains, description, quote, person, highlights, source, accent, image }: UseCaseCardProps) {
+function UseCaseCard({ company, role, chains, description, quote, person, highlights, source, accent, logo, image }: UseCaseCardProps) {
     return (
         <div
-            className="rounded-2xl border border-white/8 bg-black/40 backdrop-blur-xl transition-all duration-300 hover:border-white/15 overflow-hidden group"
+            className="group rounded-3xl overflow-hidden border border-white/8 bg-black/40 backdrop-blur-xl transition-all duration-500 hover:border-white/15 flex flex-col h-full"
             style={{ boxShadow: `0 4px 40px ${accent}08` }}
         >
-            {/* Image section */}
-            <div className="relative h-48 w-full overflow-hidden border-b border-white/8">
-                <img 
-                    src={image} 
-                    alt={company} 
-                    className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
-            </div>
+            {/* Banner Image */}
+            {image && (
+                <div className="relative h-48 w-full overflow-hidden">
+                    <img 
+                        src={image} 
+                        alt={company} 
+                        className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
+                    
+                    {/* Logo Overlay */}
+                    {logo && (
+                        <div className="absolute bottom-4 left-6 flex items-center gap-3">
+                            <div className="w-12 h-12 rounded-xl bg-white p-2 shadow-xl">
+                                <img src={logo} alt={`${company} logo`} className="w-full h-full object-contain" />
+                            </div>
+                        </div>
+                    )}
+                </div>
+            )}
 
-            <div className="p-6 md:p-8">
+            <div className="p-6 md:p-8 flex flex-col flex-1">
                 {/* Header */}
-            <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 mb-5">
-                <div>
-                    <h2 className="text-xl font-black text-white tracking-tight">{company}</h2>
-                    <p className="text-[11px] uppercase tracking-[0.18em] font-bold mt-0.5" style={{ color: accent }}>
-                        {role}
-                    </p>
+                <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 mb-5">
+                    <div>
+                        {!image && logo && (
+                             <div className="w-10 h-10 rounded-lg bg-white p-1.5 mb-3">
+                                 <img src={logo} alt={`${company} logo`} className="w-full h-full object-contain" />
+                             </div>
+                        )}
+                        <h2 className="text-xl font-black text-white tracking-tight leading-tight">{company}</h2>
+                        <p className="text-[11px] uppercase tracking-[0.18em] font-bold mt-1" style={{ color: accent }}>
+                            {role}
+                        </p>
+                    </div>
+                    <div className="flex gap-2 flex-shrink-0">
+                        {chains.map((ch) => (
+                            <ChainBadge key={ch} chain={ch} />
+                        ))}
+                    </div>
                 </div>
-                <div className="flex gap-2 flex-shrink-0">
-                    {chains.map((ch) => (
-                        <ChainBadge key={ch} chain={ch} />
-                    ))}
-                </div>
-            </div>
 
-            {/* Description */}
-            <p className="text-sm text-white/55 leading-relaxed mb-5">{description}</p>
+                {/* Description */}
+                <p className="text-sm text-white/55 leading-relaxed mb-6 line-clamp-3 group-hover:line-clamp-none transition-all duration-300">
+                    {description}
+                </p>
 
-            {/* Quote */}
-            <blockquote
-                className="relative pl-5 mb-5 italic text-sm leading-relaxed text-white/75"
-                style={{ borderLeft: `3px solid ${accent}50` }}
-            >
-                <span className="text-4xl leading-none absolute -left-1 -top-3 opacity-20 font-serif" style={{ color: accent }}>
-                    "
-                </span>
-                {quote}
-                <footer className="mt-2 text-[10px] not-italic font-bold uppercase tracking-wider text-white/35">
-                    — {person}
-                </footer>
-            </blockquote>
-
-            {/* Highlights */}
-            <div className="flex flex-wrap gap-2 mb-5">
-                {highlights.map((h) => (
-                    <span
-                        key={h}
-                        className="text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full bg-white/5 text-white/50 border border-white/8"
+                {/* Quote */}
+                <div className="mt-auto">
+                    <blockquote
+                        className="relative pl-5 mb-6 italic text-sm leading-relaxed text-white/75"
+                        style={{ borderLeft: `3px solid ${accent}50` }}
                     >
-                        {h}
-                    </span>
-                ))}
-            </div>
+                        <span className="text-4xl leading-none absolute -left-1 -top-3 opacity-20 font-serif" style={{ color: accent }}>
+                            "
+                        </span>
+                        {quote}
+                        <footer className="mt-2 text-[10px] not-italic font-bold uppercase tracking-wider text-white/35">
+                            — {person}
+                        </footer>
+                    </blockquote>
 
-            {/* Source link */}
-            <a
-                href={source}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest transition-all duration-200 opacity-50 hover:opacity-100"
-                style={{ color: accent }}
-            >
-                Read full case study on OVHcloud
-                <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
-                </svg>
-            </a>
+                    {/* Highlights */}
+                    <div className="flex flex-wrap gap-2 mb-6">
+                        {highlights.map((h) => (
+                            <span
+                                key={h}
+                                className="text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full bg-white/5 text-white/40 border border-white/8 group-hover:border-white/20 transition-colors"
+                            >
+                                {h}
+                            </span>
+                        ))}
+                    </div>
+
+                    {/* Source link */}
+                    <a
+                        href={source}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.2em] transition-all duration-200 text-white/50 hover:text-white"
+                         style={{ color: accent }}
+                    >
+                        Read Case Study
+                        <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M17 8l4 4m0 0l-4 4m4-4H3" />
+                        </svg>
+                    </a>
+                </div>
             </div>
         </div>
     );
@@ -222,7 +274,7 @@ export default function UseCasesPage() {
                         <span className="text-white/70">Hybrid Solutions</span>
                     </p>
 
-                    <div className="flex flex-col gap-8">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                         {cases.map((c) => (
                             <UseCaseCard key={c.company} {...c} accent={ACCENT} />
                         ))}
