@@ -137,43 +137,29 @@ export default function AboutUsPage() {
                     </p>
                 </motion.div>
 
-                {/* Team Section - Infinite Horizontal Marquee */}
-                <div className="w-[110vw] relative py-12 overflow-hidden flex flex-col gap-10 left-1/2 -translate-x-1/2">
+                {/* Team Section - Infinite Horizontal Marquee (Single Row) */}
+                <div className="w-[100vw] relative py-12 overflow-hidden left-1/2 -translate-x-1/2 group">
+                    <style jsx>{`
+                        @keyframes marquee {
+                            0% { transform: translateX(-1760px); }
+                            100% { transform: translateX(0); }
+                        }
+                        .animate-marquee {
+                            display: flex;
+                            gap: 2rem;
+                            padding-left: 1rem;
+                            animation: marquee 40s linear infinite;
+                        }
+                        .group:hover .animate-marquee {
+                            animation-play-state: paused;
+                        }
+                    `}</style>
                     
-                    {/* Row 1 - Left to Right */}
-                    <div className="relative flex overflow-hidden">
-                        <motion.div 
-                            className="flex gap-8 px-4"
-                            animate={{ x: [-1760, 0] }} // Seamless loop for 5 cards * 352px
-                            transition={{ 
-                                repeat: Infinity, 
-                                ease: "linear", 
-                                duration: 35,
-                                repeatType: "loop"
-                            }}
-                        >
-                            {[...teamMembers, ...teamMembers, ...teamMembers, ...teamMembers].map((member, idx) => (
-                                <TeamCard key={`${member.name}-r1-${idx}`} member={member} isEth={isEth} />
-                            ))}
-                        </motion.div>
-                    </div>
-
-                    {/* Row 2 - Left to Right (Staggered) */}
-                    <div className="relative flex overflow-hidden">
-                        <motion.div 
-                            className="flex gap-8 px-4"
-                            animate={{ x: [-2640, -880] }} // Offset by 880px to create quinconce
-                            transition={{ 
-                                repeat: Infinity, 
-                                ease: "linear", 
-                                duration: 40,
-                                repeatType: "loop"
-                            }}
-                        >
-                            {[...teamMembers, ...teamMembers, ...teamMembers, ...teamMembers].map((member, idx) => (
-                                <TeamCard key={`${member.name}-r2-${idx}`} member={member} isEth={isEth} />
-                            ))}
-                        </motion.div>
+                    {/* Single Row - Left to Right */}
+                    <div className="animate-marquee">
+                        {[...teamMembers, ...teamMembers, ...teamMembers, ...teamMembers].map((member, idx) => (
+                            <TeamCard key={`${member.name}-row-${idx}`} member={member} isEth={isEth} />
+                        ))}
                     </div>
 
                     {/* Gradient Fades for the edges */}

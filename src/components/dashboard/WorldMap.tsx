@@ -146,7 +146,7 @@ export default function WorldMap({
                         height={dimensions.height} // Reverted to full container height for better control
                         backgroundColor="rgba(0,0,0,0)"
                         globeImageUrl={isEth
-                            ? "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8/+8fAwAJBwH/68Z9HwAAAABJRU5ErkJggg=="
+                            ? "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAIAAACQd1PeAAAADElEQVR42mP8////PwAFBwL/XjY0ZAAAAABJRU5ErkJggg=="
                             : "//unpkg.com/three-globe/example/img/earth-dark.jpg"}
                         bumpImageUrl="//unpkg.com/three-globe/example/img/earth-topology.png"
 
@@ -165,20 +165,20 @@ export default function WorldMap({
                         polygonAltitude={(d: any) => d === hoveredPolygon ? 0.015 : 0.005}
                         polygonCapColor={(d: any) => {
                             const nodeData = dataPoints.find(p => p.isoCode === d.properties.ISO_A2 || p.fullCountry === d.properties.ADMIN || p.country === d.properties.NAME || (p.isoCode === 'FR' && d.properties.NAME === 'France'));
-                            if (d === hoveredPolygon) return `rgba(${accentRgb}, 0.5)`;
+                            if (d === hoveredPolygon) return `rgba(${accentRgb}, 0.6)`;
                             if (nodeData) {
-                                // For node countries: vibrant Ethereum blue
-                                return isEth ? 'rgba(98, 126, 234, 0.25)' : `rgba(${accentRgb}, 0.08)`;
+                                // For node countries: clearly dark blue
+                                return `rgba(60, 80, 180, ${isEth ? 0.6 : 0.08})`;
                             }
-                            // For non-node countries: clean white fill to distinguish land from water in light theme
-                            return isEth ? 'rgba(255, 255, 255, 0.5)' : 'rgba(255, 255, 255, 0.0)';
+                            // For non-node countries: clearly darker blue than the light sea
+                            return isEth ? 'rgba(98, 126, 234, 0.25)' : 'rgba(255, 255, 255, 0.0)';
                         }}
                         polygonSideColor={() => `rgba(${accentRgb}, 0.05)`}
                         polygonStrokeColor={(d: any) => {
                             const nodeData = dataPoints.find(p => p.isoCode === d.properties.ISO_A2 || p.fullCountry === d.properties.ADMIN || p.country === d.properties.NAME || (p.isoCode === 'FR' && d.properties.NAME === 'France'));
                             if (d === hoveredPolygon) return `rgba(${accentRgb}, 1)`;
                             if (nodeData) return `rgba(${accentRgb}, 0.5)`;
-                            return isEth ? 'rgba(98, 126, 234, 0.12)' : 'rgba(255, 255, 255, 0.05)';
+                            return isEth ? 'rgba(98, 126, 234, 0.15)' : 'rgba(255, 255, 255, 0.05)';
                         }}
                         onPolygonHover={setHoveredPolygon}
                         polygonLabel={(d: any) => {
