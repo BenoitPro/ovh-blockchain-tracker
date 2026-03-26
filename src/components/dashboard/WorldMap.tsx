@@ -264,9 +264,9 @@ export default function WorldMap({
             <div className="absolute top-4 right-4 md:top-8 md:right-8 lg:right-12 flex flex-col items-end gap-2.5 z-20 pointer-events-none">
 
                 {/* Active Node + Heatmap */}
-                <div className={`flex items-center gap-4 px-4 py-2 rounded-full backdrop-blur-md shadow-lg border pointer-events-auto ${isEth ? 'bg-[#1e2b5e]/40 border-[#627EEA]/30' : 'bg-black/40 border-white/10'}`}>
+                <div className={`flex items-center gap-4 px-4 py-2 rounded-full backdrop-blur-md shadow-lg border pointer-events-auto ${isEth ? 'bg-[#0d1117]/85 border-[#627EEA]/40' : 'bg-black/40 border-white/10'}`}>
                     <div className={`flex items-center gap-2 pr-4 border-r ${isEth ? 'border-[#627EEA]/30' : 'border-white/10'}`}>
-                        <span className={`font-medium text-[10px] tracking-widest uppercase ${isEth ? 'text-blue-200' : 'text-gray-300'}`}>Active Node</span>
+                        <span className={`font-medium text-[10px] tracking-widest uppercase ${isEth ? 'text-slate-200' : 'text-gray-300'}`}>Active Node</span>
                         <div className="relative">
                             <div className="w-2 h-2 rounded-full animate-ping opacity-60" style={{ backgroundColor: accent }} />
                             <div className="absolute inset-0 w-2 h-2 rounded-full" style={{ backgroundColor: accent, boxShadow: `0 0 8px ${accent}` }} />
@@ -282,10 +282,10 @@ export default function WorldMap({
                 {/* Row for Countries and basic stats */}
                 <div className="flex flex-col items-end gap-2">
                     {/* Countries count */}
-                    <div className={`flex items-center gap-2.5 px-3 py-1.5 rounded-full backdrop-blur-md shadow-lg border pointer-events-auto ${isEth ? 'bg-[#1e2b5e]/40 border-[#627EEA]/30' : 'bg-black/40 border-white/10'}`}>
+                    <div className={`flex items-center gap-2.5 px-3 py-1.5 rounded-full backdrop-blur-md shadow-lg border pointer-events-auto ${isEth ? 'bg-[#0d1117]/85 border-[#627EEA]/40' : 'bg-black/40 border-white/10'}`}>
                         <span className={`font-medium text-[10px] tracking-widest uppercase ${isEth ? 'text-blue-200' : 'text-gray-300'}`}>Countries</span>
                         <div className="flex items-center justify-center min-w-[20px] h-[20px] px-1.5 rounded-md" style={{ background: `rgba(${accentRgb}, 0.15)`, border: `1px solid rgba(${accentRgb}, 0.3)` }}>
-                            <span className="text-[10px] font-bold leading-none" style={{ color: isEth ? '#94a3b8' : accent }}>{Object.keys(activeDistribution).length}</span>
+                            <span className="text-[10px] font-bold leading-none" style={{ color: isEth ? '#93c5fd' : accent }}>{Object.keys(activeDistribution).length}</span>
                         </div>
                     </div>
 
@@ -294,9 +294,9 @@ export default function WorldMap({
                         <div className="relative pointer-events-auto">
                             <div 
                                 onClick={() => setActiveTooltip(activeTooltip === 'total' ? null : 'total')}
-                                className={`flex items-center gap-2.5 px-3 py-1.5 rounded-full backdrop-blur-md shadow-lg border cursor-pointer hover:scale-105 transition-transform ${isEth ? 'bg-[#1e2b5e]/40 border-[#627EEA]/30' : 'bg-black/40 border-white/10'}`}
+                                className={`flex items-center gap-2.5 px-3 py-1.5 rounded-full backdrop-blur-md shadow-lg border cursor-pointer hover:scale-105 transition-transform ${isEth ? 'bg-[#0d1117]/85 border-[#627EEA]/40' : 'bg-black/40 border-white/10'}`}
                             >
-                                <span className={`font-medium text-[10px] tracking-widest uppercase ${isEth ? 'text-blue-300/70' : 'text-gray-400'}`}>Network Tot.</span>
+                                <span className={`font-medium text-[10px] tracking-widest uppercase ${isEth ? 'text-slate-300' : 'text-gray-400'}`}>Network Tot.</span>
                                 <span className="text-[10px] font-bold" style={{ color: isEth ? '#818cf8' : '#A855F7' }}>{totalNodes.toLocaleString()}</span>
                             </div>
                             
@@ -331,9 +331,9 @@ export default function WorldMap({
                         <div className="relative pointer-events-auto">
                             <div 
                                 onClick={() => setActiveTooltip(activeTooltip === 'ovh' ? null : 'ovh')}
-                                className={`flex items-center gap-2.5 px-3 py-1.5 rounded-full backdrop-blur-md shadow-lg border cursor-pointer hover:scale-105 transition-transform ${isEth ? 'bg-[#1e2b5e]/40 border-[#627EEA]/30' : 'bg-black/40 border-white/10'}`}
+                                className={`flex items-center gap-2.5 px-3 py-1.5 rounded-full backdrop-blur-md shadow-lg border cursor-pointer hover:scale-105 transition-transform ${isEth ? 'bg-[#0d1117]/85 border-[#627EEA]/40' : 'bg-black/40 border-white/10'}`}
                             >
-                                <span className={`font-medium text-[10px] tracking-widest uppercase ${isEth ? 'text-blue-300/70' : 'text-gray-400'}`}>OVH Nodes</span>
+                                <span className={`font-medium text-[10px] tracking-widest uppercase ${isEth ? 'text-slate-300' : 'text-gray-400'}`}>OVH Nodes</span>
                                 <span className="text-[10px] font-bold" style={{ color: isEth ? '#4fd1c5' : '#00F0FF' }}>{ovhNodes.toLocaleString()}</span>
                             </div>
 
@@ -368,9 +368,9 @@ export default function WorldMap({
                         <div className="relative pointer-events-auto">
                             <div 
                                 onClick={() => setActiveTooltip(activeTooltip === 'market' ? null : 'market')}
-                                className={`flex items-center gap-2.5 px-3 py-1.5 rounded-full backdrop-blur-md shadow-lg border cursor-pointer hover:scale-105 transition-transform ${isEth ? 'bg-[#1e2b5e]/40 border-[#627EEA]/30' : 'bg-black/40 border-white/10'}`}
+                                className={`flex items-center gap-2.5 px-3 py-1.5 rounded-full backdrop-blur-md shadow-lg border cursor-pointer hover:scale-105 transition-transform ${isEth ? 'bg-[#0d1117]/85 border-[#627EEA]/40' : 'bg-black/40 border-white/10'}`}
                             >
-                                <span className={`font-medium text-[10px] tracking-widest uppercase ${isEth ? 'text-blue-300/70' : 'text-gray-400'}`}>Market</span>
+                                <span className={`font-medium text-[10px] tracking-widest uppercase ${isEth ? 'text-slate-300' : 'text-gray-400'}`}>Market</span>
                                 <span className="text-[10px] font-bold" style={{ color: isEth ? '#93c5fd' : '#1fb1ff' }}>{(marketShare).toFixed(2)}%</span>
                             </div>
 
@@ -404,7 +404,7 @@ export default function WorldMap({
 
                 {/* OVH / GLOBAL toggle */}
                 {globalGeoDistribution && (
-                    <div className={`flex items-center p-1 rounded-full backdrop-blur-xl shadow-lg border pointer-events-auto ${isEth ? 'bg-[#1e2b5e]/50 border-[#627EEA]/40' : 'bg-black/50 border-white/15'}`}>
+                    <div className={`flex items-center p-1 rounded-full backdrop-blur-xl shadow-lg border pointer-events-auto ${isEth ? 'bg-[#0d1117]/85 border-[#627EEA]/45' : 'bg-black/50 border-white/15'}`}>
                         <button
                             onClick={() => setViewMode('ovh')}
                             className="px-3 py-1 rounded-full text-[9px] font-bold uppercase tracking-wider transition-all duration-200"
@@ -412,7 +412,7 @@ export default function WorldMap({
                                 background: `rgba(${accentRgb}, 0.22)`,
                                 color: accent,
                                 boxShadow: `0 0 10px rgba(${accentRgb}, 0.3)`,
-                            } : { color: isEth ? '#94a3b8' : '#6b7280' }}
+                            } : { color: isEth ? '#64748b' : '#6b7280' }}
                         >
                             OVHcloud
                         </button>
@@ -423,7 +423,7 @@ export default function WorldMap({
                                 background: `rgba(${accentRgb}, 0.22)`,
                                 color: accent,
                                 boxShadow: `0 0 10px rgba(${accentRgb}, 0.3)`,
-                            } : { color: isEth ? '#94a3b8' : '#6b7280' }}
+                            } : { color: isEth ? '#64748b' : '#6b7280' }}
                         >
                             Global
                         </button>
