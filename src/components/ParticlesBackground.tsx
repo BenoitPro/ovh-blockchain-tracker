@@ -36,8 +36,8 @@ export default function ParticlesBackground({ network = 'solana' }: ParticlesBac
 
         const initParticles = () => {
             const particleCount = network === 'ethereum' ? 150 : 120; // Slightly more for Eth as they are subtler
-            const colors = network === 'ethereum' 
-                ? ['#FFFFFF', '#FFFFFF', '#627EEA', '#A855F7', '#C084FC', '#818CF8', '#FB7185'] // Added White for better contrast on deeper Eth bg
+            const colors = network === 'ethereum'
+                ? ['#627EEA', '#818CF8', '#C7D2FE', '#A5B4FC', '#6366F1']
                 : ['#FFFFFF', '#FFFFFF', '#00F0FF', '#A855F7', '#6B4FBB']; // Solana colors
 
             particlesRef.current = Array.from({ length: particleCount }, () => ({
@@ -46,7 +46,7 @@ export default function ParticlesBackground({ network = 'solana' }: ParticlesBac
                 vx: (Math.random() - 0.5) * (network === 'ethereum' ? 0.12 : 0.15), // Slightly slower for Eth
                 vy: (Math.random() - 0.5) * (network === 'ethereum' ? 0.12 : 0.15),
                 radius: Math.random() * (network === 'ethereum' ? 1.2 : 1.5) + 0.5,
-                opacity: Math.random() * (network === 'ethereum' ? 0.4 : 0.5) + 0.1,
+                opacity: Math.random() * (network === 'ethereum' ? 0.18 : 0.5) + 0.05,
                 opacityDir: Math.random() > 0.5 ? 0.003 : -0.003,
                 color: colors[Math.floor(Math.random() * colors.length)],
             }));
@@ -69,7 +69,7 @@ export default function ParticlesBackground({ network = 'solana' }: ParticlesBac
 
                 p.opacity += p.opacityDir;
                 if (network === 'ethereum') {
-                    if (p.opacity >= 0.5 || p.opacity <= 0.05) p.opacityDir *= -1;
+                    if (p.opacity >= 0.25 || p.opacity <= 0.04) p.opacityDir *= -1;
                 } else {
                     if (p.opacity >= 0.6 || p.opacity <= 0.05) p.opacityDir *= -1;
                 }
@@ -89,8 +89,8 @@ export default function ParticlesBackground({ network = 'solana' }: ParticlesBac
                     ctx.shadowColor = `rgba(${r}, ${g}, ${b}, 0.8)`;
                 } else {
                     // Less glow for Ethereum to keep it "clear" and subtle
-                    ctx.shadowBlur = 4;
-                    ctx.shadowColor = `rgba(${r}, ${g}, ${b}, 0.4)`;
+                    ctx.shadowBlur = 2;
+                    ctx.shadowColor = `rgba(${r}, ${g}, ${b}, 0.25)`;
                 }
                 
                 ctx.fill();
