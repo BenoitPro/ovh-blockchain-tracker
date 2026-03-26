@@ -26,33 +26,57 @@ interface WorldMapProps {
     marketShare?: number;
 }
 
+// Keys are ISO 3166-1 alpha-2 codes (same as MaxMind countryCode)
 const COUNTRY_COORDS: Record<string, { coordinates: [number, number]; name: string; code: string }> = {
-    'France': { coordinates: [2.2137, 46.2276], name: 'France', code: 'FR' },
-    'Germany': { coordinates: [10.4515, 51.1657], name: 'Germany', code: 'DE' },
-    'United Kingdom': { coordinates: [-3.4360, 55.3781], name: 'UK', code: 'GB' },
-    'Netherlands': { coordinates: [5.2913, 52.1326], name: 'Netherlands', code: 'NL' },
-    'Spain': { coordinates: [-3.7492, 40.4637], name: 'Spain', code: 'ES' },
-    'Italy': { coordinates: [12.5674, 41.8719], name: 'Italy', code: 'IT' },
-    'Poland': { coordinates: [19.1451, 51.9194], name: 'Poland', code: 'PL' },
-    'Sweden': { coordinates: [18.6435, 60.1282], name: 'Sweden', code: 'SE' },
-    'Switzerland': { coordinates: [8.2275, 46.8182], name: 'Switzerland', code: 'CH' },
-    'Belgium': { coordinates: [4.4699, 50.5039], name: 'Belgium', code: 'BE' },
-    'Finland': { coordinates: [25.7482, 61.9241], name: 'Finland', code: 'FI' },
-    'United States': { coordinates: [-95.7129, 37.0902], name: 'USA', code: 'US' },
-    'Canada': { coordinates: [-106.3468, 56.1304], name: 'Canada', code: 'CA' },
-    'Singapore': { coordinates: [103.8198, 1.3521], name: 'Singapore', code: 'SG' },
-    'Japan': { coordinates: [138.2529, 36.2048], name: 'Japan', code: 'JP' },
-    'China': { coordinates: [104.1954, 35.8617], name: 'China', code: 'CN' },
-    'India': { coordinates: [78.9629, 20.5937], name: 'India', code: 'IN' },
-    'South Korea': { coordinates: [127.7669, 35.9078], name: 'S. Korea', code: 'KR' },
-    'Russia': { coordinates: [105.3188, 61.5240], name: 'Russia', code: 'RU' },
-    'Australia': { coordinates: [133.7751, -25.2744], name: 'Australia', code: 'AU' },
-    'Brazil': { coordinates: [-51.9253, -14.2350], name: 'Brazil', code: 'BR' },
+    'FR': { coordinates: [2.2137, 46.2276], name: 'France', code: 'FR' },
+    'DE': { coordinates: [10.4515, 51.1657], name: 'Germany', code: 'DE' },
+    'GB': { coordinates: [-3.4360, 55.3781], name: 'UK', code: 'GB' },
+    'NL': { coordinates: [5.2913, 52.1326], name: 'Netherlands', code: 'NL' },
+    'ES': { coordinates: [-3.7492, 40.4637], name: 'Spain', code: 'ES' },
+    'IT': { coordinates: [12.5674, 41.8719], name: 'Italy', code: 'IT' },
+    'PL': { coordinates: [19.1451, 51.9194], name: 'Poland', code: 'PL' },
+    'SE': { coordinates: [18.6435, 60.1282], name: 'Sweden', code: 'SE' },
+    'CH': { coordinates: [8.2275, 46.8182], name: 'Switzerland', code: 'CH' },
+    'BE': { coordinates: [4.4699, 50.5039], name: 'Belgium', code: 'BE' },
+    'FI': { coordinates: [25.7482, 61.9241], name: 'Finland', code: 'FI' },
+    'US': { coordinates: [-95.7129, 37.0902], name: 'USA', code: 'US' },
+    'CA': { coordinates: [-106.3468, 56.1304], name: 'Canada', code: 'CA' },
+    'SG': { coordinates: [103.8198, 1.3521], name: 'Singapore', code: 'SG' },
+    'JP': { coordinates: [138.2529, 36.2048], name: 'Japan', code: 'JP' },
+    'CN': { coordinates: [104.1954, 35.8617], name: 'China', code: 'CN' },
+    'IN': { coordinates: [78.9629, 20.5937], name: 'India', code: 'IN' },
+    'KR': { coordinates: [127.7669, 35.9078], name: 'S. Korea', code: 'KR' },
+    'RU': { coordinates: [105.3188, 61.5240], name: 'Russia', code: 'RU' },
+    'AU': { coordinates: [133.7751, -25.2744], name: 'Australia', code: 'AU' },
+    'BR': { coordinates: [-51.9253, -14.2350], name: 'Brazil', code: 'BR' },
 };
 
-export default function WorldMap({ 
-    geoDistribution, 
-    globalGeoDistribution, 
+/** Generates a small navy→indigo gradient sphere texture as a data URL */
+function generateEthGlobeTexture(): string {
+    const size = 256;
+    const canvas = document.createElement('canvas');
+    canvas.width = size;
+    canvas.height = size;
+    const ctx = canvas.getContext('2d')!;
+    // Base fill: deep navy
+    ctx.fillStyle = '#0D1117';
+    ctx.fillRect(0, 0, size, size);
+    // Radial gradient: indigo glow from upper-left
+    const grad = ctx.createRadialGradient(
+        size * 0.35, size * 0.3, 0,
+        size * 0.5, size * 0.5, size * 0.7
+    );
+    grad.addColorStop(0, 'rgba(98, 126, 234, 0.45)');
+    grad.addColorStop(0.4, 'rgba(30, 50, 160, 0.3)');
+    grad.addColorStop(1, 'rgba(13, 17, 23, 0)');
+    ctx.fillStyle = grad;
+    ctx.fillRect(0, 0, size, size);
+    return canvas.toDataURL('image/png');
+}
+
+export default function WorldMap({
+    geoDistribution,
+    globalGeoDistribution,
     onCountryClick,
     totalNodes,
     ovhNodes,
@@ -92,12 +116,35 @@ export default function WorldMap({
         return () => resizeObserver.disconnect();
     }, []);
 
+    // Keyed by ISO_A2 code — matches MaxMind countryCode format
+    const dynamicCountryCoords = useMemo(() => {
+        if (!countriesGeoJson.features?.length) return {};
+        const result: Record<string, { coordinates: [number, number]; name: string; code: string }> = {};
+        for (const feature of countriesGeoJson.features) {
+            const name: string = feature.properties?.ADMIN || feature.properties?.NAME;
+            const code: string = feature.properties?.ISO_A2;
+            if (!name || !code || code === '-1' || code === '-99') continue;
+            const pts: number[][] = [];
+            const geom = feature.geometry;
+            if (geom?.type === 'Polygon') {
+                pts.push(...geom.coordinates[0]);
+            } else if (geom?.type === 'MultiPolygon') {
+                for (const poly of geom.coordinates) pts.push(...poly[0]);
+            }
+            if (!pts.length) continue;
+            const lng = pts.reduce((s: number, c: number[]) => s + c[0], 0) / pts.length;
+            const lat = pts.reduce((s: number, c: number[]) => s + c[1], 0) / pts.length;
+            result[code] = { coordinates: [lng, lat], name, code };
+        }
+        return result;
+    }, [countriesGeoJson]);
+
     const maxNodes = Math.max(...Object.values(activeDistribution), 1);
 
     const dataPoints = useMemo(() => {
         return Object.entries(activeDistribution)
             .map(([country, count]) => {
-                const coords = COUNTRY_COORDS[country];
+                const coords = COUNTRY_COORDS[country] || dynamicCountryCoords[country];
                 if (!coords) return null;
                 const intensity = count / maxNodes;
                 return {
@@ -113,7 +160,7 @@ export default function WorldMap({
                 };
             })
             .filter((p): p is NonNullable<typeof p> => p !== null);
-    }, [activeDistribution, maxNodes, accentRgb]);
+    }, [activeDistribution, maxNodes, accentRgb, dynamicCountryCoords]);
 
     const connections = useMemo(() => {
         if (dataPoints.length < 2) return [];
@@ -146,7 +193,7 @@ export default function WorldMap({
                         height={dimensions.height} // Reverted to full container height for better control
                         backgroundColor="rgba(0,0,0,0)"
                         globeImageUrl={isEth
-                            ? "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAIAAACQd1PeAAAADElEQVR42mP8////PwAFBwL/XjY0ZAAAAABJRU5ErkJggg=="
+                            ? generateEthGlobeTexture()
                             : "//unpkg.com/three-globe/example/img/earth-dark.jpg"}
                         bumpImageUrl="//unpkg.com/three-globe/example/img/earth-topology.png"
 
@@ -208,7 +255,7 @@ export default function WorldMap({
                         arcAltitudeAutoScale={0.4}
 
                         atmosphereColor={accent}
-                        atmosphereAltitude={0.05}
+                        atmosphereAltitude={isEth ? 0.15 : 0.05}
                     />
                 )}
             </div>
