@@ -236,7 +236,7 @@ html.eth-theme .chain-toggle .chain-toggle-btn:not(.chain-toggle-active-sol):not
    ============================================================ */
 
 html.eth-theme body {
-  background: #e2e8f0;
+  background: #EEF2FF;
   background-image:
     radial-gradient(ellipse at 15% 25%, rgba(98, 126, 234, 0.15) 0%, transparent 55%),
     radial-gradient(ellipse at 85% 65%, rgba(98, 126, 234, 0.12) 0%, transparent 55%),
