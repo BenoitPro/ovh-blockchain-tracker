@@ -18,6 +18,17 @@ export default function Sidebar() {
 
     const [mobileOpen, setMobileOpen] = useState(false);
 
+    const [isLoggedIn, setIsLoggedIn] = useState<boolean>(() => {
+      if (typeof document === 'undefined') return false;
+      return document.cookie.includes('ovh_ui=1');
+    });
+
+    async function handleLogout() {
+      await fetch('/api/auth/logout', { method: 'POST' });
+      setIsLoggedIn(false);
+      setMobileOpen(false);
+    }
+
     const accent = isEth ? '#627EEA' : '#00F0FF';
 
     /* ── Theming helpers ──────────────────────────────────────────────── */
@@ -209,6 +220,27 @@ export default function Sidebar() {
 
                 {/* ── 4. CTA & Resources ────────────────────────────────────────── */}
                 <div className="px-3 pb-6 mt-auto space-y-3">
+                    {/* Admin / Logout — discreet internal link */}
+                    {isLoggedIn ? (
+                      <button
+                        onClick={handleLogout}
+                        className={`w-full text-center text-[9px] uppercase tracking-[0.15em] transition-colors duration-200 py-1 ${
+                          isEth ? 'text-slate-400/40 hover:text-slate-400/70' : 'text-white/20 hover:text-white/50'
+                        }`}
+                      >
+                        Déconnexion
+                      </button>
+                    ) : (
+                      <Link
+                        href="/login"
+                        onClick={() => setMobileOpen(false)}
+                        className={`block w-full text-center text-[9px] uppercase tracking-[0.15em] transition-colors duration-200 py-1 ${
+                          isEth ? 'text-slate-400/40 hover:text-slate-400/70' : 'text-white/20 hover:text-white/50'
+                        }`}
+                      >
+                        Admin
+                      </Link>
+                    )}
                     <div className={`h-px mb-2 ${divider}`} />
 
                     {/* Contact CTA */}
