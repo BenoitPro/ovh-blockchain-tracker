@@ -18,8 +18,7 @@ const cases = [
         person: 'Diomedes Team',
         highlights: ['Ultra-low latency', 'High-speed networking', 'Bare Metal performance', 'Global connectivity'],
         source: 'https://www.ovhcloud.com/en/case-studies/diomedes/',
-        logo: 'https://logo.clearbit.com/diomedestech.com',
-        image: 'https://images.unsplash.com/photo-1639762681485-074b7f938ba0?q=80&w=2832&auto=format&fit=crop',
+        logo: '/images/logos/diomedes.png',
     },
     {
         company: 'Dysnix / Mizar',
@@ -32,8 +31,7 @@ const cases = [
         person: 'Francesco Ciuci, CEO & Co-Founder, Mizar',
         highlights: ['2–3 day provisioning', 'Minimal RPC latency', 'gRPC stream access', 'Custom monitoring dashboard'],
         source: 'https://www.ovhcloud.com/en/case-studies/dysnix/',
-        logo: 'https://logo.clearbit.com/mizar.ai',
-        image: '/images/use-cases/mizar-solana.png',
+        logo: '/images/logos/mizar.png',
     },
     {
         company: 'Everstake',
@@ -46,8 +44,7 @@ const cases = [
         person: 'Denys Avierin, CIO at Everstake',
         highlights: ['$7B+ staked assets', '1M+ delegators', '80+ PoS networks', '99.98% reliability'],
         source: 'https://www.ovhcloud.com/en/case-studies/everstake/',
-        logo: 'https://logo.clearbit.com/everstake.one',
-        image: '/images/use-cases/everstake-solana.png',
+        logo: '/images/logos/everstake.png',
     },
     {
         company: 'Secretarium',
@@ -60,8 +57,7 @@ const cases = [
         person: 'Secretarium Team',
         highlights: ['TPaaS Solution', 'Intel SGX Support', 'Data Sovereignty', 'Confidential Computing'],
         source: 'https://www.ovhcloud.com/en/case-studies/secretarium/',
-        logo: 'https://logo.clearbit.com/secretarium.com',
-        image: 'https://images.unsplash.com/photo-1550751827-4bd374c3f58b?q=80&w=2940&auto=format&fit=crop',
+        logo: '/images/logos/secretarium.png',
     },
     {
         company: 'Stakely',
@@ -74,23 +70,45 @@ const cases = [
         person: 'Jose Antonio Hernandez, CEO at Stakely',
         highlights: ['40+ PoS networks', 'Global geo-distribution', '1.3 Tbit/s Anti-DDoS', 'Water-cooled infra'],
         source: 'https://www.ovhcloud.com/en/case-studies/stakely/',
-        logo: 'https://logo.clearbit.com/stakely.io',
-        image: '/images/use-cases/stakely-solana.png',
+        logo: '/images/logos/stakely.png',
     },
+
 ];
 
 function ChainBadge({ chain }: { chain: string }) {
     const isSol = chain === 'SOL';
+    const isEth = chain === 'ETH';
+    const isBtc = chain === 'BTC';
+    const isCloud = chain === 'Multi-Cloud';
+    
+    let color = '#ffffff';
+    let bg = 'rgba(255,255,255,0.08)';
+    let label = chain;
+
+    if (isSol) {
+        color = '#00F0FF';
+        bg = 'rgba(0,240,255,0.12)';
+        label = '◎ Solana';
+    } else if (isEth) {
+        color = '#627EEA';
+        bg = 'rgba(98,126,234,0.12)';
+        label = 'Ξ Ethereum';
+    } else if (isBtc) {
+        color = '#f59e0b';
+        bg = 'rgba(245,158,11,0.08)';
+        label = '₿ Bitcoin';
+    } else if (isCloud) {
+        color = '#6366f1';
+        bg = 'rgba(99,102,241,0.08)';
+        label = '☁️ Multi-Cloud';
+    }
+
     return (
         <span
-            className="text-[9px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full"
-            style={{
-                background: isSol ? 'rgba(0,240,255,0.12)' : 'rgba(98,126,234,0.12)',
-                color: isSol ? '#00F0FF' : '#627EEA',
-                border: `1px solid ${isSol ? '#00F0FF30' : '#627EEA30'}`,
-            }}
+            className="text-[9px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full border border-current transition-all"
+            style={{ color, backgroundColor: bg }}
         >
-            {isSol ? '◎ Solana' : 'Ξ Ethereum'}
+            {label}
         </span>
     );
 }
@@ -106,45 +124,25 @@ interface UseCaseCardProps {
     source: string;
     accent: string;
     logo?: string;
-    image?: string;
 }
 
-function UseCaseCard({ company, role, chains, description, quote, person, highlights, source, accent, logo, image }: UseCaseCardProps) {
+function UseCaseCard({ company, role, chains, description, quote, person, highlights, source, accent, logo }: UseCaseCardProps) {
     return (
         <div
-            className="group rounded-3xl overflow-hidden border border-white/8 bg-black/40 backdrop-blur-xl transition-all duration-500 hover:border-white/15 flex flex-col h-full"
+            className="group rounded-3xl overflow-hidden border border-white/8 bg-black/40 backdrop-blur-xl transition-all duration-500 hover:border-white/15 flex flex-col h-full p-6 md:p-8"
             style={{ boxShadow: `0 4px 40px ${accent}08` }}
         >
-            {/* Banner Image */}
-            {image && (
-                <div className="relative h-48 w-full overflow-hidden">
-                    <img 
-                        src={image} 
-                        alt={company} 
-                        className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
-                    
-                    {/* Logo Overlay */}
-                    {logo && (
-                        <div className="absolute bottom-4 left-6 flex items-center gap-3">
-                            <div className="w-12 h-12 rounded-xl bg-white p-2 shadow-xl">
-                                <img src={logo} alt={`${company} logo`} className="w-full h-full object-contain" />
-                            </div>
-                        </div>
-                    )}
+            {/* Logo above Title */}
+            {logo && (
+                <div className="w-16 h-16 mb-6 flex items-center justify-start group-hover:scale-105 transition-transform duration-500">
+                    <img src={logo} alt={`${company} logo`} className="max-w-full max-h-full object-contain filter drop-shadow-[0_0_8px_rgba(255,255,255,0.1)]" />
                 </div>
             )}
 
-            <div className="p-6 md:p-8 flex flex-col flex-1">
+            <div className="flex flex-col flex-1">
                 {/* Header */}
                 <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 mb-5">
                     <div>
-                        {!image && logo && (
-                             <div className="w-10 h-10 rounded-lg bg-white p-1.5 mb-3">
-                                 <img src={logo} alt={`${company} logo`} className="w-full h-full object-contain" />
-                             </div>
-                        )}
                         <h2 className="text-xl font-black text-white tracking-tight leading-tight">{company}</h2>
                         <p className="text-[11px] uppercase tracking-[0.18em] font-bold mt-1" style={{ color: accent }}>
                             {role}

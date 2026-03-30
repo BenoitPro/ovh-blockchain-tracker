@@ -17,12 +17,20 @@ export default function MethodologyModal({ network, accentColor = '#00F0FF' }: M
             {/* Trigger Button - now integrated smoothly */}
             <button
                 onClick={() => setIsOpen(true)}
-                className="fixed bottom-6 right-6 z-40 group flex items-center gap-2 px-4 py-2.5 rounded-full bg-white/5 border border-white/10 hover:border-white/30 backdrop-blur-md transition-all duration-300 shadow-xl"
+                className={`fixed bottom-6 right-6 z-40 group flex items-center gap-2 px-4 py-2.5 rounded-full backdrop-blur-md transition-all duration-300 shadow-xl ${
+                    network === 'ethereum'
+                        ? 'bg-[#0d1117]/85 border border-[#627EEA]/40 hover:border-[#627EEA]/70'
+                        : 'bg-white/5 border border-white/10 hover:border-white/30'
+                }`}
                 style={{ '--hover-accent': accentColor } as React.CSSProperties}
             >
                 <div className="absolute inset-0 rounded-full opacity-0 group-hover:opacity-20 transition-opacity duration-300" style={{ background: accentColor }} />
                 <InformationCircleIcon className="w-5 h-5 opacity-70 group-hover:opacity-100 transition-opacity" style={{ color: accentColor }} />
-                <span className="text-xs font-bold uppercase tracking-widest text-white/70 group-hover:text-white transition-colors">
+                <span className={`text-xs font-bold uppercase tracking-widest transition-colors ${
+                    network === 'ethereum'
+                        ? 'text-slate-300 group-hover:text-white'
+                        : 'text-white/70 group-hover:text-white'
+                }`}>
                     Data Methodology
                 </span>
             </button>

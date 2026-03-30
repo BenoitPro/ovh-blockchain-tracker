@@ -1,7 +1,6 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import KPICards from '@/components/dashboard/KPICards';
 import WorldMap from '@/components/dashboard/WorldMap';
 import LoadingState from '@/components/dashboard/LoadingState';
 import ErrorState from '@/components/dashboard/ErrorState';
@@ -38,18 +37,22 @@ export default function EthereumPage() {
 
     if (loading) {
         return (
-            <>
-                <BlockchainCubes opacity={0.03} network="ethereum" />
+            <div className="min-h-screen relative">
+                <BlockchainCubes opacity={0.28} network="ethereum" count={12} />
                 <ParticlesBackground network="ethereum" />
-                <LoadingState />
-            </>
+                <div className="relative z-10 flex items-center justify-center min-h-screen">
+                    <LoadingState network="ethereum" />
+                </div>
+
+            </div>
         );
     }
+
 
     if (error || !metrics) {
         return (
             <>
-                <BlockchainCubes opacity={0.03} network="ethereum" />
+                <BlockchainCubes opacity={0.28} network="ethereum" count={12} />
                 <ParticlesBackground network="ethereum" />
                 <ErrorState message={error || 'No data available'} onRetry={fetchData} />
             </>
@@ -62,7 +65,7 @@ export default function EthereumPage() {
     return (
         <div className="min-h-screen relative overflow-x-hidden overflow-y-auto">
             {/* Animated Blockchain Cubes Background (Subtle for Eth) */}
-            <BlockchainCubes opacity={0.03} network="ethereum" />
+            <BlockchainCubes opacity={0.28} network="ethereum" count={12} />
 
             {/* Floating Starry Points Background */}
             <ParticlesBackground network="ethereum" />
@@ -85,6 +88,7 @@ export default function EthereumPage() {
                                 <div className="w-full h-full flex items-center justify-center">
                                     <WorldMap 
                                         geoDistribution={metrics.geoDistribution} 
+                                        globalGeoDistribution={metrics.geoDistribution}
                                         totalNodes={metrics.totalNodes}
                                         ovhNodes={ovhCount}
                                         marketShare={ovhShare}

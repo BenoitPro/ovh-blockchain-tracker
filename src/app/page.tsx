@@ -49,13 +49,16 @@ export default function Home() {
 
     if (loading) {
         return (
-            <>
+            <div className="min-h-screen relative bg-[#050510]" style={{ backgroundImage: "url('https://unpkg.com/three-globe/example/img/night-sky.png')", backgroundSize: 'cover', backgroundPosition: 'center', backgroundAttachment: 'fixed' }}>
                 <BlockchainCubes opacity={0.05} />
                 <ParticlesBackground />
-                <LoadingState />
-            </>
+                <div className="relative z-10 flex items-center justify-center min-h-screen">
+                    <LoadingState />
+                </div>
+            </div>
         );
     }
+
 
     if (error || !metrics) {
         return (

@@ -20,9 +20,10 @@ interface Cube {
 interface BlockchainCubesProps {
     opacity?: number;
     network?: 'solana' | 'ethereum';
+    count?: number;
 }
 
-export default function BlockchainCubes({ opacity = 0.6, network = 'solana' }: BlockchainCubesProps) {
+export default function BlockchainCubes({ opacity = 0.6, network = 'solana', count = 6 }: BlockchainCubesProps) {
     const canvasRef = useRef<HTMLCanvasElement>(null);
     const cubesRef = useRef<Cube[]>([]);
     const animationFrameRef = useRef<number | undefined>(undefined);
@@ -54,7 +55,7 @@ export default function BlockchainCubes({ opacity = 0.6, network = 'solana' }: B
 
         // Initialize cubes (with parcimony - only 5-6 cubes)
         const initCubes = () => {
-            cubesRef.current = Array.from({ length: 6 }, () => {
+            cubesRef.current = Array.from({ length: count }, () => {
                 const bx = Math.random() * canvas.width;
                 const by = Math.random() * canvas.height;
                 return {

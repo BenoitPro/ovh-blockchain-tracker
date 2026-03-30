@@ -90,13 +90,17 @@ export default function EthereumAnalyticsPage() {
 
     if (loading) {
         return (
-            <>
+            <div className="min-h-screen relative">
                 <BlockchainCubes opacity={0.03} network="ethereum" />
                 <ParticlesBackground network="ethereum" />
-                <LoadingState />
-            </>
+                <div className="relative z-10 flex items-center justify-center min-h-screen">
+                    <LoadingState network="ethereum" />
+                </div>
+
+            </div>
         );
     }
+
 
     if (error || !metrics) {
         return (

@@ -4,7 +4,7 @@ import { useMemo, useState, useEffect, useRef } from 'react';
 import dynamic from 'next/dynamic';
 import { useNetworkTheme } from '@/components/NetworkThemeProvider';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ServerIcon, ChartPieIcon, InformationCircleIcon, XMarkIcon } from '@heroicons/react/24/outline';
+import { ServerIcon, ChartPieIcon, XMarkIcon } from '@heroicons/react/24/outline';
 
 const Globe = dynamic(() => import('react-globe.gl'), {
     ssr: false,
@@ -51,28 +51,6 @@ const COUNTRY_COORDS: Record<string, { coordinates: [number, number]; name: stri
     'BR': { coordinates: [-51.9253, -14.2350], name: 'Brazil', code: 'BR' },
 };
 
-/** Generates a small navy→indigo gradient sphere texture as a data URL */
-function generateEthGlobeTexture(): string {
-    const size = 256;
-    const canvas = document.createElement('canvas');
-    canvas.width = size;
-    canvas.height = size;
-    const ctx = canvas.getContext('2d')!;
-    // Base fill: deep navy
-    ctx.fillStyle = '#0D1117';
-    ctx.fillRect(0, 0, size, size);
-    // Radial gradient: indigo glow from upper-left
-    const grad = ctx.createRadialGradient(
-        size * 0.35, size * 0.3, 0,
-        size * 0.5, size * 0.5, size * 0.7
-    );
-    grad.addColorStop(0, 'rgba(98, 126, 234, 0.45)');
-    grad.addColorStop(0.4, 'rgba(30, 50, 160, 0.3)');
-    grad.addColorStop(1, 'rgba(13, 17, 23, 0)');
-    ctx.fillStyle = grad;
-    ctx.fillRect(0, 0, size, size);
-    return canvas.toDataURL('image/png');
-}
 
 export default function WorldMap({
     geoDistribution,
@@ -84,15 +62,30 @@ export default function WorldMap({
 }: WorldMapProps) {
     const globeRef = useRef<any>(null);
     const containerRef = useRef<HTMLDivElement>(null);
-    const [viewMode, setViewMode] = useState<'ovh' | 'global'>('ovh');
+    const { theme } = useNetworkTheme();
+    const isEth = theme === 'ethereum';
+    const [viewMode, setViewMode] = useState<'ovh' | 'global'>(isEth ? 'global' : 'ovh');
     const [dimensions, setDimensions] = useState({ width: 0, height: 0 });
     const [countriesGeoJson, setCountriesGeoJson] = useState<any>({ features: [] });
     const [hoveredPolygon, setHoveredPolygon] = useState<any>(null);
-    const { theme } = useNetworkTheme();
-    const isEth = theme === 'ethereum';
     const accent = isEth ? '#627EEA' : '#00F0FF';
     const accentRgb = isEth ? '98, 126, 234' : '0, 240, 255';
     const [activeTooltip, setActiveTooltip] = useState<string | null>(null);
+
+    // Stable globe image URL — only recomputes when theme switches (not on every render)
+    const globeImageUrl = useMemo(() => {
+        if (!isEth) return "//unpkg.com/three-globe/example/img/earth-dark.jpg";
+        if (typeof document === 'undefined') return "//unpkg.com/three-globe/example/img/earth-dark.jpg";
+        // Solid dark navy — no gradient, no seam when tiled on sphere
+        const size = 2;
+        const canvas = document.createElement('canvas');
+        canvas.width = size; canvas.height = size;
+        const ctx = canvas.getContext('2d')!;
+        ctx.fillStyle = '#0f1729';
+        ctx.fillRect(0, 0, size, size);
+        return canvas.toDataURL('image/png');
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [isEth]); // intentionally stable — only regenerate when theme changes
 
     const activeDistribution = (viewMode === 'global' && globalGeoDistribution)
         ? globalGeoDistribution
@@ -139,12 +132,31 @@ export default function WorldMap({
         return result;
     }, [countriesGeoJson]);
 
+    // Maps Intl.DisplayNames output ("France", "United States") → ISO-2 code ("FR", "US").
+    // MigaLabs stores geoDistribution with full country names; COUNTRY_COORDS uses ISO codes.
+    const displayNameToIso = useMemo(() => {
+        const result: Record<string, string> = {};
+        try {
+            const dn = new Intl.DisplayNames(['en'], { type: 'region' });
+            const allIsoCodes = [
+                ...Object.keys(COUNTRY_COORDS),
+                ...Object.keys(dynamicCountryCoords),
+            ];
+            for (const iso of allIsoCodes) {
+                try { const name = dn.of(iso); if (name) result[name] = iso; } catch { /* skip */ }
+            }
+        } catch { /* Intl not available */ }
+        return result;
+    }, [dynamicCountryCoords]);
+
     const maxNodes = Math.max(...Object.values(activeDistribution), 1);
 
     const dataPoints = useMemo(() => {
         return Object.entries(activeDistribution)
             .map(([country, count]) => {
-                const coords = COUNTRY_COORDS[country] || dynamicCountryCoords[country];
+                // Normalize: country may be ISO-2 ("FR") or full name ("France") — handle both
+                const isoKey = displayNameToIso[country] ?? country;
+                const coords = COUNTRY_COORDS[isoKey] || dynamicCountryCoords[isoKey];
                 if (!coords) return null;
                 const intensity = count / maxNodes;
                 return {
@@ -160,21 +172,34 @@ export default function WorldMap({
                 };
             })
             .filter((p): p is NonNullable<typeof p> => p !== null);
-    }, [activeDistribution, maxNodes, accentRgb, dynamicCountryCoords]);
+    }, [activeDistribution, maxNodes, accentRgb, dynamicCountryCoords, displayNameToIso]);
 
     const connections = useMemo(() => {
         if (dataPoints.length < 2) return [];
-        const mainHub = [...dataPoints].sort((a: any, b: any) => b.count - a.count)[0];
-        if (!mainHub) return [];
-        return dataPoints
-            .filter((point: any) => point.fullCountry !== mainHub.fullCountry)
-            .map((point: any) => ({
-                startLat: mainHub.lat,
-                startLng: mainHub.lng,
-                endLat: point.lat,
-                endLng: point.lng,
-                color: [`rgba(${accentRgb}, 0.4)`, 'rgba(168, 85, 247, 0.6)'],
-            }));
+        const top = [...dataPoints].sort((a: any, b: any) => b.count - a.count).slice(0, 12);
+        const arcs: any[] = [];
+        // Hub (top country) → top 2–5 (4 arcs max)
+        const hubCount = Math.min(4, top.length - 1);
+        for (let i = 1; i <= hubCount; i++) {
+            arcs.push({
+                startLat: top[0].lat, startLng: top[0].lng,
+                endLat: top[i].lat, endLng: top[i].lng,
+                startColor: `rgba(${accentRgb}, 0.55)`,
+                endColor: 'rgba(168, 85, 247, 0.4)',
+            });
+        }
+        // Secondary: top 2–5 each link to one country from top 6–12
+        for (let i = 1; i <= hubCount; i++) {
+            const secondIdx = 4 + i;
+            if (secondIdx >= top.length) break;
+            arcs.push({
+                startLat: top[i].lat, startLng: top[i].lng,
+                endLat: top[secondIdx].lat, endLng: top[secondIdx].lng,
+                startColor: `rgba(${accentRgb}, 0.3)`,
+                endColor: 'rgba(168, 85, 247, 0.25)',
+            });
+        }
+        return arcs;
     }, [dataPoints, accentRgb]);
 
     return (
@@ -192,9 +217,7 @@ export default function WorldMap({
                         width={dimensions.width}
                         height={dimensions.height} // Reverted to full container height for better control
                         backgroundColor="rgba(0,0,0,0)"
-                        globeImageUrl={isEth
-                            ? generateEthGlobeTexture()
-                            : "//unpkg.com/three-globe/example/img/earth-dark.jpg"}
+                        globeImageUrl={globeImageUrl}
                         bumpImageUrl="//unpkg.com/three-globe/example/img/earth-topology.png"
 
                         onGlobeReady={() => {
@@ -214,8 +237,8 @@ export default function WorldMap({
                             const nodeData = dataPoints.find(p => p.isoCode === d.properties.ISO_A2 || p.fullCountry === d.properties.ADMIN || p.country === d.properties.NAME || (p.isoCode === 'FR' && d.properties.NAME === 'France'));
                             if (d === hoveredPolygon) return `rgba(${accentRgb}, 0.6)`;
                             if (nodeData) {
-                                // For node countries: clearly dark blue
-                                return `rgba(60, 80, 180, ${isEth ? 0.6 : 0.08})`;
+                                // For node countries: Ethereum blue, more luminous
+                                return `rgba(98, 126, 234, ${isEth ? 0.55 : 0.08})`;
                             }
                             // For non-node countries: clearly darker blue than the light sea
                             return isEth ? 'rgba(98, 126, 234, 0.25)' : 'rgba(255, 255, 255, 0.0)';
@@ -240,7 +263,8 @@ export default function WorldMap({
                         pointColor="color"
                         pointAltitude="size"
                         pointRadius={0.35}
-                        pointsMerge={true}
+                        pointsMerge={false}
+                        pointLabel={(d: any) => `<div style="background:rgba(10,10,30,0.92);padding:8px 14px;border-radius:8px;border:1px solid rgba(${accentRgb},0.5);color:white;font-family:inherit;text-align:center;"><p style="font-size:11px;font-weight:700;margin:0 0 3px 0;text-transform:uppercase;letter-spacing:0.05em;">${d.country}</p><p style="font-size:15px;font-weight:900;margin:0;">${d.count} <span style="font-size:10px;font-weight:400;opacity:0.8;">nodes</span></p></div>`}
                         onPointClick={(point: any) => onCountryClick?.(point.isoCode)}
 
                         arcsData={connections}
@@ -248,14 +272,15 @@ export default function WorldMap({
                         arcStartLng="startLng"
                         arcEndLat="endLat"
                         arcEndLng="endLng"
-                        arcColor="color"
+                        arcColor={(d: any) => [d.startColor, d.endColor]}
+                        arcStroke={0.38}
                         arcDashLength={0.4}
                         arcDashGap={0.2}
                         arcDashAnimateTime={2500}
                         arcAltitudeAutoScale={0.4}
 
-                        atmosphereColor={accent}
-                        atmosphereAltitude={isEth ? 0.15 : 0.05}
+                        atmosphereColor={isEth ? '#8ba3f0' : accent}
+                        atmosphereAltitude={isEth ? 0.10 : 0.05}
                     />
                 )}
             </div>
@@ -404,26 +429,27 @@ export default function WorldMap({
 
                 {/* OVH / GLOBAL toggle */}
                 {globalGeoDistribution && (
-                    <div className={`flex items-center p-1 rounded-full backdrop-blur-xl shadow-lg border pointer-events-auto ${isEth ? 'bg-[#0d1117]/85 border-[#627EEA]/45' : 'bg-black/50 border-white/15'}`}>
+                    <div className={`flex items-center p-1.5 rounded-full backdrop-blur-2xl shadow-2xl border pointer-events-auto ${isEth ? 'bg-[#0d1117]/90 border-[#627EEA]/50' : 'bg-black/60 border-white/20'}`}>
                         <button
-                            onClick={() => setViewMode('ovh')}
-                            className="px-3 py-1 rounded-full text-[9px] font-bold uppercase tracking-wider transition-all duration-200"
+                            onClick={isEth ? undefined : () => setViewMode('ovh')}
+                            disabled={isEth}
+                            className={`px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest transition-all duration-300 ${isEth ? 'opacity-50 cursor-not-allowed' : ''}`}
                             style={viewMode === 'ovh' ? {
-                                background: `rgba(${accentRgb}, 0.22)`,
-                                color: accent,
-                                boxShadow: `0 0 10px rgba(${accentRgb}, 0.3)`,
-                            } : { color: isEth ? '#64748b' : '#6b7280' }}
+                                background: `rgba(${accentRgb}, 0.3)`,
+                                color: isEth ? '#FFFFFF' : accent,
+                                boxShadow: `0 0 15px rgba(${accentRgb}, 0.5)`,
+                            } : { color: isEth ? '#94a3b8' : '#9ca3af' }}
                         >
-                            OVHcloud
+                            {isEth ? 'Available soon' : 'OVHcloud'}
                         </button>
                         <button
                             onClick={() => setViewMode('global')}
-                            className="px-3 py-1 rounded-full text-[9px] font-bold uppercase tracking-wider transition-all duration-200"
+                            className="px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest transition-all duration-300"
                             style={viewMode === 'global' ? {
-                                background: `rgba(${accentRgb}, 0.22)`,
-                                color: accent,
-                                boxShadow: `0 0 10px rgba(${accentRgb}, 0.3)`,
-                            } : { color: isEth ? '#64748b' : '#6b7280' }}
+                                background: `rgba(${accentRgb}, 0.35)`,
+                                color: isEth ? '#FFFFFF' : accent,
+                                boxShadow: `0 0 15px rgba(${accentRgb}, 0.5)`,
+                            } : { color: isEth ? '#94a3b8' : '#9ca3af' }}
                         >
                             Global
                         </button>

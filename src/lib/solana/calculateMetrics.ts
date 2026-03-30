@@ -25,7 +25,7 @@ export function calculateMetrics(
     // Geographic distribution (OVH only)
     const geoDistribution: Record<string, number> = {};
     ovhNodes.forEach((node) => {
-        const country = node.ipInfo.country_name;
+        const country = node.ipInfo.country; // ISO code (e.g. "FR")
         if (country) geoDistribution[country] = (geoDistribution[country] || 0) + 1;
     });
 

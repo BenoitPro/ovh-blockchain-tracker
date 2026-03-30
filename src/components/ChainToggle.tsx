@@ -1,11 +1,11 @@
 'use client';
 
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { useNetworkTheme } from '@/components/NetworkThemeProvider';
 
 export default function ChainToggle() {
-    const pathname = usePathname();
-    const isEth = pathname.startsWith('/ethereum');
+    const { theme } = useNetworkTheme();
+    const isEth = theme === 'ethereum';
 
     return (
         <div className="chain-toggle flex items-center rounded-full p-1 gap-1 w-full relative">

@@ -204,8 +204,8 @@ export async function categorizeNodesByProvider(
     // Step: Get country info for all IPs too
     ips.forEach(ip => {
         const countryInfo = getCountryFromMaxMind(ip);
-        if (countryInfo?.country) {
-            globalGeoDistribution[countryInfo.country] = (globalGeoDistribution[countryInfo.country] || 0) + 1;
+        if (countryInfo?.countryCode) {
+            globalGeoDistribution[countryInfo.countryCode] = (globalGeoDistribution[countryInfo.countryCode] || 0) + 1;
         }
     });
 

@@ -3,7 +3,7 @@
 import Image from 'next/image';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import ChainToggle from '@/components/ChainToggle';
 import { useNetworkTheme } from '@/components/NetworkThemeProvider';
 
@@ -14,14 +14,16 @@ export default function Sidebar() {
     const isNodes = pathname.startsWith('/nodes') || pathname.startsWith('/ethereum/nodes');
     const isUseCases = pathname.startsWith('/use-cases') || pathname.startsWith('/ethereum/use-cases');
     const isAnalytics = pathname.startsWith('/analytics') || pathname.startsWith('/ethereum/analytics');
-    const isDashboard = !isNodes && !isUseCases && !isAnalytics;
+    const isAbout = pathname.startsWith('/about');
+    const isDashboard = pathname === '/' || pathname === '/ethereum';
 
     const [mobileOpen, setMobileOpen] = useState(false);
 
-    const [isLoggedIn, setIsLoggedIn] = useState<boolean>(() => {
-      if (typeof document === 'undefined') return false;
-      return document.cookie.includes('ovh_ui=1');
-    });
+    const [isLoggedIn, setIsLoggedIn] = useState(false);
+
+    useEffect(() => {
+      setIsLoggedIn(document.cookie.includes('ovh_ui=1'));
+    }, [pathname]);
 
     async function handleLogout() {
       await fetch('/api/auth/logout', { method: 'POST' });
@@ -150,11 +152,12 @@ export default function Sidebar() {
                         Dashboard
                     </Link>
 
-                    {/* Explorer */}
-                    {isEth ? (
+                    {/* Explorer — private */}
+                    {isLoggedIn && (isEth ? (
                         <Link
                             href="/ethereum/nodes"
-                            className={`${navLinkBase} opacity-50 hover:opacity-70 ${navInactiveClass}`}
+                            className={`${navLinkBase} ${isNodes ? '' : navInactiveClass}`}
+                            style={isNodes ? navActiveStyle : undefined}
                         >
                             <svg className="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                                 <circle cx="11" cy="11" r="8" />
@@ -162,8 +165,8 @@ export default function Sidebar() {
                             </svg>
                             Explorer
                             <span className="ml-auto text-[8px] font-black uppercase tracking-widest px-1.5 py-0.5 rounded-full border"
-                                style={{ color: '#627EEA', borderColor: '#627EEA50', background: '#627EEA12' }}>
-                                Soon
+                                style={{ color: accent, borderColor: `${accent}50`, background: `${accent}12` }}>
+                                Interne
                             </span>
                         </Link>
                     ) : (
@@ -177,6 +180,28 @@ export default function Sidebar() {
                                 <path strokeLinecap="round" d="M21 21l-4.35-4.35" />
                             </svg>
                             Explorer
+                            <span className="ml-auto text-[8px] font-black uppercase tracking-widest px-1.5 py-0.5 rounded-full border"
+                                style={{ color: accent, borderColor: `${accent}50`, background: `${accent}12` }}>
+                                Interne
+                            </span>
+                        </Link>
+                    ))}
+
+                    {/* Lead — private */}
+                    {isLoggedIn && (
+                        <Link
+                            href="/lead"
+                            className={`${navLinkBase} ${pathname.startsWith('/lead') ? '' : navInactiveClass}`}
+                            style={pathname.startsWith('/lead') ? navActiveStyle : undefined}
+                        >
+                            <svg className="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                                <path strokeLinecap="round" strokeLinejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" />
+                            </svg>
+                            Lead
+                            <span className="ml-auto text-[8px] font-black uppercase tracking-widest px-1.5 py-0.5 rounded-full border"
+                                style={{ color: accent, borderColor: `${accent}50`, background: `${accent}12` }}>
+                                Interne
+                            </span>
                         </Link>
                     )}
 
@@ -196,8 +221,8 @@ export default function Sidebar() {
                     {/* About Us */}
                     <Link
                         href="/about"
-                        className={`${navLinkBase} ${pathname.startsWith('/about') ? '' : navInactiveClass}`}
-                        style={pathname.startsWith('/about') ? navActiveStyle : undefined}
+                        className={`${navLinkBase} ${isAbout ? '' : navInactiveClass}`}
+                        style={isAbout ? navActiveStyle : undefined}
                     >
                         <svg className="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                             <path strokeLinecap="round" strokeLinejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
@@ -216,6 +241,20 @@ export default function Sidebar() {
                         </svg>
                         Use Cases
                     </Link>
+
+                    {/* Guide (Ethereum only) */}
+                    {isEth && (
+                        <Link
+                            href="/ethereum/guide"
+                            className={`${navLinkBase} ${pathname === '/ethereum/guide' ? '' : navInactiveClass}`}
+                            style={pathname === '/ethereum/guide' ? navActiveStyle : undefined}
+                        >
+                            <svg className="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                                <path strokeLinecap="round" strokeLinejoin="round" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+                            </svg>
+                            Guide & Resources
+                        </Link>
+                    )}
                 </nav>
 
                 {/* ── 4. CTA & Resources ────────────────────────────────────────── */}

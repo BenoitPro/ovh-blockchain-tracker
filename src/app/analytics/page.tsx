@@ -40,12 +40,15 @@ export default function AnalyticsPage() {
 
     if (loading) {
         return (
-            <>
+            <div className="min-h-screen relative bg-[#050510]">
                 <ParticlesBackground />
-                <LoadingState />
-            </>
+                <div className="relative z-10 flex items-center justify-center min-h-screen">
+                    <LoadingState />
+                </div>
+            </div>
         );
     }
+
 
     if (error || !metrics) {
         return (

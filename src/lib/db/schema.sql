@@ -33,3 +33,28 @@ CREATE TABLE IF NOT EXISTS ethereum_snapshots (
 );
 
 CREATE INDEX IF NOT EXISTS idx_eth_snapshots_timestamp ON ethereum_snapshots(timestamp DESC);
+
+-- Leads table for internal CRM
+CREATE TABLE IF NOT EXISTS leads (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    last_name TEXT NOT NULL,
+    first_name TEXT NOT NULL,
+    email TEXT NOT NULL,
+    organization TEXT NOT NULL,
+    legal_form TEXT NOT NULL,
+    country TEXT NOT NULL,
+    photo TEXT,                  -- base64 data URL
+    donotphone INTEGER DEFAULT 0,
+    donotbulkemail INTEGER DEFAULT 0,
+    target_owner TEXT,
+    evaluation TEXT,
+    description TEXT,
+    mobile_phone TEXT,
+    job_title TEXT,
+    interested_by TEXT,
+    products_solutions TEXT,
+    created_at INTEGER NOT NULL DEFAULT (unixepoch())
+);
+
+CREATE INDEX IF NOT EXISTS idx_leads_email ON leads(email);
+CREATE INDEX IF NOT EXISTS idx_leads_created_at ON leads(created_at DESC);
