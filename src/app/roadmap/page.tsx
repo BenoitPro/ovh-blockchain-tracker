@@ -1,8 +1,7 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { Fragment, useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { useNetworkTheme } from '@/components/NetworkThemeProvider';
 import BlockchainCubes from '@/components/BlockchainCubes';
 import ParticlesBackground from '@/components/ParticlesBackground';
 
@@ -336,9 +335,7 @@ function EditableCell({ chainId, field, defaultValue }: { chainId: string; field
 
 export default function RoadmapPage() {
   const router = useRouter();
-  const { theme } = useNetworkTheme();
-  const isEth = theme === 'ethereum';
-  const accent = isEth ? '#627EEA' : '#00F0FF';
+  const accent = '#00F0FF';
 
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [mounted, setMounted] = useState(false);
@@ -354,8 +351,8 @@ export default function RoadmapPage() {
 
   return (
     <div className="relative min-h-screen">
-      <BlockchainCubes opacity={0.05} network={isEth ? 'ethereum' : 'solana'} />
-      <ParticlesBackground network={isEth ? 'ethereum' : 'solana'} />
+      <BlockchainCubes opacity={0.05} network="solana" />
+      <ParticlesBackground network="solana" />
       <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
 
         {/* Page header */}
@@ -419,8 +416,8 @@ function RoadmapTable({ accent }: { accent: string }) {
               const rows = CHAIN_DATA.filter(c => c.tier === tier);
               if (!rows.length) return null;
               return (
-                <>
-                  <tr key={`tier-label-${tier}`}>
+                <Fragment key={tier}>
+                  <tr>
                     <td colSpan={10} className="px-3 pt-4 pb-1">
                       <span className="text-[9px] font-black uppercase tracking-widest text-white/20">
                         {tierLabels[tier]}
@@ -428,7 +425,7 @@ function RoadmapTable({ accent }: { accent: string }) {
                     </td>
                   </tr>
                   {rows.map(chain => {
-                    const rowOpacity = tier === 5 ? 'opacity-40' : tier === 4 ? 'opacity-60' : '';
+                    const rowOpacity = tier === 5 ? 'opacity-40' : tier === 4 ? 'opacity-60' : tier === 3 ? 'opacity-90' : '';
                     const rowBorder = tier === 2 ? 'border-l-2' : '';
                     return (
                       <tr
@@ -469,7 +466,7 @@ function RoadmapTable({ accent }: { accent: string }) {
                       </tr>
                     );
                   })}
-                </>
+                </Fragment>
               );
             })}
           </tbody>
@@ -477,7 +474,7 @@ function RoadmapTable({ accent }: { accent: string }) {
       </div>
 
       <p className="mt-2 text-[10px] text-white/20 italic">
-        * Fields marked *(to refine)* are estimates — double-click any cell to edit locally (saved in your browser).
+        * Fields marked *(to refine)* are estimates — click any cell to edit locally (saved in your browser).
       </p>
     </section>
   );
