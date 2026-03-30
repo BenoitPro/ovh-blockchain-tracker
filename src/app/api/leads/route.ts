@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getDatabase } from '@/lib/db/database';
+import { verifySession, COOKIE_NAME } from '@/lib/auth/session';
 
 export async function POST(req: NextRequest) {
   try {
@@ -39,11 +40,18 @@ export async function POST(req: NextRequest) {
   }
 }
 
-export async function GET() {
+export async function GET(req: NextRequest) {
+  const token = req.cookies.get(COOKIE_NAME)?.value ?? '';
+  if (!verifySession(token)) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  }
   try {
     const db = getDatabase();
     const result = await db.execute(
-      'SELECT id, last_name, first_name, email, organization, legal_form, country, job_title, evaluation, created_at FROM leads ORDER BY created_at DESC'
+      `SELECT id, last_name, first_name, email, organization, legal_form, country,
+       job_title, evaluation, mobile_phone, interested_by, products_solutions,
+       description, donotphone, donotbulkemail, created_at
+       FROM leads ORDER BY created_at DESC`
     );
     return NextResponse.json({ leads: result.rows });
   } catch (error) {
