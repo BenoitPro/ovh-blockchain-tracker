@@ -26,8 +26,8 @@ export default function RoadmapPage() {
 
   return (
     <div className="relative min-h-screen">
-      <BlockchainCubes />
-      <ParticlesBackground />
+      <BlockchainCubes opacity={0.05} network={isEth ? 'ethereum' : 'solana'} />
+      <ParticlesBackground network={isEth ? 'ethereum' : 'solana'} />
       <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
 
         {/* Page header */}
