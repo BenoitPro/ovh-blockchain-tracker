@@ -223,6 +223,49 @@ const CHAIN_DATA: ChainRow[] = [
   },
 ];
 
+const TIMELINE_PHASES = [
+  {
+    id: 'integrated',
+    label: 'Integrated',
+    color: '#10B981',
+    chains: ['Solana', 'Ethereum'],
+    rationale: 'Live tracking — ASN-based detection operational',
+    eta: 'Done',
+    faded: false,
+    optional: false,
+  },
+  {
+    id: 'phase1',
+    label: 'Phase 1',
+    color: '#00F0FF',
+    chains: ['Avalanche', 'Sui'],
+    rationale: 'Public APIs, standard IP access, strong validator/app opportunity',
+    eta: 'Q2 2026',
+    faded: false,
+    optional: false,
+  },
+  {
+    id: 'phase2',
+    label: 'Phase 2',
+    color: '#3B82F6',
+    chains: ['Hyperliquid POC', 'TON (if ADNL resolved)'],
+    rationale: 'High momentum but infra access barriers to solve first',
+    eta: 'Q3–Q4 2026',
+    faded: false,
+    optional: false,
+  },
+  {
+    id: 'phase3',
+    label: 'Phase 3?',
+    color: '#6B7280',
+    chains: ['Polkadot', 'Cosmos SDK (multi)', 'BTC L2s?', 'Morpho?'],
+    rationale: 'Exploratory — depends on Phase 1/2 learnings and ecosystem growth',
+    eta: '2027?',
+    faded: true,
+    optional: true,
+  },
+];
+
 // ---------------------------------------------------------------------------
 // Helper components
 // ---------------------------------------------------------------------------
@@ -481,7 +524,89 @@ function RoadmapTable({ accent }: { accent: string }) {
 }
 
 function RoadmapTimeline({ accent }: { accent: string }) {
-  return <div style={{ color: accent }}>Timeline — coming in Task 4</div>;
+  return (
+    <section>
+      <h2 className="text-xl font-black text-white mb-8 flex items-center gap-3">
+        <span className="w-1 h-6 rounded-full" style={{ background: accent }} />
+        Implementation Timeline
+      </h2>
+
+      {/* Desktop horizontal timeline */}
+      <div className="hidden md:block relative">
+        <div className="absolute top-5 left-0 right-0 h-px bg-white/10" />
+        <div className="absolute top-5 left-0 w-1/4 h-px bg-emerald-400/60" />
+        <div className="absolute top-5 left-1/4 w-1/4 h-px" style={{ background: `${accent}60` }} />
+
+        <div className="grid grid-cols-4 gap-4">
+          {TIMELINE_PHASES.map((phase, i) => (
+            <div key={phase.id} className={`relative ${phase.faded ? 'opacity-50' : ''}`}>
+              <div className="flex justify-center mb-6">
+                <div
+                  className={`w-10 h-10 rounded-full flex items-center justify-center text-xs font-black z-10 relative ${phase.optional ? 'border-dashed border-2' : 'border-2'}`}
+                  style={{
+                    borderColor: phase.color,
+                    background: `${phase.color}20`,
+                    color: phase.color,
+                  }}
+                >
+                  {i + 1}
+                </div>
+              </div>
+
+              <div
+                className={`rounded-xl p-4 bg-white/3 backdrop-blur-sm ${phase.optional ? 'border border-dashed border-white/15' : 'border border-white/10'}`}
+              >
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-[9px] font-black uppercase tracking-widest" style={{ color: phase.color }}>
+                    {phase.label}
+                  </span>
+                  <span className="text-[9px] text-white/30">{phase.eta}</span>
+                </div>
+                <div className="space-y-1 mb-3">
+                  {phase.chains.map(c => (
+                    <div key={c} className="flex items-center gap-1.5">
+                      <span className="w-1 h-1 rounded-full shrink-0" style={{ background: phase.color }} />
+                      <span className={`text-xs font-bold ${phase.faded ? 'text-white/40 italic' : 'text-white'}`}>{c}</span>
+                    </div>
+                  ))}
+                </div>
+                <p className="text-[10px] text-white/30 leading-relaxed">{phase.rationale}</p>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Mobile vertical timeline */}
+      <div className="md:hidden space-y-4">
+        {TIMELINE_PHASES.map((phase) => (
+          <div key={phase.id} className={`flex gap-4 ${phase.faded ? 'opacity-50' : ''}`}>
+            <div className="flex flex-col items-center">
+              <div
+                className="w-8 h-8 rounded-full border-2 flex items-center justify-center text-xs font-black shrink-0"
+                style={{ borderColor: phase.color, background: `${phase.color}20`, color: phase.color }}
+              >
+                ●
+              </div>
+              <div className="w-px flex-1 bg-white/10 mt-2" />
+            </div>
+            <div className={`rounded-xl p-4 bg-white/3 flex-1 mb-2 ${phase.optional ? 'border border-dashed border-white/15' : 'border border-white/10'}`}>
+              <div className="flex justify-between mb-2">
+                <span className="text-[9px] font-black uppercase tracking-widest" style={{ color: phase.color }}>{phase.label}</span>
+                <span className="text-[9px] text-white/30">{phase.eta}</span>
+              </div>
+              <div className="space-y-1 mb-2">
+                {phase.chains.map(c => (
+                  <span key={c} className={`block text-xs font-bold ${phase.faded ? 'text-white/40 italic' : 'text-white'}`}>· {c}</span>
+                ))}
+              </div>
+              <p className="text-[10px] text-white/30">{phase.rationale}</p>
+            </div>
+          </div>
+        ))}
+      </div>
+    </section>
+  );
 }
 function ChainAccordions({ accent }: { accent: string }) {
   return <div style={{ color: accent }}>Accordions — coming in Task 5</div>;
