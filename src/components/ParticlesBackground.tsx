@@ -14,7 +14,7 @@ interface Particle {
 }
 
 interface ParticlesBackgroundProps {
-    network?: 'ethereum' | 'solana';
+    network?: 'ethereum' | 'solana' | 'avalanche';
 }
 
 export default function ParticlesBackground({ network = 'solana' }: ParticlesBackgroundProps) {
@@ -35,16 +35,18 @@ export default function ParticlesBackground({ network = 'solana' }: ParticlesBac
         };
 
         const initParticles = () => {
-            const particleCount = network === 'ethereum' ? 150 : 120; // Slightly more for Eth as they are subtler
+            const particleCount = network === 'ethereum' ? 150 : network === 'avalanche' ? 110 : 120;
             const colors = network === 'ethereum'
                 ? ['#627EEA', '#818CF8', '#C7D2FE', '#A5B4FC', '#6366F1']
+                : network === 'avalanche'
+                ? ['#E84142', '#FF6B6B', '#4A1515', '#FFFFFF', '#FF3333']
                 : ['#FFFFFF', '#FFFFFF', '#00F0FF', '#A855F7', '#6B4FBB']; // Solana colors
 
             particlesRef.current = Array.from({ length: particleCount }, () => ({
                 x: Math.random() * canvas.width,
                 y: Math.random() * canvas.height,
-                vx: (Math.random() - 0.5) * (network === 'ethereum' ? 0.12 : 0.15), // Slightly slower for Eth
-                vy: (Math.random() - 0.5) * (network === 'ethereum' ? 0.12 : 0.15),
+                vx: (Math.random() - 0.5) * (network === 'ethereum' ? 0.12 : network === 'avalanche' ? 0.20 : 0.15),
+                vy: (Math.random() - 0.5) * (network === 'ethereum' ? 0.12 : network === 'avalanche' ? 0.20 : 0.15),
                 radius: Math.random() * (network === 'ethereum' ? 1.2 : 1.5) + 0.5,
                 opacity: Math.random() * (network === 'ethereum' ? 0.18 : 0.5) + 0.05,
                 opacityDir: Math.random() > 0.5 ? 0.003 : -0.003,
@@ -84,8 +86,9 @@ export default function ParticlesBackground({ network = 'solana' }: ParticlesBac
                 
                 ctx.fillStyle = `rgba(${r}, ${g}, ${b}, ${p.opacity})`;
                 
-                if (network === 'solana') {
+                if (network === 'solana' || network === 'avalanche') {
                     ctx.shadowBlur = 8;
+                    // For avalanche we want a nice red/white glow, the rgb takes care of that
                     ctx.shadowColor = `rgba(${r}, ${g}, ${b}, 0.8)`;
                 } else {
                     // Less glow for Ethereum to keep it "clear" and subtle

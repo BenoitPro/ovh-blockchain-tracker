@@ -1,7 +1,6 @@
 'use client';
 
 import { useState, useRef, useEffect, useCallback, ChangeEvent, FormEvent } from 'react';
-import { useNetworkTheme } from '@/components/NetworkThemeProvider';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -826,14 +825,20 @@ function NewLeadForm({
       {/* ── Actions */}
       <button
         type="button"
-        onClick={onCancel}
+        onClick={() => {
+          setForm(BLANK_FORM);
+          setPhoto(null);
+          setPhotoName('');
+          setError('');
+          onCancel();
+        }}
         className={`w-full py-3.5 rounded-xl text-sm font-bold uppercase tracking-widest transition-all duration-200 ${
           isEth
             ? 'bg-slate-100 text-slate-500 hover:bg-slate-200'
             : 'bg-white/5 text-white/40 hover:bg-white/10 hover:text-white/60'
         }`}
       >
-        Cancel
+        Clear Form
       </button>
 
       <button
@@ -856,12 +861,11 @@ function NewLeadForm({
 // ─── Main Page ────────────────────────────────────────────────────────────────
 
 export default function LeadPage() {
-  const { theme } = useNetworkTheme();
-  const isEth = theme === 'ethereum';
-  const accent = isEth ? '#627EEA' : '#00F0FF';
+  const isEth = false;
+  const accent = '#00F0FF';
 
   type View = 'list' | 'new';
-  const [view, setView] = useState<View>('list');
+  const [view, setView] = useState<View>('new');
   const [leads, setLeads] = useState<Lead[]>([]);
   const [loadingList, setLoadingList] = useState(true);
   const [selectedLead, setSelectedLead] = useState<Lead | null>(null);
@@ -914,26 +918,27 @@ export default function LeadPage() {
             </p>
           </div>
 
-          {/* Header actions — only in list view */}
-          {view === 'list' && (
-            <div className="flex items-center gap-2 shrink-0 mt-1">
-              {leads.length > 0 && (
-                <button
-                  type="button"
-                  onClick={() => exportCSV(leads)}
-                  className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold uppercase tracking-wider transition-all duration-200 ${
-                    isEth
-                      ? 'bg-slate-100 text-slate-500 hover:bg-slate-200'
-                      : 'bg-white/5 text-white/40 hover:bg-white/10 hover:text-white/60'
-                  }`}
-                >
-                  <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                    <path strokeLinecap="round" strokeLinejoin="round"
-                      d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-                  </svg>
-                  CSV
-                </button>
-              )}
+          {/* Header actions */}
+          <div className="flex items-center gap-2 shrink-0 mt-1">
+            {view === 'list' && leads.length > 0 && (
+              <button
+                type="button"
+                onClick={() => exportCSV(leads)}
+                className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold uppercase tracking-wider transition-all duration-200 ${
+                  isEth
+                    ? 'bg-slate-100 text-slate-500 hover:bg-slate-200'
+                    : 'bg-white/5 text-white/40 hover:bg-white/10 hover:text-white/60'
+                }`}
+              >
+                <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round"
+                    d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                </svg>
+                CSV
+              </button>
+            )}
+            
+            {view === 'list' ? (
               <button
                 type="button"
                 onClick={() => setView('new')}
@@ -949,15 +954,31 @@ export default function LeadPage() {
                 </svg>
                 New
               </button>
-            </div>
-          )}
+            ) : (
+              <button
+                type="button"
+                onClick={() => setView('list')}
+                className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-black uppercase tracking-wider transition-all duration-200"
+                style={{
+                  background: accent,
+                  color: isEth ? '#fff' : '#000',
+                  boxShadow: `0 0 16px ${accent}30`,
+                }}
+              >
+                <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01" />
+                </svg>
+                View Leads
+              </button>
+            )}
+          </div>
         </div>
 
         {/* ── Content ─────────────────────────────────────────────────── */}
 
         {view === 'new' ? (
           <NewLeadForm
-            onCancel={() => setView('list')}
+            onCancel={() => {}}
             onSuccess={handleSuccess}
             accent={accent}
             isEth={isEth}

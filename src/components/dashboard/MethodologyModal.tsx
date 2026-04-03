@@ -5,7 +5,7 @@ import { InformationCircleIcon, XMarkIcon } from '@heroicons/react/24/outline';
 import { motion, AnimatePresence } from 'framer-motion';
 
 interface MethodologyModalProps {
-    network: 'solana' | 'ethereum';
+    network: 'solana' | 'ethereum' | 'avalanche';
     accentColor?: string;
 }
 
@@ -91,7 +91,7 @@ export default function MethodologyModal({ network, accentColor = '#00F0FF' }: M
                                             Dataset: ~5,000 global nodes. Refreshed minutely.
                                         </p>
                                     </>
-                                ) : (
+                                ) : network === 'ethereum' ? (
                                     <>
                                         <p>
                                             Ethereum execution-layer nodes are discovered via the <strong className="text-white">devp2p/discv4</strong> protocol using official crawler mechanics.
@@ -103,6 +103,26 @@ export default function MethodologyModal({ network, accentColor = '#00F0FF' }: M
                                         </ol>
                                         <p className="pt-4 border-t border-white/10 text-xs text-slate-500 font-mono italic">
                                             Dataset: Snapshot-based (time-stamped). Updated periodically.
+                                        </p>
+                                    </>
+                                ) : (
+                                    /* Avalanche */
+                                    <>
+                                        <p>
+                                            Avalanche Primary Network peers are discovered via the <strong className="text-white">info.peers</strong> JSON-RPC method.
+                                        </p>
+                                        <ol className="list-decimal list-outside ml-4 space-y-2">
+                                            <li>
+                                                <strong className="text-white">Single-node snapshot:</strong> We query AvaLabs' official public endpoint (<code className="text-xs bg-white/10 px-1 rounded">api.avax.network</code>). This returns peers <em>currently connected</em> to that node — a representative sample of the network, not the full canonical set.
+                                            </li>
+                                            <li>
+                                                <strong className="text-white">Scope note:</strong> A single bootstrap node typically sees 400–700 of the ~1,700 active validators. Our market-share estimate is extrapolated from this sample. Multi-node crawling (Phase 1b) will improve coverage.
+                                            </li>
+                                            <li><strong className="text-white">ASN Resolution:</strong> Peer public IPs are mapped to cloud provider ASNs via MaxMind GeoLite2 — the same offline pipeline used for Solana and Ethereum.</li>
+                                            <li><strong className="text-white">Uptime:</strong> <code className="text-xs bg-white/10 px-1 rounded">observedUptime</code> is reported by the queried node for each peer — it measures the fraction of time the peer has been reachable.</li>
+                                        </ol>
+                                        <p className="pt-4 border-t border-white/10 text-xs text-slate-500 font-mono italic">
+                                            Dataset: Live peer snapshot. Refreshed every 2 hours.
                                         </p>
                                     </>
                                 )}

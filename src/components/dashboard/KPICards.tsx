@@ -7,7 +7,7 @@ interface KPICardsProps {
     totalNodes: number;
     ovhNodes: number;
     marketShare: number;
-    network?: 'solana' | 'ethereum';
+    network?: 'solana' | 'ethereum' | 'avalanche';
     vertical?: boolean;
     align?: 'left' | 'center' | 'right';
 }
@@ -22,36 +22,43 @@ export default function KPICards({
 }: KPICardsProps) {
     const [activeTooltip, setActiveTooltip] = useState<number | null>(null);
     const isEth = network === 'ethereum';
+    const isAvax = network === 'avalanche';
 
     const metrics = [
         {
-            title: isEth ? 'Total Execution Nodes' : 'Total Network Nodes',
+            title: isEth ? 'Total Execution Nodes' : isAvax ? 'Total Avalanche Nodes' : 'Total Network Nodes',
             value: totalNodes.toLocaleString(),
             icon: ServerIcon,
-            color: '#A855F7',
-            tooltipTitle: isEth ? 'Total Execution Nodes' : 'Total Network Nodes',
+            color: isAvax ? '#E84142' : '#A855F7',
+            tooltipTitle: isEth ? 'Total Execution Nodes' : isAvax ? 'Total Avalanche Nodes' : 'Total Network Nodes',
             tooltipContent: isEth
                 ? 'Total number of discovered execution-layer nodes across the entire Ethereum network during the last crawl.'
+                : isAvax
+                ? 'Total number of discovered Avalanche peers from the primary network snapshot.'
                 : 'Total number of active nodes detected globally on the network.'
         },
         {
-            title: isEth ? 'Active OVH Nodes' : 'Active OVH Nodes (RPC + Staking)',
+            title: isEth ? 'Active OVH Nodes' : isAvax ? 'OVHcloud Nodes' : 'Active OVH Nodes (RPC + Staking)',
             value: ovhNodes.toString(),
             icon: ServerIcon,
-            color: '#00F0FF',
-            tooltipTitle: isEth ? 'Active OVH Nodes' : 'Active OVH Nodes (RPC + Staking)',
+            color: isAvax ? '#FF6B6B' : '#00F0FF',
+            tooltipTitle: isEth ? 'Active OVH Nodes' : isAvax ? 'OVHcloud Nodes' : 'Active OVH Nodes (RPC + Staking)',
             tooltipContent: isEth
                 ? 'Number of Ethereum execution-layer nodes mapped to OVHcloud ASNs via MaxMind GeoLite2.'
+                : isAvax
+                ? 'Number of Avalanche nodes hosted on OVHcloud ASNs.'
                 : 'Total number of Solana network nodes (both RPC and voting validators) currently identifying as hosting on OVHcloud infrastructure via their ASN.'
         },
         {
             title: 'Market Share (All Nodes)',
             value: formatPercentage(marketShare),
             icon: ChartPieIcon,
-            color: '#6B4FBB',
+            color: isAvax ? '#FF3333' : '#6B4FBB',
             tooltipTitle: 'Node Market Share',
             tooltipContent: isEth
                 ? 'Percentage of total Ethereum execution-layer nodes hosted on OVHcloud infrastructure.'
+                : isAvax
+                ? 'Percentage of Avalanche nodes hosted on OVHcloud infrastructure from the fetched snapshot.'
                 : 'Percentage of total network nodes (RPC + Staking) hosted on OVH.'
         }
     ];

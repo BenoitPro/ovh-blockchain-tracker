@@ -1,6 +1,9 @@
 // Solana RPC
 export const SOLANA_RPC_ENDPOINT = 'https://api.mainnet-beta.solana.com';
 
+// Avalanche RPC
+export const AVALANCHE_RPC_ENDPOINT = 'https://api.avax.network/ext/info';
+
 // OVHcloud ASN list
 export const OVH_ASN_LIST = [
     'AS16276', // OVH SAS (Main)
@@ -68,6 +71,8 @@ export const PROVIDER_LABELS: Record<string, string> = {
     others: 'Others',
 };
 
-// Cache keys
-export const CACHE_KEY = 'solana-metrics';
-export const CACHE_TTL_MS = 60 * 60 * 1000;
+// Cache keys — one per chain (all share the same `cache` table, different keys)
+export const CACHE_KEY = 'solana-metrics';           // Legacy Solana key — kept unchanged
+export const CACHE_KEY_AVALANCHE = 'avalanche-metrics';
+export const CACHE_TTL_MS = 60 * 60 * 1000;         // Solana: 1h
+export const CACHE_TTL_AVALANCHE_MS = 2 * 60 * 60 * 1000; // Avalanche: 2h

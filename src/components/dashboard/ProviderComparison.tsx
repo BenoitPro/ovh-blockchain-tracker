@@ -71,7 +71,9 @@ function CustomTooltip({ active, payload }: CustomTooltipProps) {
 export default function ProviderComparison({ providerBreakdown }: ProviderComparisonProps) {
     const { theme } = useNetworkTheme();
     const isEth = theme === 'ethereum';
-    const accent = isEth ? '#627EEA' : '#00F0FF';
+    const isAvax = theme === 'avalanche';
+    const isHyperliquid = theme === 'hyperliquid';
+    const accent = isEth ? '#627EEA' : isAvax ? '#E84142' : isHyperliquid ? '#00E5BE' : '#00F0FF';
 
     if (!providerBreakdown || providerBreakdown.length === 0) {
         return (
@@ -93,7 +95,7 @@ export default function ProviderComparison({ providerBreakdown }: ProviderCompar
             <div className="flex items-center justify-between mb-8">
                 <div>
                     <h2 className={`text-xl font-bold ${isEth ? 'text-slate-800' : 'text-white'}`}>Provider Comparison</h2>
-                    <p className={`text-sm mt-1 ${isEth ? 'text-slate-500' : 'text-gray-400'}`}>{isEth ? 'Ethereum execution-layer' : 'Solana'} nodes by cloud provider</p>
+                    <p className={`text-sm mt-1 ${isEth ? 'text-slate-500' : 'text-gray-400'}`}>{isEth ? 'Ethereum execution-layer' : isAvax ? 'Avalanche subnets' : isHyperliquid ? 'Hyperliquid Root' : 'Solana'} nodes by cloud provider</p>
                 </div>
                 <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg" style={{ background: `${accent}18`, border: `1px solid ${accent}30` }}>
                     <div className="w-2 h-2 rounded-full animate-pulse" style={{ background: accent }} />

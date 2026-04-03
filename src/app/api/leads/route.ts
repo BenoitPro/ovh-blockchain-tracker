@@ -33,6 +33,24 @@ export async function POST(req: NextRequest) {
       ],
     });
 
+    // Push data to Google Sheets via Apps Script Webhook
+    try {
+      const webhookUrl = process.env.GOOGLE_SHEETS_WEBHOOK_URL || 'https://script.google.com/macros/s/AKfycbzl-POic3w9qd-K2At7rQQvejqDZAx6vPOUe4bfvl7-6SyeUDC5XoSHx2bT6CgOppN5/exec';
+      await fetch(webhookUrl, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: `${first_name} ${last_name}`.trim(),
+          email: email,
+          company: organization,
+          message: description || '',
+          ...body
+        }),
+      });
+    } catch (webhookError) {
+      console.error('[Leads Webhook] Error pushing to Google Sheets:', webhookError);
+    }
+
     return NextResponse.json({ ok: true, id: Number(result.lastInsertRowid) });
   } catch (error) {
     console.error('[Leads API] Error:', error);

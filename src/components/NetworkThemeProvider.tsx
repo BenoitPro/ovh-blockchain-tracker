@@ -3,7 +3,7 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { usePathname } from 'next/navigation';
 
-export type Theme = 'solana' | 'ethereum';
+export type Theme = 'solana' | 'ethereum' | 'avalanche' | 'hyperliquid';
 
 interface NetworkThemeContextType {
     theme: Theme;
@@ -23,11 +23,17 @@ export default function NetworkThemeProvider({ children }: { children: React.Rea
         setMounted(true);
         const savedTheme = localStorage.getItem('network-theme') as Theme | null;
         
-        // Let path taking precedence on direct loads
+        // Let path take precedence on direct loads
         if (pathname === '/' || pathname.startsWith('/solana')) {
             setTheme('solana');
         } else if (pathname.startsWith('/ethereum')) {
             setTheme('ethereum');
+        } else if (pathname.startsWith('/avalanche')) {
+            setTheme('avalanche');
+        } else if (pathname.startsWith('/hyperliquid')) {
+            setTheme('hyperliquid');
+        } else if (pathname.startsWith('/lead') || pathname.startsWith('/roadmap')) {
+            setTheme('solana');
         } else if (savedTheme) {
             setTheme(savedTheme);
         }
@@ -39,12 +45,14 @@ export default function NetworkThemeProvider({ children }: { children: React.Rea
 
         let newTheme: Theme = theme;
 
-        // Force Ethereum theme on ethereum specific pages
+        // Force theme based on current section
         if (pathname.startsWith('/ethereum')) {
             newTheme = 'ethereum';
-        } 
-        // Force Solana theme on solana specific pages or home
-        else if (pathname === '/' || pathname.startsWith('/solana')) {
+        } else if (pathname.startsWith('/avalanche')) {
+            newTheme = 'avalanche';
+        } else if (pathname.startsWith('/hyperliquid')) {
+            newTheme = 'hyperliquid';
+        } else if (pathname === '/' || pathname.startsWith('/solana') || pathname.startsWith('/lead') || pathname.startsWith('/roadmap')) {
             newTheme = 'solana';
         }
         // If on a global page like /about, do not override CURRENT known theme
@@ -56,10 +64,13 @@ export default function NetworkThemeProvider({ children }: { children: React.Rea
         
         localStorage.setItem('network-theme', newTheme);
         
+        document.documentElement.classList.remove('eth-theme', 'avax-theme', 'hl-theme');
         if (newTheme === 'ethereum') {
             document.documentElement.classList.add('eth-theme');
-        } else {
-            document.documentElement.classList.remove('eth-theme');
+        } else if (newTheme === 'avalanche') {
+            document.documentElement.classList.add('avax-theme');
+        } else if (newTheme === 'hyperliquid') {
+            document.documentElement.classList.add('hl-theme');
         }
     }, [pathname, mounted, theme]);
 

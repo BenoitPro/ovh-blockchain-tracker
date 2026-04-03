@@ -11,6 +11,7 @@
     "test": "vitest",
     "test:coverage": "vitest run --coverage",
     "worker": "tsx scripts/worker.ts",
+    "worker:avax": "tsx scripts/worker-avax.ts",
     "worker:watch": "nodemon --exec 'tsx scripts/worker.ts' --watch src --watch scripts"
   },
   "dependencies": {

@@ -1,0 +1,1044 @@
+# Roadmap Page Implementation Plan
+
+> **For Claude:** REQUIRED SUB-SKILL: Use superpowers:executing-plans to implement this plan task-by-task.
+
+**Goal:** Build a private `/roadmap` page showing OVH's blockchain integration roadmap — comparative table, timeline, and per-chain accordions — accessible only when logged in.
+
+**Architecture:** Single `src/app/roadmap/page.tsx` client component (mirrors Lead/Explorer pattern). Auth guard via `document.cookie.includes('ovh_ui=1')` on mount, redirects to `/` if not logged in. Inline cell editing persisted to `localStorage`. Sidebar gets a new `isLoggedIn`-gated link. No new dependencies.
+
+**Tech Stack:** Next.js App Router, React 19, TypeScript, Tailwind CSS v4, `useNetworkTheme` hook, `BlockchainCubes` + `ParticlesBackground` components.
+
+---
+
+### Task 1: Add Roadmap link to Sidebar
+
+**Files:**
+- Modify: `src/components/dashboard/Sidebar.tsx:190-206` (after the Lead link block)
+
+**Step 1: Add `isRoadmap` active check**
+
+Around line 17 (after `const isAbout`), add:
+```tsx
+const isRoadmap = pathname.startsWith('/roadmap');
+```
+
+**Step 2: Insert the Roadmap nav link after the Lead block (after line 206)**
+
+```tsx
+{/* Roadmap — private */}
+{isLoggedIn && (
+    <Link
+        href="/roadmap"
+        className={`${navLinkBase} ${isRoadmap ? '' : navInactiveClass}`}
+        style={isRoadmap ? navActiveStyle : undefined}
+        onClick={() => setMobileOpen(false)}
+    >
+        <svg className="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />
+        </svg>
+        Roadmap
+        <span className="ml-auto text-[8px] font-black uppercase tracking-widest px-1.5 py-0.5 rounded-full border"
+            style={{ color: accent, borderColor: `${accent}50`, background: `${accent}12` }}>
+            Interne
+        </span>
+    </Link>
+)}
+```
+
+**Step 3: Verify dev server renders the link when logged in**
+
+Open browser with `ovh_ui=1` cookie set. Confirm "Roadmap" appears in sidebar with "Interne" badge. Confirm it's hidden when cookie is absent.
+
+**Step 4: Commit**
+```bash
+git add src/components/dashboard/Sidebar.tsx
+git commit -m "feat: add Roadmap link to sidebar (private, isLoggedIn guard)"
+```
+
+---
+
+### Task 2: Create the Roadmap page with auth guard and layout shell
+
+**Files:**
+- Create: `src/app/roadmap/page.tsx`
+
+**Step 1: Create the file with auth guard and page shell**
+
+```tsx
+'use client';
+
+import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
+import { useNetworkTheme } from '@/components/NetworkThemeProvider';
+import BlockchainCubes from '@/components/BlockchainCubes';
+import ParticlesBackground from '@/components/ParticlesBackground';
+
+export default function RoadmapPage() {
+  const router = useRouter();
+  const { theme } = useNetworkTheme();
+  const isEth = theme === 'ethereum';
+  const accent = isEth ? '#627EEA' : '#00F0FF';
+
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    const loggedIn = document.cookie.includes('ovh_ui=1');
+    setIsLoggedIn(loggedIn);
+    setMounted(true);
+    if (!loggedIn) router.replace('/');
+  }, [router]);
+
+  if (!mounted || !isLoggedIn) return null;
+
+  return (
+    <div className="relative min-h-screen">
+      <BlockchainCubes />
+      <ParticlesBackground />
+      <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+
+        {/* Page header */}
+        <div className="mb-10">
+          <div className="flex items-center gap-3 mb-2">
+            <h1 className="text-3xl font-black tracking-tight text-white">
+              Blockchain Roadmap
+            </h1>
+            <span className="text-[9px] font-black uppercase tracking-widest px-2 py-0.5 rounded-full border"
+              style={{ color: accent, borderColor: `${accent}50`, background: `${accent}12` }}>
+              Internal
+            </span>
+          </div>
+          <p className="text-white/40 text-sm">
+            OVH infrastructure opportunities across blockchain networks — validators, RPC, and app ecosystems.
+          </p>
+        </div>
+
+        <RoadmapTable accent={accent} />
+        <div className="mt-16"><RoadmapTimeline accent={accent} /></div>
+        <div className="mt-16"><ChainAccordions accent={accent} /></div>
+      </div>
+    </div>
+  );
+}
+
+// Sub-components defined below — stubs for now
+function RoadmapTable({ accent }: { accent: string }) {
+  return <div style={{ color: accent }}>Table — coming in Task 3</div>;
+}
+function RoadmapTimeline({ accent }: { accent: string }) {
+  return <div style={{ color: accent }}>Timeline — coming in Task 4</div>;
+}
+function ChainAccordions({ accent }: { accent: string }) {
+  return <div style={{ color: accent }}>Accordions — coming in Task 5</div>;
+}
+```
+
+**Step 2: Verify the page loads and redirects correctly**
+
+- Without cookie: navigating to `/roadmap` should redirect to `/`
+- With cookie (`ovh_ui=1`): page shell loads with header, stub sections visible
+
+**Step 3: Commit**
+```bash
+git add src/app/roadmap/page.tsx
+git commit -m "feat: create /roadmap page shell with auth guard"
+```
+
+---
+
+### Task 3: Build the Comparative Table (Section 1)
+
+**Files:**
+- Modify: `src/app/roadmap/page.tsx` — replace `RoadmapTable` stub with full implementation
+
+**Step 1: Define the chain data structure and dataset**
+
+Add this data above the `RoadmapPage` component (or in a separate const at top of file):
+
+```tsx
+type OpportunityScore = 1 | 2 | 3 | 4 | 5;
+type IpAccess = 'green' | 'yellow' | 'red';
+type Status = 'Integrated' | 'Phase 1' | 'Phase 2' | 'Optional' | 'Excluded';
+type Momentum = 'Rising' | 'Stable' | 'Declining';
+
+interface ChainRow {
+  id: string;
+  name: string;
+  color: string;
+  tier: 1 | 2 | 3 | 4 | 5; // 1=integrated, 2=phase1, 3=phase2, 4=optional, 5=excluded
+  validators: string;
+  hardware: string;
+  validatorOpp: OpportunityScore;
+  rpcOpp: OpportunityScore;
+  appOpp: OpportunityScore;
+  appEcosystem: string; // comma-separated top apps
+  ipAccess: IpAccess;
+  ipNote: string;
+  momentum: Momentum;
+  status: Status;
+  statusNote?: string;
+}
+
+const CHAIN_DATA: ChainRow[] = [
+  // Tier 1 — Integrated
+  {
+    id: 'solana',
+    name: 'Solana',
+    color: '#9945FF',
+    tier: 1,
+    validators: '~1,900',
+    hardware: 'Advance-4 / High-Grade (128GB RAM, NVMe)',
+    validatorOpp: 4,
+    rpcOpp: 4,
+    appOpp: 3,
+    appEcosystem: 'Jito, Kamino, Drift, Jupiter',
+    ipAccess: 'green',
+    ipNote: 'Public RPC, standard IP/ASN',
+    momentum: 'Rising',
+    status: 'Integrated',
+  },
+  {
+    id: 'ethereum',
+    name: 'Ethereum',
+    color: '#627EEA',
+    tier: 1,
+    validators: '~1,000,000',
+    hardware: 'Advance-1 / Rise-3 (16GB RAM, SSD)',
+    validatorOpp: 5,
+    rpcOpp: 5,
+    appOpp: 5,
+    appEcosystem: 'Morpho, Aave, Uniswap, Lido, EigenLayer',
+    ipAccess: 'green',
+    ipNote: 'Public RPC, standard IP/ASN',
+    momentum: 'Stable',
+    status: 'Integrated',
+  },
+  // Tier 2 — Phase 1
+  {
+    id: 'avalanche',
+    name: 'Avalanche',
+    color: '#E84142',
+    tier: 2,
+    validators: '~1,500 *(to refine)*',
+    hardware: 'Advance-1 / Rise-3 (16GB RAM, 1TB NVMe)',
+    validatorOpp: 4,
+    rpcOpp: 3,
+    appOpp: 3,
+    appEcosystem: 'Trader Joe, Benqi, GMX (C-Chain)',
+    ipAccess: 'green',
+    ipNote: 'Public HTTP API',
+    momentum: 'Rising',
+    status: 'Phase 1',
+    statusNote: 'C/P/X-Chain split — decide which to track',
+  },
+  {
+    id: 'sui',
+    name: 'Sui',
+    color: '#4DA2FF',
+    tier: 2,
+    validators: '~100 *(to refine)*',
+    hardware: 'Advance-2 / High-Grade (32GB RAM, 2TB NVMe)',
+    validatorOpp: 3,
+    rpcOpp: 4,
+    appOpp: 2,
+    appEcosystem: 'Cetus, Navi (ecosystem early)',
+    ipAccess: 'green',
+    ipNote: 'JSON-RPC public',
+    momentum: 'Rising',
+    status: 'Phase 1',
+    statusNote: 'Permissioned validator set *(to refine)*',
+  },
+  // Tier 3 — Phase 2
+  {
+    id: 'hyperliquid',
+    name: 'Hyperliquid',
+    color: '#00FF87',
+    tier: 3,
+    validators: '~20 *(to refine)*',
+    hardware: 'HFT-grade, low-latency *(to refine)*',
+    validatorOpp: 2,
+    rpcOpp: 2,
+    appOpp: 4,
+    appEcosystem: 'Native perps DEX (large TVL), HIP-1/HIP-2',
+    ipAccess: 'yellow',
+    ipNote: 'Limited public API *(to refine)*',
+    momentum: 'Rising',
+    status: 'Phase 2',
+    statusNote: 'Closed/permissioned validator set; custom L1',
+  },
+  {
+    id: 'ton',
+    name: 'TON',
+    color: '#0088CC',
+    tier: 3,
+    validators: '~400 *(to refine)*',
+    hardware: 'Advance-1 (8 cores, 16GB RAM, 1TB SSD)',
+    validatorOpp: 3,
+    rpcOpp: 2,
+    appOpp: 3,
+    appEcosystem: 'Telegram mini-apps, Tonstarter',
+    ipAccess: 'red',
+    ipNote: 'ADNL (UDP-based) — ASN detection unreliable',
+    momentum: 'Rising',
+    status: 'Phase 2',
+    statusNote: 'ADNL blocks standard IP/ASN detection',
+  },
+  // Tier 4 — Optional / Phase 3
+  {
+    id: 'polkadot',
+    name: 'Polkadot',
+    color: '#E6007A',
+    tier: 4,
+    validators: '~300 *(to refine)*',
+    hardware: 'Advance-1 (8 cores, 16GB RAM)',
+    validatorOpp: 3,
+    rpcOpp: 2,
+    appOpp: 2,
+    appEcosystem: 'Acala, Moonbeam, Astar',
+    ipAccess: 'green',
+    ipNote: 'Public RPC',
+    momentum: 'Stable',
+    status: 'Optional',
+  },
+  {
+    id: 'cosmos',
+    name: 'Cosmos SDK (multi)',
+    color: '#2E3148',
+    tier: 4,
+    validators: 'Varies per chain *(to refine)*',
+    hardware: 'Varies per chain',
+    validatorOpp: 3,
+    rpcOpp: 2,
+    appOpp: 2,
+    appEcosystem: 'Osmosis, dYdX, Celestia',
+    ipAccess: 'green',
+    ipNote: 'Public RPC per chain',
+    momentum: 'Stable',
+    status: 'Optional',
+    statusNote: 'Multi-chain SDK — generic implementation possible',
+  },
+  {
+    id: 'btc-l2',
+    name: 'BTC L2s',
+    color: '#F7931A',
+    tier: 4,
+    validators: 'N/A *(to refine)*',
+    hardware: '*(to refine per L2)*',
+    validatorOpp: 2,
+    rpcOpp: 3,
+    appOpp: 2,
+    appEcosystem: 'Lightning, Stacks, Merlin *(to refine)*',
+    ipAccess: 'yellow',
+    ipNote: '*(to refine per L2)*',
+    momentum: 'Rising',
+    status: 'Optional',
+    statusNote: 'Heterogeneous — no single API',
+  },
+  // Tier 5 — Excluded
+  {
+    id: 'aptos',
+    name: 'Aptos',
+    color: '#00BFA5',
+    tier: 5,
+    validators: '~100 *(to refine)*',
+    hardware: 'High-grade',
+    validatorOpp: 2,
+    rpcOpp: 2,
+    appOpp: 1,
+    appEcosystem: 'Minimal (low TVL, low DeFi activity)',
+    ipAccess: 'green',
+    ipNote: 'Public RPC',
+    momentum: 'Declining',
+    status: 'Excluded',
+    statusNote: 'App ecosystem too weak; low OVH ROI',
+  },
+  {
+    id: 'near',
+    name: 'Near',
+    color: '#00C08B',
+    tier: 5,
+    validators: '~100 *(to refine)*',
+    hardware: 'Advance-1',
+    validatorOpp: 1,
+    rpcOpp: 1,
+    appOpp: 1,
+    appEcosystem: 'Minimal',
+    ipAccess: 'green',
+    ipNote: 'Public RPC',
+    momentum: 'Declining',
+    status: 'Excluded',
+    statusNote: 'Declining momentum; low OVH fit',
+  },
+];
+```
+
+**Step 2: Implement the star score helper and status badge helper**
+
+```tsx
+function Stars({ score }: { score: number }) {
+  return (
+    <span className="text-yellow-400 tracking-tighter text-xs">
+      {'★'.repeat(score)}
+      <span className="opacity-25">{'★'.repeat(5 - score)}</span>
+    </span>
+  );
+}
+
+function StatusBadge({ status }: { status: Status }) {
+  const styles: Record<Status, string> = {
+    'Integrated': 'bg-emerald-500/15 text-emerald-400 border-emerald-500/30',
+    'Phase 1': 'bg-cyan-500/15 text-cyan-400 border-cyan-500/30',
+    'Phase 2': 'bg-blue-500/15 text-blue-400 border-blue-500/30',
+    'Optional': 'bg-white/8 text-white/40 border-white/15',
+    'Excluded': 'bg-red-500/10 text-red-400/60 border-red-500/20',
+  };
+  return (
+    <span className={`text-[9px] font-black uppercase tracking-widest px-1.5 py-0.5 rounded-full border ${styles[status]}`}>
+      {status}
+    </span>
+  );
+}
+
+function IpDot({ access, note }: { access: IpAccess; note: string }) {
+  const colors: Record<IpAccess, string> = {
+    green: 'bg-emerald-400',
+    yellow: 'bg-yellow-400',
+    red: 'bg-red-400',
+  };
+  return (
+    <span title={note} className="flex items-center gap-1.5 cursor-help">
+      <span className={`w-2 h-2 rounded-full shrink-0 ${colors[access]}`} />
+      <span className="text-white/30 text-[10px] truncate max-w-[120px]">{note}</span>
+    </span>
+  );
+}
+
+function MomentumTag({ momentum }: { momentum: Momentum }) {
+  const styles: Record<Momentum, string> = {
+    Rising: 'text-emerald-400',
+    Stable: 'text-white/40',
+    Declining: 'text-red-400/60',
+  };
+  const arrows: Record<Momentum, string> = { Rising: '↑', Stable: '→', Declining: '↓' };
+  return (
+    <span className={`text-xs font-bold ${styles[momentum]}`}>
+      {arrows[momentum]} {momentum}
+    </span>
+  );
+}
+```
+
+**Step 3: Implement the inline-editable cell helper**
+
+```tsx
+function EditableCell({ chainId, field, defaultValue }: { chainId: string; field: string; defaultValue: string }) {
+  const key = `roadmap-cell-${chainId}-${field}`;
+  const [value, setValue] = useState(() => localStorage.getItem(key) ?? defaultValue);
+  const [edited, setEdited] = useState(() => !!localStorage.getItem(key));
+
+  function handleBlur(e: React.FocusEvent<HTMLSpanElement>) {
+    const newVal = e.currentTarget.textContent ?? '';
+    localStorage.setItem(key, newVal);
+    setValue(newVal);
+    setEdited(newVal !== defaultValue);
+  }
+
+  function handleReset() {
+    localStorage.removeItem(key);
+    setValue(defaultValue);
+    setEdited(false);
+  }
+
+  return (
+    <span className="group/cell relative inline-flex items-center gap-1">
+      <span
+        contentEditable
+        suppressContentEditableWarning
+        onBlur={handleBlur}
+        className="outline-none cursor-text hover:bg-white/5 rounded px-0.5 transition-colors"
+      >
+        {value}
+      </span>
+      {edited && (
+        <>
+          <span className="w-1.5 h-1.5 rounded-full bg-cyan-400/60 shrink-0" title="Locally edited" />
+          <button
+            onClick={handleReset}
+            className="opacity-0 group-hover/cell:opacity-100 text-[9px] text-white/30 hover:text-white/60 transition-all"
+            title="Reset to default"
+          >
+            ↺
+          </button>
+        </>
+      )}
+    </span>
+  );
+}
+```
+
+**Step 4: Implement the full RoadmapTable component**
+
+Row opacity varies by tier: tier 1 = full, tier 2 = full + cyan border, tier 3 = opacity-90, tier 4 = opacity-60, tier 5 = opacity-40 + text-white/30.
+
+```tsx
+function RoadmapTable({ accent }: { accent: string }) {
+  const tiers = [1, 2, 3, 4, 5];
+  const tierLabels: Record<number, string> = {
+    1: 'Integrated',
+    2: 'Phase 1 — Priority',
+    3: 'Phase 2',
+    4: 'Phase 3 / Optional',
+    5: 'Excluded',
+  };
+
+  return (
+    <section>
+      <h2 className="text-xl font-black text-white mb-6 flex items-center gap-3">
+        <span className="w-1 h-6 rounded-full" style={{ background: accent }} />
+        Chain Comparison
+      </h2>
+
+      <div className="overflow-x-auto rounded-xl border border-white/10 bg-white/3 backdrop-blur-sm">
+        <table className="w-full text-xs">
+          <thead>
+            <tr className="border-b border-white/10">
+              {['Chain', 'Validators', 'Hardware', 'Validator Opp.', 'RPC Opp.', 'App Ecosystem Opp.', 'App Protocols', 'IP Access', 'Momentum 25-26', 'Status'].map(h => (
+                <th key={h} className="px-3 py-3 text-left text-[9px] font-black uppercase tracking-widest text-white/30 whitespace-nowrap">
+                  {h}
+                </th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            {tiers.map(tier => {
+              const rows = CHAIN_DATA.filter(c => c.tier === tier);
+              if (!rows.length) return null;
+              return (
+                <>
+                  <tr key={`tier-${tier}`}>
+                    <td colSpan={10} className="px-3 pt-4 pb-1">
+                      <span className="text-[9px] font-black uppercase tracking-widest text-white/20">
+                        {tierLabels[tier]}
+                      </span>
+                    </td>
+                  </tr>
+                  {rows.map(chain => {
+                    const rowOpacity = tier === 5 ? 'opacity-40' : tier === 4 ? 'opacity-60' : '';
+                    const rowBorder = tier === 2 ? `border-l-2` : '';
+                    return (
+                      <tr
+                        key={chain.id}
+                        className={`border-b border-white/5 hover:bg-white/3 transition-colors ${rowOpacity} ${rowBorder}`}
+                        style={tier === 2 ? { borderLeftColor: accent } : undefined}
+                      >
+                        {/* Chain name */}
+                        <td className="px-3 py-3 whitespace-nowrap">
+                          <span className="flex items-center gap-2">
+                            <span className="w-2.5 h-2.5 rounded-full shrink-0" style={{ background: chain.color }} />
+                            <span className={`font-bold ${tier === 5 ? 'line-through text-white/30' : 'text-white'}`}>
+                              {chain.name}
+                            </span>
+                          </span>
+                        </td>
+                        {/* Validators */}
+                        <td className="px-3 py-3 text-white/60">
+                          <EditableCell chainId={chain.id} field="validators" defaultValue={chain.validators} />
+                        </td>
+                        {/* Hardware */}
+                        <td className="px-3 py-3 text-white/60 max-w-[160px]">
+                          <EditableCell chainId={chain.id} field="hardware" defaultValue={chain.hardware} />
+                        </td>
+                        {/* Validator opp */}
+                        <td className="px-3 py-3"><Stars score={chain.validatorOpp} /></td>
+                        {/* RPC opp */}
+                        <td className="px-3 py-3"><Stars score={chain.rpcOpp} /></td>
+                        {/* App ecosystem opp */}
+                        <td className="px-3 py-3"><Stars score={chain.appOpp} /></td>
+                        {/* App protocols */}
+                        <td className="px-3 py-3 text-white/40 max-w-[160px] text-[10px]">
+                          <EditableCell chainId={chain.id} field="appEcosystem" defaultValue={chain.appEcosystem} />
+                        </td>
+                        {/* IP access */}
+                        <td className="px-3 py-3"><IpDot access={chain.ipAccess} note={chain.ipNote} /></td>
+                        {/* Momentum */}
+                        <td className="px-3 py-3"><MomentumTag momentum={chain.momentum} /></td>
+                        {/* Status */}
+                        <td className="px-3 py-3">
+                          <div className="flex flex-col gap-1">
+                            <StatusBadge status={chain.status} />
+                            {chain.statusNote && (
+                              <span className="text-[9px] text-white/25 italic">{chain.statusNote}</span>
+                            )}
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </>
+              );
+            })}
+          </tbody>
+        </table>
+      </div>
+
+      <p className="mt-2 text-[10px] text-white/20 italic">
+        * Fields marked *(to refine)* are estimates — double-click any cell to edit locally (saved in your browser).
+      </p>
+    </section>
+  );
+}
+```
+
+**Step 5: Replace the RoadmapTable stub in RoadmapPage**
+
+Remove the stub `function RoadmapTable(...)` at the bottom of the file and keep the full implementation from this task.
+
+**Step 6: Verify in browser**
+
+- Table renders all chains grouped by tier
+- Excluded chains (Aptos, Near) appear greyed with strikethrough
+- Phase 1 rows have a cyan left border
+- Double-clicking a cell allows editing; blurring saves; edited dot appears
+- Reset button restores default on hover
+
+**Step 7: Commit**
+```bash
+git add src/app/roadmap/page.tsx
+git commit -m "feat: add chain comparison table to roadmap page"
+```
+
+---
+
+### Task 4: Build the Timeline (Section 2)
+
+**Files:**
+- Modify: `src/app/roadmap/page.tsx` — replace `RoadmapTimeline` stub
+
+**Step 1: Define timeline phase data**
+
+```tsx
+const TIMELINE_PHASES = [
+  {
+    id: 'integrated',
+    label: 'Integrated',
+    color: '#10B981', // emerald
+    chains: ['Solana', 'Ethereum'],
+    rationale: 'Live tracking — ASN-based detection operational',
+    eta: 'Done',
+    faded: false,
+    optional: false,
+  },
+  {
+    id: 'phase1',
+    label: 'Phase 1',
+    color: '#00F0FF', // cyan
+    chains: ['Avalanche', 'Sui'],
+    rationale: 'Public APIs, standard IP access, strong validator/app opportunity',
+    eta: 'Q2 2026',
+    faded: false,
+    optional: false,
+  },
+  {
+    id: 'phase2',
+    label: 'Phase 2',
+    color: '#3B82F6', // blue
+    chains: ['Hyperliquid POC', 'TON (if ADNL resolved)'],
+    rationale: 'High momentum but infra access barriers to solve first',
+    eta: 'Q3–Q4 2026',
+    faded: false,
+    optional: false,
+  },
+  {
+    id: 'phase3',
+    label: 'Phase 3?',
+    color: '#6B7280', // grey
+    chains: ['Polkadot', 'Cosmos SDK (multi)', 'BTC L2s?', 'Morpho?'],
+    rationale: 'Exploratory — depends on Phase 1/2 learnings and ecosystem growth',
+    eta: '2027?',
+    faded: true,
+    optional: true,
+  },
+];
+```
+
+**Step 2: Implement the RoadmapTimeline component**
+
+```tsx
+function RoadmapTimeline({ accent }: { accent: string }) {
+  return (
+    <section>
+      <h2 className="text-xl font-black text-white mb-8 flex items-center gap-3">
+        <span className="w-1 h-6 rounded-full" style={{ background: accent }} />
+        Implementation Timeline
+      </h2>
+
+      {/* Desktop horizontal timeline */}
+      <div className="hidden md:block relative">
+        {/* Connecting line */}
+        <div className="absolute top-5 left-0 right-0 h-px bg-white/10" />
+        <div className="absolute top-5 left-0 w-1/4 h-px bg-emerald-400/60" />
+        <div className="absolute top-5 left-1/4 w-1/4 h-px" style={{ background: `${accent}60` }} />
+
+        <div className="grid grid-cols-4 gap-4">
+          {TIMELINE_PHASES.map((phase, i) => (
+            <div key={phase.id} className={`relative ${phase.faded ? 'opacity-50' : ''}`}>
+              {/* Node circle */}
+              <div className="flex justify-center mb-6">
+                <div
+                  className={`w-10 h-10 rounded-full border-2 flex items-center justify-center text-xs font-black z-10 relative
+                    ${phase.optional ? 'border-dashed' : ''}`}
+                  style={{
+                    borderColor: phase.color,
+                    background: `${phase.color}20`,
+                    color: phase.color,
+                  }}
+                >
+                  {i + 1}
+                </div>
+              </div>
+
+              {/* Card */}
+              <div
+                className={`rounded-xl p-4 border bg-white/3 backdrop-blur-sm ${phase.optional ? 'border-dashed border-white/15' : 'border border-white/10'}`}
+              >
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-[9px] font-black uppercase tracking-widest" style={{ color: phase.color }}>
+                    {phase.label}
+                  </span>
+                  <span className="text-[9px] text-white/30">{phase.eta}</span>
+                </div>
+                <div className="space-y-1 mb-3">
+                  {phase.chains.map(c => (
+                    <div key={c} className="flex items-center gap-1.5">
+                      <span className="w-1 h-1 rounded-full shrink-0" style={{ background: phase.color }} />
+                      <span className={`text-xs font-bold ${phase.faded ? 'text-white/40 italic' : 'text-white'}`}>{c}</span>
+                    </div>
+                  ))}
+                </div>
+                <p className="text-[10px] text-white/30 leading-relaxed">{phase.rationale}</p>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Mobile vertical timeline */}
+      <div className="md:hidden space-y-4">
+        {TIMELINE_PHASES.map((phase) => (
+          <div key={phase.id} className={`flex gap-4 ${phase.faded ? 'opacity-50' : ''}`}>
+            <div className="flex flex-col items-center">
+              <div
+                className="w-8 h-8 rounded-full border-2 flex items-center justify-center text-xs font-black shrink-0"
+                style={{ borderColor: phase.color, background: `${phase.color}20`, color: phase.color }}
+              >
+                ●
+              </div>
+              <div className="w-px flex-1 bg-white/10 mt-2" />
+            </div>
+            <div className={`rounded-xl p-4 border bg-white/3 flex-1 mb-2 ${phase.optional ? 'border-dashed border-white/15' : 'border-white/10'}`}>
+              <div className="flex justify-between mb-2">
+                <span className="text-[9px] font-black uppercase tracking-widest" style={{ color: phase.color }}>{phase.label}</span>
+                <span className="text-[9px] text-white/30">{phase.eta}</span>
+              </div>
+              <div className="space-y-1 mb-2">
+                {phase.chains.map(c => (
+                  <span key={c} className={`block text-xs font-bold ${phase.faded ? 'text-white/40 italic' : 'text-white'}`}>· {c}</span>
+                ))}
+              </div>
+              <p className="text-[10px] text-white/30">{phase.rationale}</p>
+            </div>
+          </div>
+        ))}
+      </div>
+    </section>
+  );
+}
+```
+
+**Step 3: Replace the RoadmapTimeline stub in RoadmapPage with this implementation.**
+
+**Step 4: Verify in browser**
+
+- Desktop: 4 columns, connecting line, phase 3 faded with dashed border
+- Mobile: vertical stack layout
+- ETAs and chain lists are correct
+
+**Step 5: Commit**
+```bash
+git add src/app/roadmap/page.tsx
+git commit -m "feat: add implementation timeline section to roadmap page"
+```
+
+---
+
+### Task 5: Build the Per-Chain Accordions (Section 3)
+
+**Files:**
+- Modify: `src/app/roadmap/page.tsx` — replace `ChainAccordions` stub
+
+**Step 1: Define accordion data for Phase 1 + 2 chains**
+
+```tsx
+interface AccordionChain {
+  id: string;
+  name: string;
+  color: string;
+  phase: string;
+  endpoint: string;
+  specs: { ram: string; cpu: string; storage: string; bandwidth: string };
+  ovhSku: string;
+  redFlags: string[];
+  notes?: string;
+}
+
+const ACCORDION_CHAINS: AccordionChain[] = [
+  {
+    id: 'avalanche',
+    name: 'Avalanche',
+    color: '#E84142',
+    phase: 'Phase 1',
+    endpoint: `# Validator info
+curl -X POST https://api.avax.network/ext/info \\
+  -H "Content-Type: application/json" \\
+  -d '{"jsonrpc":"2.0","id":1,"method":"info.peers","params":{}}'
+
+# C-Chain RPC
+https://api.avax.network/ext/bc/C/rpc
+
+# P-Chain (validator tracking)
+curl -X POST https://api.avax.network/ext/bc/P \\
+  -H "Content-Type: application/json" \\
+  -d '{"jsonrpc":"2.0","id":1,"method":"platform.getCurrentValidators","params":{}}'`,
+    specs: { ram: '16 GB', cpu: '8 cores', storage: '1 TB NVMe SSD', bandwidth: '1 Gbps' },
+    ovhSku: 'Advance-1 (adv-1) or Rise-3',
+    redFlags: [
+      'Three sub-chains (C/P/X) — decide which to track; C-Chain most relevant for DeFi',
+      'C-Chain IP extraction requires parsing peers from P-Chain validator API *(to refine)*',
+      'Subnet validators (L1s) not included in main validator set',
+    ],
+  },
+  {
+    id: 'sui',
+    name: 'Sui',
+    color: '#4DA2FF',
+    phase: 'Phase 1',
+    endpoint: `# Validator set (JSON-RPC)
+curl -X POST https://fullnode.mainnet.sui.io \\
+  -H "Content-Type: application/json" \\
+  -d '{"jsonrpc":"2.0","id":1,"method":"suix_getLatestSuiSystemState","params":[]}'
+
+# Node info
+curl -X POST https://fullnode.mainnet.sui.io \\
+  -H "Content-Type: application/json" \\
+  -d '{"jsonrpc":"2.0","id":1,"method":"sui_getChainIdentifier","params":[]}'`,
+    specs: { ram: '32 GB', cpu: '10 cores', storage: '2 TB NVMe SSD', bandwidth: '1 Gbps' },
+    ovhSku: 'Advance-2 or High-Grade server',
+    redFlags: [
+      'High hardware requirements — costlier OVH SKU needed vs Avalanche',
+      'Validator set is permissioned *(to refine — unclear if fully open)*',
+      'IP addresses of validators may not be directly exposed via API *(to refine)*',
+    ],
+  },
+  {
+    id: 'hyperliquid',
+    name: 'Hyperliquid',
+    color: '#00FF87',
+    phase: 'Phase 2',
+    endpoint: `# No official public validator node API documented *(to refine)*
+# Community / explorer endpoint:
+https://app.hyperliquid.xyz/api  # *(to refine — not official)*
+
+# Block explorer API (unofficial):
+https://hyperliquid.xyz  # check for JSON API`,
+    specs: { ram: '*(to refine)*', cpu: '*(to refine — HFT-grade low latency required)*', storage: '*(to refine)*', bandwidth: 'Low latency > raw bandwidth' },
+    ovhSku: '*(to refine)* — likely high-frequency trading grade server',
+    redFlags: [
+      'Validator set is closed/permissioned — validator count ~20, not open to public staking',
+      'No public documentation for node IP enumeration *(to refine)*',
+      'Custom L1 — no standard Cosmos SDK or EVM RPC patterns apply',
+      'Primary opportunity is app ecosystem (perps DEX), not infra tracking',
+    ],
+    notes: 'Treat as a POC — focus on app ecosystem opportunity rather than validator tracking',
+  },
+  {
+    id: 'ton',
+    name: 'TON',
+    color: '#0088CC',
+    phase: 'Phase 2',
+    endpoint: `# HTTP API (toncenter — standard web API works)
+curl "https://toncenter.com/api/v2/getConsensusBlock" \\
+  -H "X-API-Key: YOUR_KEY"
+
+# Validators via lite-client (requires ADNL)
+# ADNL is UDP-based — cannot use standard TCP/HTTP tooling
+# lite-client binary required: https://github.com/ton-blockchain/ton
+
+# Alternative: use public indexer
+https://tonapi.io/v2/blockchain/validators  # *(to refine — availability)*`,
+    specs: { ram: '16 GB', cpu: '8 cores', storage: '1 TB SSD', bandwidth: '1 Gbps' },
+    ovhSku: 'Advance-1 (adv-1)',
+    redFlags: [
+      'ADNL (Abstract Datagram Network Layer) is UDP-based and custom — standard IP/ASN detection does NOT work on P2P layer',
+      'HTTP API (toncenter) works but only exposes limited validator data',
+      'Full node requires lite-client binary with ADNL support — significant custom implementation effort',
+      'Validator IP exposure is minimal through public APIs *(to refine)*',
+      'Telegram distribution is a distribution advantage, not an infra advantage',
+    ],
+    notes: 'Only viable if ADNL resolution is implemented — otherwise cannot reliably detect OVH nodes',
+  },
+];
+```
+
+**Step 2: Implement the ChainAccordions component**
+
+```tsx
+function ChainAccordions({ accent }: { accent: string }) {
+  const [openId, setOpenId] = useState<string | null>(null);
+
+  return (
+    <section>
+      <h2 className="text-xl font-black text-white mb-6 flex items-center gap-3">
+        <span className="w-1 h-6 rounded-full" style={{ background: accent }} />
+        Chain Implementation Details
+      </h2>
+      <p className="text-white/30 text-sm mb-6">Phase 1 and Phase 2 chains — click to expand technical specs.</p>
+
+      <div className="space-y-3">
+        {ACCORDION_CHAINS.map(chain => {
+          const isOpen = openId === chain.id;
+          return (
+            <div
+              key={chain.id}
+              className="rounded-xl border border-white/10 bg-white/3 backdrop-blur-sm overflow-hidden"
+              style={isOpen ? { borderColor: `${chain.color}40` } : undefined}
+            >
+              {/* Header / toggle */}
+              <button
+                onClick={() => setOpenId(isOpen ? null : chain.id)}
+                className="w-full flex items-center justify-between px-5 py-4 text-left hover:bg-white/3 transition-colors"
+              >
+                <span className="flex items-center gap-3">
+                  <span className="w-3 h-3 rounded-full" style={{ background: chain.color }} />
+                  <span className="font-black text-white text-sm">{chain.name}</span>
+                  <span
+                    className="text-[9px] font-black uppercase tracking-widest px-1.5 py-0.5 rounded-full border"
+                    style={{ color: chain.color, borderColor: `${chain.color}40`, background: `${chain.color}12` }}
+                  >
+                    {chain.phase}
+                  </span>
+                </span>
+                <svg
+                  className={`w-4 h-4 text-white/30 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`}
+                  fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}
+                >
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+                </svg>
+              </button>
+
+              {/* Expanded content */}
+              {isOpen && (
+                <div className="px-5 pb-6 space-y-6 border-t border-white/8">
+                  {/* API endpoint */}
+                  <div className="pt-4">
+                    <p className="text-[9px] font-black uppercase tracking-widest text-white/30 mb-2">API Endpoint</p>
+                    <pre className="font-mono text-xs bg-black/40 border border-white/10 rounded-lg px-4 py-3 overflow-x-auto text-cyan-400/80 leading-relaxed whitespace-pre-wrap">
+                      {chain.endpoint}
+                    </pre>
+                  </div>
+
+                  {/* Machine specs + OVH SKU */}
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                    {[
+                      { label: 'RAM', value: chain.specs.ram },
+                      { label: 'CPU', value: chain.specs.cpu },
+                      { label: 'Storage', value: chain.specs.storage },
+                      { label: 'Bandwidth', value: chain.specs.bandwidth },
+                    ].map(s => (
+                      <div key={s.label} className="rounded-lg bg-white/5 border border-white/8 px-3 py-2.5">
+                        <p className="text-[9px] text-white/30 uppercase tracking-widest mb-0.5">{s.label}</p>
+                        <p className="text-xs font-bold text-white">{s.value}</p>
+                      </div>
+                    ))}
+                  </div>
+
+                  {/* OVH SKU */}
+                  <div>
+                    <p className="text-[9px] font-black uppercase tracking-widest text-white/30 mb-1">OVH Server Match</p>
+                    <p className="text-sm font-mono text-white/70" style={{ color: chain.color }}>{chain.ovhSku}</p>
+                  </div>
+
+                  {/* Red flags */}
+                  <div>
+                    <p className="text-[9px] font-black uppercase tracking-widest text-red-400/60 mb-2">Red Flags</p>
+                    <ul className="space-y-1.5">
+                      {chain.redFlags.map((flag, i) => (
+                        <li key={i} className="flex items-start gap-2 text-xs text-white/50">
+                          <span className="text-red-400/60 mt-0.5 shrink-0">⚠</span>
+                          <span dangerouslySetInnerHTML={{ __html: flag.replace(/\*(.*?)\*/g, '<em class="text-white/30">$1</em>') }} />
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+
+                  {/* Notes if any */}
+                  {chain.notes && (
+                    <div className="rounded-lg border border-white/8 bg-white/3 px-4 py-3">
+                      <p className="text-xs text-white/40 italic">{chain.notes}</p>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          );
+        })}
+      </div>
+    </section>
+  );
+}
+```
+
+**Step 3: Replace the ChainAccordions stub in RoadmapPage.**
+
+**Step 4: Verify in browser**
+
+- Four accordion items (Avalanche, Sui, Hyperliquid, TON)
+- Click to expand — shows endpoint code block, specs grid, OVH SKU, red flags
+- Only one accordion open at a time
+- `*(to refine)*` renders as italic in red flag list
+- Code block is horizontally scrollable if content overflows
+
+**Step 5: Commit**
+```bash
+git add src/app/roadmap/page.tsx
+git commit -m "feat: add per-chain accordion detail section to roadmap page"
+```
+
+---
+
+### Task 6: Final polish and verification
+
+**Files:**
+- Review: `src/app/roadmap/page.tsx`
+
+**Step 1: Full page review checklist**
+
+- [ ] Auth redirect works (no cookie → `/`)
+- [ ] Sidebar shows "Roadmap" link with "Interne" badge only when logged in
+- [ ] Table: all tiers render, excluded chains greyed, Phase 1 has cyan border
+- [ ] Table: `contentEditable` cells save to localStorage; reset works
+- [ ] Timeline: 4 phases, Phase 3 faded/dashed; mobile vertical layout
+- [ ] Accordions: 4 chains, expand/collapse, code blocks, red flags
+- [ ] No console errors or TypeScript errors (`npm run lint`)
+- [ ] Background (BlockchainCubes + ParticlesBackground) renders behind content
+
+**Step 2: Run lint**
+```bash
+cd "ovh-blockchain-tracker" && npm run lint
+```
+Fix any issues found.
+
+**Step 3: Final commit**
+```bash
+git add src/app/roadmap/page.tsx src/components/dashboard/Sidebar.tsx
+git commit -m "feat: complete /roadmap internal page with table, timeline, and accordions"
+```

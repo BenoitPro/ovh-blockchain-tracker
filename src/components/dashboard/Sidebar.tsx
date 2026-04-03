@@ -5,18 +5,21 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useState, useEffect } from 'react';
 import ChainToggle from '@/components/ChainToggle';
+import OthersDropdown from '@/components/OthersDropdown';
 import { useNetworkTheme } from '@/components/NetworkThemeProvider';
 
 export default function Sidebar() {
     const pathname = usePathname();
     const { theme } = useNetworkTheme();
     const isEth = theme === 'ethereum';
-    const isNodes = pathname.startsWith('/nodes') || pathname.startsWith('/ethereum/nodes');
-    const isUseCases = pathname.startsWith('/use-cases') || pathname.startsWith('/ethereum/use-cases');
-    const isAnalytics = pathname.startsWith('/analytics') || pathname.startsWith('/ethereum/analytics');
+    const isAvax = theme === 'avalanche';
+    const isHyperliquid = theme === 'hyperliquid';
+    const isNodes = pathname.startsWith('/nodes') || pathname.startsWith('/ethereum/nodes') || pathname.startsWith('/avalanche/nodes') || pathname.startsWith('/hyperliquid/nodes');
+    const isUseCases = pathname.startsWith('/use-cases') || pathname.startsWith('/ethereum/use-cases') || pathname.startsWith('/avalanche/use-cases') || pathname.startsWith('/hyperliquid/use-cases');
+    const isAnalytics = pathname.startsWith('/analytics') || pathname.startsWith('/ethereum/analytics') || pathname.startsWith('/avalanche/analytics') || pathname.startsWith('/hyperliquid/analytics');
     const isAbout = pathname.startsWith('/about');
     const isRoadmap = pathname.startsWith('/roadmap');
-    const isDashboard = pathname === '/' || pathname === '/ethereum';
+    const isDashboard = pathname === '/' || pathname === '/ethereum' || pathname === '/avalanche' || pathname === '/hyperliquid';
 
     const [mobileOpen, setMobileOpen] = useState(false);
 
@@ -32,17 +35,25 @@ export default function Sidebar() {
       setMobileOpen(false);
     }
 
-    const accent = isEth ? '#627EEA' : '#00F0FF';
+    const accent = isEth ? '#627EEA' : isAvax ? '#E84142' : isHyperliquid ? '#00E5BE' : '#00F0FF';
 
     /* ── Theming helpers ──────────────────────────────────────────────── */
     const sidebarBg = isEth
         ? 'bg-white/80 backdrop-blur-xl border-r border-[#627EEA]/12'
+        : isAvax
+        ? 'bg-[#0a0404]/80 backdrop-blur-xl border-r border-[#E84142]/15'
+        : isHyperliquid
+        ? 'bg-[#040b08]/80 backdrop-blur-xl border-r border-[#00E5BE]/15'
         : 'bg-black/60 backdrop-blur-xl border-r border-white/10';
 
     const divider = isEth ? 'bg-[#627EEA]/12' : 'bg-white/10';
 
     const navActiveStyle = isEth
         ? { background: 'rgba(98,126,234,0.10)', color: '#627EEA' }
+        : isAvax
+        ? { background: 'rgba(232,65,66,0.10)', color: '#E84142' }
+        : isHyperliquid
+        ? { background: 'rgba(0,229,190,0.10)', color: '#00E5BE' }
         : { background: 'rgba(0,240,255,0.08)', color: '#00F0FF' };
 
     const navInactiveClass = isEth
@@ -127,8 +138,13 @@ export default function Sidebar() {
                 </div>
 
                 {/* ── 2. Chain Toggle ──────────────────────────────────────────── */}
-                <div className="px-4 pb-4">
+                <div className="px-4 pb-1.5">
                     <ChainToggle />
+                </div>
+
+                {/* ── 3. Others Dropdown ───────────────────────────────────────── */}
+                <div className="px-4 pb-4">
+                    <OthersDropdown />
                 </div>
 
                 {/* ── Divider ─────────────────────────────────────────────────── */}
@@ -140,7 +156,7 @@ export default function Sidebar() {
 
                     {/* Dashboard */}
                     <Link
-                        href={isEth ? '/ethereum' : '/'}
+                        href={isEth ? '/ethereum' : isAvax ? '/avalanche' : isHyperliquid ? '/hyperliquid' : '/'}
                         className={`${navLinkBase} ${isDashboard ? '' : navInactiveClass}`}
                         style={isDashboard ? navActiveStyle : undefined}
                     >
@@ -154,9 +170,9 @@ export default function Sidebar() {
                     </Link>
 
                     {/* Explorer — private */}
-                    {isLoggedIn && (isEth ? (
+                    {isLoggedIn && (
                         <Link
-                            href="/ethereum/nodes"
+                            href={isEth ? '/ethereum/nodes' : isAvax ? '/avalanche/nodes' : isHyperliquid ? '/hyperliquid/nodes' : '/nodes'}
                             className={`${navLinkBase} ${isNodes ? '' : navInactiveClass}`}
                             style={isNodes ? navActiveStyle : undefined}
                         >
@@ -170,63 +186,12 @@ export default function Sidebar() {
                                 Interne
                             </span>
                         </Link>
-                    ) : (
-                        <Link
-                            href="/nodes"
-                            className={`${navLinkBase} ${isNodes ? '' : navInactiveClass}`}
-                            style={isNodes ? navActiveStyle : undefined}
-                        >
-                            <svg className="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                                <circle cx="11" cy="11" r="8" />
-                                <path strokeLinecap="round" d="M21 21l-4.35-4.35" />
-                            </svg>
-                            Explorer
-                            <span className="ml-auto text-[8px] font-black uppercase tracking-widest px-1.5 py-0.5 rounded-full border"
-                                style={{ color: accent, borderColor: `${accent}50`, background: `${accent}12` }}>
-                                Interne
-                            </span>
-                        </Link>
-                    ))}
-
-                    {/* Lead — private */}
-                    {isLoggedIn && (
-                        <Link
-                            href="/lead"
-                            className={`${navLinkBase} ${pathname.startsWith('/lead') ? '' : navInactiveClass}`}
-                            style={pathname.startsWith('/lead') ? navActiveStyle : undefined}
-                        >
-                            <svg className="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                                <path strokeLinecap="round" strokeLinejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" />
-                            </svg>
-                            Lead
-                            <span className="ml-auto text-[8px] font-black uppercase tracking-widest px-1.5 py-0.5 rounded-full border"
-                                style={{ color: accent, borderColor: `${accent}50`, background: `${accent}12` }}>
-                                Interne
-                            </span>
-                        </Link>
                     )}
 
-                    {/* Roadmap — private */}
-                    {isLoggedIn && (
-                        <Link
-                            href="/roadmap"
-                            className={`${navLinkBase} ${isRoadmap ? '' : navInactiveClass}`}
-                            style={isRoadmap ? navActiveStyle : undefined}
-                        >
-                            <svg className="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                                <path strokeLinecap="round" strokeLinejoin="round" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />
-                            </svg>
-                            Roadmap
-                            <span className="ml-auto text-[8px] font-black uppercase tracking-widest px-1.5 py-0.5 rounded-full border"
-                                style={{ color: accent, borderColor: `${accent}50`, background: `${accent}12` }}>
-                                Interne
-                            </span>
-                        </Link>
-                    )}
 
                     {/* Analytics */}
                     <Link
-                        href={isEth ? '/ethereum/analytics' : '/analytics'}
+                        href={isEth ? '/ethereum/analytics' : isAvax ? '/avalanche/analytics' : isHyperliquid ? '/hyperliquid/analytics' : '/analytics'}
                         className={`${navLinkBase} ${isAnalytics ? '' : navInactiveClass}`}
                         style={isAnalytics ? navActiveStyle : undefined}
                     >
@@ -237,21 +202,9 @@ export default function Sidebar() {
                         Analytics
                     </Link>
 
-                    {/* About Us */}
-                    <Link
-                        href="/about"
-                        className={`${navLinkBase} ${isAbout ? '' : navInactiveClass}`}
-                        style={isAbout ? navActiveStyle : undefined}
-                    >
-                        <svg className="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                            <path strokeLinecap="round" strokeLinejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
-                        </svg>
-                        Team & Contact
-                    </Link>
-
                     {/* Use Cases */}
                     <Link
-                        href={isEth ? '/ethereum/use-cases' : '/use-cases'}
+                        href={isEth ? '/ethereum/use-cases' : isAvax ? '/avalanche/use-cases' : isHyperliquid ? '/hyperliquid/use-cases' : '/use-cases'}
                         className={`${navLinkBase} ${isUseCases ? '' : navInactiveClass}`}
                         style={isUseCases ? navActiveStyle : undefined}
                     >
@@ -274,10 +227,70 @@ export default function Sidebar() {
                             Guide & Resources
                         </Link>
                     )}
+
+                    {/* Decentralization (Hyperliquid) */}
+                    {isHyperliquid && (
+                        <Link
+                            href="/hyperliquid/decentralize"
+                            className={`${navLinkBase} ${pathname.startsWith('/hyperliquid/decentralize') ? '' : navInactiveClass}`}
+                            style={pathname.startsWith('/hyperliquid/decentralize') ? navActiveStyle : undefined}
+                        >
+                            <svg className="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                                <path strokeLinecap="round" strokeLinejoin="round" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
+                            </svg>
+                            Decentralization
+                        </Link>
+                    )}
                 </nav>
 
                 {/* ── 4. CTA & Resources ────────────────────────────────────────── */}
                 <div className="px-3 pb-6 mt-auto space-y-3">
+                    {/* Team & Contact (Global) */}
+                    <Link
+                        href="/about"
+                        className={`${navLinkBase} ${isAbout ? '' : navInactiveClass}`}
+                        style={isAbout ? { background: isEth ? 'rgba(255,255,255,0.05)' : 'rgba(255,255,255,0.05)', color: '#ffffff' } : undefined}
+                    >
+                        <svg className="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                        </svg>
+                        Team & Contact
+                    </Link>
+
+                    {/* Lead & Roadmap — private links at the bottom */}
+                    {isLoggedIn && (
+                        <div className="space-y-0.5 rounded-xl border p-1" style={{ borderColor: isEth ? 'rgba(98,126,234,0.15)' : 'rgba(255,255,255,0.08)' }}>
+                            <Link
+                                href="/lead"
+                                className={`${navLinkBase} w-full ${pathname.startsWith('/lead') ? '' : navInactiveClass}`}
+                                style={pathname.startsWith('/lead') ? navActiveStyle : undefined}
+                            >
+                                <svg className="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                                    <path strokeLinecap="round" strokeLinejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" />
+                                </svg>
+                                Lead
+                                <span className="ml-auto text-[8px] font-black uppercase tracking-widest px-1.5 py-0.5 rounded-full border"
+                                    style={{ color: accent, borderColor: `${accent}50`, background: `${accent}12` }}>
+                                    Interne
+                                </span>
+                            </Link>
+                            <Link
+                                href="/roadmap"
+                                className={`${navLinkBase} w-full ${isRoadmap ? '' : navInactiveClass}`}
+                                style={isRoadmap ? navActiveStyle : undefined}
+                            >
+                                <svg className="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                                    <path strokeLinecap="round" strokeLinejoin="round" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />
+                                </svg>
+                                Roadmap
+                                <span className="ml-auto text-[8px] font-black uppercase tracking-widest px-1.5 py-0.5 rounded-full border"
+                                    style={{ color: accent, borderColor: `${accent}50`, background: `${accent}12` }}>
+                                    Interne
+                                </span>
+                            </Link>
+                        </div>
+                    )}
+
                     {/* Admin / Logout — discreet internal link */}
                     {isLoggedIn ? (
                       <button

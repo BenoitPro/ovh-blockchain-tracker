@@ -6,14 +6,15 @@ export default function LoadingState({
 }: {
     fullPage?: boolean,
     message?: string,
-    network?: 'solana' | 'ethereum'
+    network?: 'solana' | 'ethereum' | 'avalanche'
 }) {
     const isEth = network === 'ethereum';
+    const isAvax = network === 'avalanche';
 
     // Base colors based on network
-    const primaryColor = isEth ? '#627EEA' : '#00F0FF';
-    const secondaryColor = isEth ? '#8B5CF6' : '#A855F7';
-    const textColor = isEth ? '#3730A3' : '#00F0FF'; // Darker indigo for Eth text contrast
+    const primaryColor = isEth ? '#627EEA' : isAvax ? '#E84142' : '#00F0FF';
+    const secondaryColor = isEth ? '#8B5CF6' : isAvax ? '#FF6B6B' : '#A855F7';
+    const textColor = isEth ? '#3730A3' : isAvax ? '#FF3333' : '#00F0FF'; // Darker indigo for Eth text contrast
 
     // If fullPage is true, we want it to overlay everything with a slight glass effect
     // If false (default), we want it to take up the available space transparently
