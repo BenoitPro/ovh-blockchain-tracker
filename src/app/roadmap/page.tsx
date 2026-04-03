@@ -266,6 +266,115 @@ const TIMELINE_PHASES = [
   },
 ];
 
+interface AccordionChain {
+  id: string;
+  name: string;
+  color: string;
+  phase: string;
+  endpoint: string;
+  specs: { ram: string; cpu: string; storage: string; bandwidth: string };
+  ovhSku: string;
+  redFlags: string[];
+  notes?: string;
+}
+
+const ACCORDION_CHAINS: AccordionChain[] = [
+  {
+    id: 'avalanche',
+    name: 'Avalanche',
+    color: '#E84142',
+    phase: 'Phase 1',
+    endpoint: `# Validator info
+curl -X POST https://api.avax.network/ext/info \\
+  -H "Content-Type: application/json" \\
+  -d '{"jsonrpc":"2.0","id":1,"method":"info.peers","params":{}}'
+
+# C-Chain RPC
+https://api.avax.network/ext/bc/C/rpc
+
+# P-Chain (validator tracking)
+curl -X POST https://api.avax.network/ext/bc/P \\
+  -H "Content-Type: application/json" \\
+  -d '{"jsonrpc":"2.0","id":1,"method":"platform.getCurrentValidators","params":{}}'`,
+    specs: { ram: '16 GB', cpu: '8 cores', storage: '1 TB NVMe SSD', bandwidth: '1 Gbps' },
+    ovhSku: 'Advance-1 (adv-1) or Rise-3',
+    redFlags: [
+      'Three sub-chains (C/P/X) — decide which to track; C-Chain most relevant for DeFi',
+      'C-Chain IP extraction requires parsing peers from P-Chain validator API *(to refine)*',
+      'Subnet validators (L1s) not included in main validator set',
+    ],
+  },
+  {
+    id: 'sui',
+    name: 'Sui',
+    color: '#4DA2FF',
+    phase: 'Phase 1',
+    endpoint: `# Validator set (JSON-RPC)
+curl -X POST https://fullnode.mainnet.sui.io \\
+  -H "Content-Type: application/json" \\
+  -d '{"jsonrpc":"2.0","id":1,"method":"suix_getLatestSuiSystemState","params":[]}'
+
+# Node info
+curl -X POST https://fullnode.mainnet.sui.io \\
+  -H "Content-Type: application/json" \\
+  -d '{"jsonrpc":"2.0","id":1,"method":"sui_getChainIdentifier","params":[]}'`,
+    specs: { ram: '32 GB', cpu: '10 cores', storage: '2 TB NVMe SSD', bandwidth: '1 Gbps' },
+    ovhSku: 'Advance-2 or High-Grade server',
+    redFlags: [
+      'High hardware requirements — costlier OVH SKU needed vs Avalanche',
+      'Validator set is permissioned *(to refine — unclear if fully open)*',
+      'IP addresses of validators may not be directly exposed via API *(to refine)*',
+    ],
+  },
+  {
+    id: 'hyperliquid',
+    name: 'Hyperliquid',
+    color: '#00FF87',
+    phase: 'Phase 2',
+    endpoint: `# No official public validator node API documented *(to refine)*
+# Community / explorer endpoint:
+https://app.hyperliquid.xyz/api  # *(to refine — not official)*
+
+# Block explorer API (unofficial):
+https://hyperliquid.xyz  # check for JSON API`,
+    specs: { ram: '*(to refine)*', cpu: '*(to refine — HFT-grade low latency required)*', storage: '*(to refine)*', bandwidth: 'Low latency > raw bandwidth' },
+    ovhSku: '*(to refine)* — likely high-frequency trading grade server',
+    redFlags: [
+      'Validator set is closed/permissioned — validator count ~20, not open to public staking',
+      'No public documentation for node IP enumeration *(to refine)*',
+      'Custom L1 — no standard Cosmos SDK or EVM RPC patterns apply',
+      'Primary opportunity is app ecosystem (perps DEX), not infra tracking',
+    ],
+    notes: 'Treat as a POC — focus on app ecosystem opportunity rather than validator tracking',
+  },
+  {
+    id: 'ton',
+    name: 'TON',
+    color: '#0088CC',
+    phase: 'Phase 2',
+    endpoint: `# HTTP API (toncenter — standard web API works)
+curl "https://toncenter.com/api/v2/getConsensusBlock" \\
+  -H "X-API-Key: YOUR_KEY"
+
+# Validators via lite-client (requires ADNL)
+# ADNL is UDP-based — cannot use standard TCP/HTTP tooling
+# lite-client binary required: https://github.com/ton-blockchain/ton
+
+# Alternative: use public indexer
+https://tonapi.io/v2/blockchain/validators  # *(to refine — availability)*`,
+    specs: { ram: '16 GB', cpu: '8 cores', storage: '1 TB SSD', bandwidth: '1 Gbps' },
+    ovhSku: 'Advance-1 (adv-1)',
+    redFlags: [
+      'ADNL (Abstract Datagram Network Layer) is UDP-based and custom — standard IP/ASN detection does NOT work on P2P layer',
+      'HTTP API (toncenter) works but only exposes limited validator data',
+      'Full node requires lite-client binary with ADNL support — significant custom implementation effort',
+      'Validator IP exposure is minimal through public APIs *(to refine)*',
+      'Telegram distribution is a distribution advantage, not an infra advantage',
+    ],
+    notes: 'Only viable if ADNL resolution is implemented — otherwise cannot reliably detect OVH nodes',
+  },
+];
+
 // ---------------------------------------------------------------------------
 // Helper components
 // ---------------------------------------------------------------------------
@@ -609,5 +718,98 @@ function RoadmapTimeline({ accent }: { accent: string }) {
   );
 }
 function ChainAccordions({ accent }: { accent: string }) {
-  return <div style={{ color: accent }}>Accordions — coming in Task 5</div>;
+  const [openId, setOpenId] = useState<string | null>(null);
+
+  return (
+    <section className="pb-16">
+      <h2 className="text-xl font-black text-white mb-6 flex items-center gap-3">
+        <span className="w-1 h-6 rounded-full" style={{ background: accent }} />
+        Chain Implementation Details
+      </h2>
+      <p className="text-white/30 text-sm mb-6">Phase 1 and Phase 2 chains — click to expand technical specs.</p>
+
+      <div className="space-y-3">
+        {ACCORDION_CHAINS.map(chain => {
+          const isOpen = openId === chain.id;
+          return (
+            <div
+              key={chain.id}
+              className="rounded-xl border border-white/10 bg-white/3 backdrop-blur-sm overflow-hidden"
+              style={isOpen ? { borderColor: `${chain.color}40` } : undefined}
+            >
+              <button
+                onClick={() => setOpenId(isOpen ? null : chain.id)}
+                className="w-full flex items-center justify-between px-5 py-4 text-left hover:bg-white/3 transition-colors"
+              >
+                <span className="flex items-center gap-3">
+                  <span className="w-3 h-3 rounded-full" style={{ background: chain.color }} />
+                  <span className="font-black text-white text-sm">{chain.name}</span>
+                  <span
+                    className="text-[9px] font-black uppercase tracking-widest px-1.5 py-0.5 rounded-full border"
+                    style={{ color: chain.color, borderColor: `${chain.color}40`, background: `${chain.color}12` }}
+                  >
+                    {chain.phase}
+                  </span>
+                </span>
+                <svg
+                  className={`w-4 h-4 text-white/30 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`}
+                  fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}
+                >
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+                </svg>
+              </button>
+
+              {isOpen && (
+                <div className="px-5 pb-6 space-y-6 border-t border-white/8">
+                  <div className="pt-4">
+                    <p className="text-[9px] font-black uppercase tracking-widest text-white/30 mb-2">API Endpoint</p>
+                    <pre className="font-mono text-xs bg-black/40 border border-white/10 rounded-lg px-4 py-3 overflow-x-auto text-cyan-400/80 leading-relaxed whitespace-pre-wrap">
+                      {chain.endpoint}
+                    </pre>
+                  </div>
+
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                    {[
+                      { label: 'RAM', value: chain.specs.ram },
+                      { label: 'CPU', value: chain.specs.cpu },
+                      { label: 'Storage', value: chain.specs.storage },
+                      { label: 'Bandwidth', value: chain.specs.bandwidth },
+                    ].map(s => (
+                      <div key={s.label} className="rounded-lg bg-white/5 border border-white/8 px-3 py-2.5">
+                        <p className="text-[9px] text-white/30 uppercase tracking-widest mb-0.5">{s.label}</p>
+                        <p className="text-xs font-bold text-white">{s.value}</p>
+                      </div>
+                    ))}
+                  </div>
+
+                  <div>
+                    <p className="text-[9px] font-black uppercase tracking-widest text-white/30 mb-1">OVH Server Match</p>
+                    <p className="text-sm font-mono" style={{ color: chain.color }}>{chain.ovhSku}</p>
+                  </div>
+
+                  <div>
+                    <p className="text-[9px] font-black uppercase tracking-widest text-red-400/60 mb-2">Red Flags</p>
+                    <ul className="space-y-1.5">
+                      {chain.redFlags.map((flag, i) => (
+                        <li key={i} className="flex items-start gap-2 text-xs text-white/50">
+                          <span className="text-red-400/60 mt-0.5 shrink-0">⚠</span>
+                          <span dangerouslySetInnerHTML={{ __html: flag.replace(/\*(.*?)\*/g, '<em class="text-white/30">$1</em>') }} />
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+
+                  {chain.notes && (
+                    <div className="rounded-lg border border-white/8 bg-white/3 px-4 py-3">
+                      <p className="text-xs text-white/40 italic">{chain.notes}</p>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          );
+        })}
+      </div>
+    </section>
+  );
 }
