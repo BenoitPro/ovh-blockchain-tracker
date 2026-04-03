@@ -489,17 +489,16 @@ export default function RoadmapPage() {
   const router = useRouter();
   const accent = '#00F0FF';
 
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [mounted, setMounted] = useState(false);
+  const [authReady, setAuthReady] = useState<{ mounted: boolean; loggedIn: boolean }>({ mounted: false, loggedIn: false });
 
   useEffect(() => {
     const loggedIn = document.cookie.includes('ovh_ui=1');
-    setIsLoggedIn(loggedIn);
-    setMounted(true);
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setAuthReady({ mounted: true, loggedIn });
     if (!loggedIn) router.replace('/');
   }, [router]);
 
-  if (!mounted || !isLoggedIn) return null;
+  if (!authReady.mounted || !authReady.loggedIn) return null;
 
   return (
     <div className="relative min-h-screen">
