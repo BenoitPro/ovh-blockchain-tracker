@@ -16,51 +16,51 @@
  */
 
 export interface TronNode {
-  /** IPv4 address extracted from the API response */
-  ip: string;
-  /** P2P port (typically 18888) */
-  port: number;
+    /** IPv4 address extracted from the API response */
+    ip: string;
+    /** P2P port (typically 18888) */
+    port: number;
 }
 
 export interface TronIPInfo {
-  ip: string;
-  asn: string;
-  org: string;
-  country: string;
-  country_name: string;
-  city: string;
-  lat: number;
-  lon: number;
+    ip: string;
+    asn: string;
+    org: string;
+    country: string;
+    country_name: string;
+    city: string;
+    lat: number;
+    lon: number;
 }
 
 export interface TronOVHNode extends TronNode {
-  ipInfo: TronIPInfo;
-  provider?: string;
+    ipInfo: TronIPInfo;
+    provider?: string;
 }
 
 export interface TronProviderCategorizationResult {
-  distribution: Record<string, number>;
-  othersBreakdown: Record<string, number>;
-  globalGeoDistribution: Record<string, number>;
+    distribution: Record<string, number>;
+    othersBreakdown: Record<string, number>;
+    globalGeoDistribution: Record<string, number>;
 }
 
 export interface TronDashboardMetrics {
-  totalNodes: number;
-  ovhNodes: number;
-  marketShare: number;
-  geoDistribution: Record<string, number>;
-  globalGeoDistribution?: Record<string, number>;
-  providerDistribution: Record<string, number>;
-  providerBreakdown?: import('./dashboard').ProviderBreakdownEntry[];
-  othersBreakdown?: Record<string, number>;
-  topValidators: TronOVHNode[];
+    totalNodes: number;
+    ovhNodes: number;
+    marketShare: number;
+    geoDistribution: Record<string, number>;
+    globalGeoDistribution?: Record<string, number>;
+    providerDistribution: Record<string, number>;
+    providerBreakdown?: import('./dashboard').ProviderBreakdownEntry[];
+    othersBreakdown?: Record<string, number>;
+    topValidators: TronOVHNode[];
 }
 
 export interface TronAPIResponse {
-  success: boolean;
-  data?: TronDashboardMetrics;
-  error?: string;
-  cached?: boolean;
-  stale?: boolean;
-  timestamp?: number;
+    success: boolean;
+    data?: TronDashboardMetrics;
+    error?: string;
+    cached?: boolean;
+    stale?: boolean;
+    timestamp?: number;
 }
