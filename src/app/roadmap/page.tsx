@@ -4,6 +4,12 @@ import { Fragment, useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import BlockchainCubes from '@/components/BlockchainCubes';
 import ParticlesBackground from '@/components/ParticlesBackground';
+import MarketShareTracker from '@/components/benchmark/MarketShareTracker';
+import CommunitySentiment from '@/components/benchmark/CommunitySentiment';
+import CompetitorBenchmark from '@/components/benchmark/CompetitorBenchmark';
+import StrategicHeatmap from '@/components/benchmark/StrategicHeatmap';
+import HighSpendProspecting from '@/components/benchmark/HighSpendProspecting';
+import RevenueProjection from '@/components/benchmark/RevenueProjection';
 
 // ---------------------------------------------------------------------------
 // Types
@@ -397,6 +403,33 @@ export default function RoadmapPage() {
         </div>
 
         <RoadmapTable accent={accent} />
+
+        {/* Intelligence Dashboard — Coming Soon modules */}
+        <div className="mt-16">
+          <div className="mb-8">
+            <h2 className="text-xl font-black text-white flex items-center gap-3">
+              <span className="w-1 h-6 rounded-full" style={{ background: accent }} />
+              Intelligence Dashboard
+            </h2>
+            <p className="text-white/30 text-sm mt-1">
+              Modules en cours de développement — survolez pour voir le statut
+            </p>
+          </div>
+
+          {/* Row 1: half + half */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-4">
+            <MarketShareTracker />
+            <CommunitySentiment />
+          </div>
+
+          {/* Rows 2-5: full width */}
+          <div className="flex flex-col gap-4">
+            <CompetitorBenchmark />
+            <StrategicHeatmap />
+            <HighSpendProspecting />
+            <RevenueProjection />
+          </div>
+        </div>
       </div>
     </div>
   );
