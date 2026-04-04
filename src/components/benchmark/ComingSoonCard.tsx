@@ -1,9 +1,7 @@
-'use client';
-
 import React from 'react';
 
 interface ComingSoonCardProps {
-  title: string;
+  title?: string;
   description?: string;
   children: React.ReactNode;
   className?: string;
@@ -30,7 +28,9 @@ export function ComingSoonCard({ title, description, children, className = '' }:
           <span className="text-[10px] font-black uppercase tracking-widest px-4 py-2 rounded-full border border-[#00F0FF]/50 bg-[#00F0FF]/10 text-[#00F0FF]">
             Coming Soon
           </span>
-          <span className="text-white/50 text-xs font-medium">{title}</span>
+          {title && (
+            <span className="text-white/50 text-xs font-medium">{title}</span>
+          )}
           {description && (
             <span className="text-white/30 text-[11px] text-center max-w-[240px]">{description}</span>
           )}
