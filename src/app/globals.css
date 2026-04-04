@@ -172,10 +172,16 @@ html.sui-theme {
   --page-bg: #020c1b;
 }
 
+html.tron-theme {
+  --chain-accent: #FF060A;
+  --chain-bg-tint: rgba(255, 6, 10, 0.10);
+  --page-bg: #0a0000;
+}
+
 /* Base styles */
 body {
   font-family: 'Source Sans Pro', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-  background: var(--page-bg) url('https://unpkg.com/three-globe/example/img/night-sky.png') center/cover fixed;
+  background: var(--page-bg);
   color: white;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
