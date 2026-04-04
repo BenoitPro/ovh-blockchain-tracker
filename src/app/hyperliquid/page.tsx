@@ -1,3 +1,5 @@
+'use client';
+
 import Header from '@/components/dashboard/Header';
 import AnimatedTagline from '@/components/dashboard/AnimatedTagline';
 import ProviderComparison from '@/components/dashboard/ProviderComparison';

@@ -12,6 +12,7 @@ import {
 } from 'recharts';
 import { ProviderBreakdownEntry } from '@/types';
 import { useNetworkTheme } from '@/components/NetworkThemeProvider';
+import { CHAINS, ChainId } from '@/lib/chains';
 
 interface ProviderComparisonProps {
     providerBreakdown?: ProviderBreakdownEntry[];
@@ -70,16 +71,22 @@ function CustomTooltip({ active, payload }: CustomTooltipProps) {
 
 export default function ProviderComparison({ providerBreakdown }: ProviderComparisonProps) {
     const { theme } = useNetworkTheme();
-    const isEth = theme === 'ethereum';
-    const isAvax = theme === 'avalanche';
-    const isHyperliquid = theme === 'hyperliquid';
-    const accent = isEth ? '#627EEA' : isAvax ? '#E84142' : isHyperliquid ? '#00E5BE' : '#00F0FF';
+    const currentChain = CHAINS[theme as ChainId] || CHAINS.solana;
+    const accent = currentChain.accent;
+
+    let r = 255, g = 255, b = 255;
+    if (accent.startsWith('#')) {
+        r = parseInt(accent.slice(1, 3), 16);
+        g = parseInt(accent.slice(3, 5), 16);
+        b = parseInt(accent.slice(5, 7), 16);
+    }
+    const accentRgb = `${r}, ${g}, ${b}`;
 
     if (!providerBreakdown || providerBreakdown.length === 0) {
         return (
-            <div className={`relative overflow-hidden rounded-2xl backdrop-blur-xl border p-8 ${isEth ? 'bg-white/70 border-[#627EEA]/15' : 'bg-gradient-to-br from-white/5 to-white/[0.02] border-white/10'}`}>
-                <h2 className={`text-xl font-bold mb-6 ${isEth ? 'text-slate-800' : 'text-white'}`}>Provider Comparison</h2>
-                <p className={`text-center py-8 ${isEth ? 'text-slate-400' : 'text-gray-400'}`}>No provider data available</p>
+            <div className="relative overflow-hidden rounded-2xl backdrop-blur-xl border p-8 bg-gradient-to-br from-white/5 to-white/[0.02] border-white/10 glass-card">
+                <h2 className="text-xl font-bold mb-6 text-white">Provider Comparison</h2>
+                <p className="text-center py-8 text-gray-400">No provider data available</p>
             </div>
         );
     }
@@ -90,16 +97,16 @@ export default function ProviderComparison({ providerBreakdown }: ProviderCompar
         .slice(0, 8);
 
     return (
-        <div className={`relative overflow-hidden rounded-2xl backdrop-blur-xl border p-8 ${isEth ? 'bg-white/70 border-[#627EEA]/15 shadow-sm' : 'bg-gradient-to-br from-white/5 to-white/[0.02] border-white/10 glass-card'}`}>
+        <div className="relative overflow-hidden rounded-2xl backdrop-blur-xl border p-8 bg-gradient-to-br from-white/5 to-white/[0.02] border-white/10 glass-card">
             {/* Header */}
             <div className="flex items-center justify-between mb-8">
                 <div>
-                    <h2 className={`text-xl font-bold ${isEth ? 'text-slate-800' : 'text-white'}`}>Provider Comparison</h2>
-                    <p className={`text-sm mt-1 ${isEth ? 'text-slate-500' : 'text-gray-400'}`}>{isEth ? 'Ethereum execution-layer' : isAvax ? 'Avalanche subnets' : isHyperliquid ? 'Hyperliquid Root' : 'Solana'} nodes by cloud provider</p>
+                    <h2 className="text-xl font-bold text-white">Provider Comparison</h2>
+                    <p className="text-sm mt-1 text-gray-400">{currentChain.name} nodes by cloud provider</p>
                 </div>
-                <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg" style={{ background: `${accent}18`, border: `1px solid ${accent}30` }}>
-                    <div className="w-2 h-2 rounded-full animate-pulse" style={{ background: accent }} />
-                    <span className="text-xs font-medium" style={{ color: accent }}>Live</span>
+                <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg" style={{ background: `rgba(${accentRgb}, 0.15)`, border: `1px solid rgba(${accentRgb}, 0.3)` }}>
+                    <div className="w-2 h-2 rounded-full animate-pulse bg-[var(--chain-accent)]" />
+                    <span className="text-xs font-medium text-[var(--chain-accent)]">Live</span>
                 </div>
             </div>
 
@@ -114,13 +121,13 @@ export default function ProviderComparison({ providerBreakdown }: ProviderCompar
                     >
                         <CartesianGrid
                             strokeDasharray="3 3"
-                            stroke={isEth ? 'rgba(98,126,234,0.1)' : 'rgba(255,255,255,0.05)'}
+                            stroke="rgba(255,255,255,0.05)"
                             horizontal={false}
                         />
                         <XAxis
                             type="number"
-                            tick={{ fill: isEth ? '#64748B' : '#6B7280', fontSize: 11 }}
-                            axisLine={{ stroke: isEth ? 'rgba(98,126,234,0.15)' : 'rgba(255,255,255,0.08)' }}
+                            tick={{ fill: '#6B7280', fontSize: 11 }}
+                            axisLine={{ stroke: 'rgba(255,255,255,0.08)' }}
                             tickLine={false}
                             tickFormatter={(v: number) => v >= 1000 ? `${(v / 1000).toFixed(0)}k` : String(v)}
                         />
@@ -128,16 +135,16 @@ export default function ProviderComparison({ providerBreakdown }: ProviderCompar
                             type="category"
                             dataKey="label"
                             width={110}
-                            tick={{ fill: isEth ? '#475569' : '#D1D5DB', fontSize: 12, fontWeight: 500 }}
+                            tick={{ fill: '#D1D5DB', fontSize: 12, fontWeight: 500 }}
                             axisLine={false}
                             tickLine={false}
                         />
                         <Tooltip
                             content={<CustomTooltip />}
-                            cursor={{ fill: isEth ? 'rgba(98,126,234,0.05)' : 'rgba(255,255,255,0.03)' }}
+                            cursor={{ fill: 'rgba(255,255,255,0.03)' }}
                         />
                         <Bar dataKey="nodeCount" radius={[0, 6, 6, 0]} maxBarSize={36}
-                            label={{ position: 'right', fill: isEth ? '#64748B' : '#9CA3AF', fontSize: 11,
+                            label={{ position: 'right', fill: '#9CA3AF', fontSize: 11,
                                 // eslint-disable-next-line @typescript-eslint/no-explicit-any
                                 formatter: (v: any) => typeof v === 'number' ? v.toLocaleString() : v }}
                         >
@@ -156,9 +163,9 @@ export default function ProviderComparison({ providerBreakdown }: ProviderCompar
                         key={entry.key}
                         className="flex items-center gap-2 px-3 py-1.5 rounded-lg border text-xs font-medium"
                         style={{
-                            background: `${entry.color}${isEth ? '15' : '12'}`,
-                            borderColor: `${entry.color}${isEth ? '40' : '30'}`,
-                            color: isEth ? entry.color : entry.color,
+                            background: `${entry.color}12`,
+                            borderColor: `${entry.color}30`,
+                            color: entry.color,
                         }}
                     >
                         <div

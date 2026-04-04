@@ -12,7 +12,7 @@
     "test:coverage": "vitest run --coverage",
     "worker": "tsx scripts/worker.ts",
     "worker:avax": "tsx scripts/worker-avax.ts",
-    "worker:watch": "nodemon --exec 'tsx scripts/worker.ts' --watch src --watch scripts"
+    "worker:dev": "tsx scripts/worker.ts"
   },
   "dependencies": {
     "@heroicons/react": "^2.2.0",
@@ -31,6 +31,7 @@
     "three": "^0.183.2"
   },
   "devDependencies": {
+    "@next/bundle-analyzer": "^16.2.2",
     "@tailwindcss/postcss": "^4",
     "@types/node": "^20",
     "@types/react": "^19",

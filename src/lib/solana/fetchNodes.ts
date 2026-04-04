@@ -62,11 +62,32 @@ export function extractIP(gossip: string | null): string | null {
     if (!gossip) return null;
 
     try {
-        // Gossip format is typically "IP:PORT"
+        // 1. Handle IPv6 style with brackets often found in Solana gossip: [2001:db8::1]:8001
+        if (gossip.startsWith('[')) {
+            const closingBracket = gossip.lastIndexOf(']');
+            if (closingBracket !== -1) {
+                return gossip.slice(1, closingBracket);
+            }
+        }
+
+        // 2. Standard IP:PORT (IPv4)
         const parts = gossip.split(':');
-        if (parts.length >= 2) {
+        
+        // If it's IPv6 without brackets (rare in gossip but possible), 
+        // it will have many parts and the last one should be the port.
+        if (parts.length > 2) {
+            // Check if last part is clearly a port number
+            const lastPart = parts[parts.length - 1];
+            if (/^\d+$/.test(lastPart)) {
+                return parts.slice(0, parts.length - 1).join(':');
+            }
+            return gossip; // Return full if unsure
+        }
+
+        if (parts.length >= 1) {
             return parts[0];
         }
+        
         return null;
     } catch {
         return null;

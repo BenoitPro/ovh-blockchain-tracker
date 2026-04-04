@@ -1,7 +1,8 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import WorldMap from '@/components/dashboard/WorldMap';
+import dynamic from 'next/dynamic';
+const WorldMap = dynamic(() => import('@/components/dashboard/WorldMap'), { ssr: false });
 import LoadingState from '@/components/dashboard/LoadingState';
 import ErrorState from '@/components/dashboard/ErrorState';
 import AnimatedTagline from '@/components/dashboard/AnimatedTagline';
@@ -38,10 +39,10 @@ export default function EthereumPage() {
     if (loading) {
         return (
             <div className="min-h-screen relative">
-                <BlockchainCubes opacity={0.28} network="ethereum" count={12} />
-                <ParticlesBackground network="ethereum" />
+                <BlockchainCubes opacity={0.28} count={12} />
+                <ParticlesBackground />
                 <div className="relative z-10 flex items-center justify-center min-h-screen">
-                    <LoadingState network="ethereum" />
+                    <LoadingState />
                 </div>
 
             </div>
@@ -52,8 +53,8 @@ export default function EthereumPage() {
     if (error || !metrics) {
         return (
             <>
-                <BlockchainCubes opacity={0.28} network="ethereum" count={12} />
-                <ParticlesBackground network="ethereum" />
+                <BlockchainCubes opacity={0.28} count={12} />
+                <ParticlesBackground />
                 <ErrorState message={error || 'No data available'} onRetry={fetchData} />
             </>
         );
@@ -65,10 +66,10 @@ export default function EthereumPage() {
     return (
         <div className="min-h-screen relative overflow-x-hidden overflow-y-auto">
             {/* Animated Blockchain Cubes Background (Subtle for Eth) */}
-            <BlockchainCubes opacity={0.28} network="ethereum" count={12} />
+            <BlockchainCubes opacity={0.28} count={12} />
 
             {/* Floating Starry Points Background */}
-            <ParticlesBackground network="ethereum" />
+            <ParticlesBackground />
 
             <div className="relative z-10 flex flex-col min-h-screen">
                 <main className="flex-1 flex flex-col p-2 md:p-4 w-full max-w-7xl mx-auto">
@@ -78,7 +79,6 @@ export default function EthereumPage() {
                             <>Distribution of Ethereum Nodes on <span style={{ color: '#627EEA' }}>OVHcloud</span></>
                         }
                         subtitle="Empowering the decentralized network"
-                        accentColor="#627EEA"
                     />
 
                     <div className="flex-1 flex flex-col items-center justify-center overflow-hidden">
@@ -100,7 +100,7 @@ export default function EthereumPage() {
 
                 </main>
 
-                <MethodologyModal network="ethereum" accentColor="#627EEA" />
+                <MethodologyModal />
             </div>
         </div>
     );

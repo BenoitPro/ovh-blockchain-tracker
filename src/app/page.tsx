@@ -3,7 +3,8 @@
 import { useEffect, useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import KPICards from '@/components/dashboard/KPICards';
-import WorldMap from '@/components/dashboard/WorldMap';
+import dynamic from 'next/dynamic';
+const WorldMap = dynamic(() => import('@/components/dashboard/WorldMap'), { ssr: false });
 import LoadingState from '@/components/dashboard/LoadingState';
 import ErrorState from '@/components/dashboard/ErrorState';
 import BlockchainCubes from '@/components/BlockchainCubes';
@@ -89,7 +90,6 @@ export default function Home() {
                             <>Distribution of Solana Nodes on <span style={{ color: '#00F0FF', textShadow: '0 0 20px #00F0FF80' }}>OVHcloud</span></>
                         }
                         subtitle="Helping decentralize Web3 infrastructure"
-                        accentColor="#00F0FF"
                     />
 
                     <div className="flex-1 flex flex-col items-center justify-center overflow-hidden">
@@ -113,7 +113,7 @@ export default function Home() {
                 </main>
                 
                 {/* Methodology Modal Floating Button */}
-                <MethodologyModal network="solana" accentColor="#00F0FF" />
+                <MethodologyModal />
             </div>
         </div>
     );

@@ -21,33 +21,39 @@ import { logger } from '@/lib/utils';
 const ASN_DB_PATH = path.join(process.cwd(), 'data', 'GeoLite2-ASN.mmdb');
 const COUNTRY_DB_PATH = path.join(process.cwd(), 'data', 'GeoLite2-Country.mmdb');
 
-// Singleton reader instances
-let asnReader: Reader<AsnResponse> | null = null;
-let countryReader: Reader<CountryResponse> | null = null;
+// Singleton reader instances persisted across HMR reloads
+const globalForMaxMind = globalThis as unknown as {
+    asnReader: Reader<AsnResponse> | undefined;
+    countryReader: Reader<CountryResponse> | undefined;
+};
+
+// Access readers through global property to avoid leaks during dev reloads
+let asnReader: Reader<AsnResponse> | undefined = globalForMaxMind.asnReader;
+let countryReader: Reader<CountryResponse> | undefined = globalForMaxMind.countryReader;
 
 /**
  * Initialize MaxMind readers (call once at startup)
  */
 export async function initMaxMind(): Promise<void> {
-    if (asnReader && countryReader) return; // Already initialized
+    const globalContext = globalThis as any;
+    if (globalContext.asnReader && globalContext.countryReader) return; // Already initialized
 
     try {
         // Initialize ASN Reader
-        if (fs.existsSync(ASN_DB_PATH)) {
-            asnReader = await maxmind.open<AsnResponse>(ASN_DB_PATH);
+        if (fs.existsSync(ASN_DB_PATH) && !globalContext.asnReader) {
+            globalContext.asnReader = await maxmind.open<AsnResponse>(ASN_DB_PATH);
             logger.success('MaxMind GeoLite2 ASN database loaded');
-        } else {
+        } else if (!fs.existsSync(ASN_DB_PATH)) {
             logger.warn(`MaxMind ASN database missing at ${ASN_DB_PATH}`);
         }
 
         // Initialize Country Reader
-        if (fs.existsSync(COUNTRY_DB_PATH)) {
-            countryReader = await maxmind.open<CountryResponse>(COUNTRY_DB_PATH);
+        if (fs.existsSync(COUNTRY_DB_PATH) && !globalContext.countryReader) {
+            globalContext.countryReader = await maxmind.open<CountryResponse>(COUNTRY_DB_PATH);
             logger.success('MaxMind GeoLite2 Country database loaded');
-        } else {
+        } else if (!fs.existsSync(COUNTRY_DB_PATH)) {
             logger.warn(`MaxMind Country database missing at ${COUNTRY_DB_PATH}`);
         }
-
     } catch (error) {
         logger.error('Failed to load MaxMind database:', error);
     }
@@ -57,10 +63,11 @@ export async function initMaxMind(): Promise<void> {
  * Get ASN information from IP using MaxMind (ultra-fast, offline)
  */
 export function getASNFromMaxMind(ip: string): { asn: string; org: string } | null {
-    if (!asnReader) return null;
+    const reader = (globalThis as any).asnReader;
+    if (!reader) return null;
 
     try {
-        const response = asnReader.get(ip);
+        const response = reader.get(ip);
 
         if (!response || !response.autonomous_system_number) {
             return null;
@@ -79,10 +86,11 @@ export function getASNFromMaxMind(ip: string): { asn: string; org: string } | nu
  * Get Country information from IP using MaxMind (ultra-fast, offline)
  */
 export function getCountryFromMaxMind(ip: string): { country: string; countryCode: string } | null {
-    if (!countryReader) return null;
+    const reader = (globalThis as any).countryReader;
+    if (!reader) return null;
 
     try {
-        const response = countryReader.get(ip);
+        const response = reader.get(ip);
 
         if (!response || !response.country) {
             return null;
@@ -196,7 +204,9 @@ export async function getIPInfoHybrid(ip: string): Promise<IPInfo | null> {
  * Close MaxMind readers (call on shutdown)
  */
 export function closeMaxMind(): void {
-    asnReader = null;
-    countryReader = null;
+    globalForMaxMind.asnReader = undefined;
+    globalForMaxMind.countryReader = undefined;
+    asnReader = undefined;
+    countryReader = undefined;
     logger.success('MaxMind readers closed');
 }

@@ -1,7 +1,8 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import WorldMap from '@/components/dashboard/WorldMap';
+import dynamic from 'next/dynamic';
+const WorldMap = dynamic(() => import('@/components/dashboard/WorldMap'), { ssr: false });
 import LoadingState from '@/components/dashboard/LoadingState';
 import ErrorState from '@/components/dashboard/ErrorState';
 import AnimatedTagline from '@/components/dashboard/AnimatedTagline';
@@ -72,8 +73,8 @@ export default function AvalanchePage() {
     if (loading) {
         return (
             <div className="min-h-screen relative" style={bgStyle}>
-                <BlockchainCubes opacity={0.07} network="avalanche" count={10} />
-                <ParticlesBackground network="avalanche" />
+                <BlockchainCubes opacity={0.07} count={10} />
+                <ParticlesBackground />
                 <div className="relative z-10 flex items-center justify-center min-h-screen">
                     <LoadingState />
                 </div>
@@ -84,8 +85,8 @@ export default function AvalanchePage() {
     if (error || !metrics) {
         return (
             <>
-                <BlockchainCubes opacity={0.07} network="avalanche" count={10} />
-                <ParticlesBackground network="avalanche" />
+                <BlockchainCubes opacity={0.07} count={10} />
+                <ParticlesBackground />
                 <div style={bgStyle} className="min-h-screen relative">
                     <ErrorState message={error || 'No data available'} onRetry={fetchData} />
                 </div>
@@ -101,8 +102,8 @@ export default function AvalanchePage() {
     return (
         <div className="min-h-screen relative overflow-x-hidden overflow-y-auto" style={bgStyle}>
             {/* Subtle red particles */}
-            <BlockchainCubes opacity={0.07} network="avalanche" count={10} />
-            <ParticlesBackground network="avalanche" />
+            <BlockchainCubes opacity={0.07} count={10} />
+            <ParticlesBackground />
 
             <div className="relative z-10 flex flex-col min-h-screen">
                 <main className="flex-1 flex flex-col p-2 md:p-4 w-full max-w-7xl mx-auto">
@@ -112,7 +113,6 @@ export default function AvalanchePage() {
                             <>Distribution of Avalanche Nodes on <span style={{ color: AVAX_RED, textShadow: `0 0 20px ${AVAX_RED}80` }}>OVHcloud</span></>
                         }
                         subtitle="Tracking validators on the fastest smart contracts platform"
-                        accentColor={AVAX_RED}
                     />
 
                     {/* ── Avalanche-specific uptime KPIs ──────────────────────── */}
@@ -132,8 +132,8 @@ export default function AvalanchePage() {
                         {/* Sample size reminder */}
                         <div className="flex flex-col items-center justify-center gap-1">
                             <span className="text-2xl font-black text-white">{metrics.totalNodes}</span>
-                            <span className="text-[10px] uppercase tracking-widest text-white/40">Peers sampled</span>
-                            <span className="text-[9px] text-white/25 italic">single-node snapshot</span>
+                            <span className="text-[10px] uppercase tracking-widest text-white/40">Peers discovered</span>
+                            <span className="text-[9px] text-white/25 italic">5-node crawl · deduplicated</span>
                         </div>
                     </div>
 
@@ -156,7 +156,7 @@ export default function AvalanchePage() {
                 </main>
 
                 {/* Data Methodology Modal — Avalanche-specific content */}
-                <MethodologyModal network="avalanche" accentColor={AVAX_RED} />
+                <MethodologyModal />
             </div>
         </div>
     );

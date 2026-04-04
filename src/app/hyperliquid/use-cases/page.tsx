@@ -1,3 +1,5 @@
+'use client';
+
 import Header from '@/components/dashboard/Header';
 
 export default function HyperliquidUseCases() {

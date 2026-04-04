@@ -49,7 +49,8 @@ const OTHER_CHAINS: OtherChain[] = [
         ticker: 'SUI',
         href: '/sui',
         color: '#4DA2FF',
-        live: false,
+        live: true,
+
         icon: (
             <svg width="12" height="14" viewBox="0 0 25 33" fill="currentColor" className="shrink-0">
                 <path d="M12.5 0C12.5 0 4.5 8.5 4.5 18C4.5 22.9706 8.02944 27 12.5 27C16.9706 27 20.5 22.9706 20.5 18C20.5 8.5 12.5 0Z" />
@@ -98,20 +99,17 @@ export default function OthersDropdown() {
     const isOtherActive = !!activeChain;
 
     // Theming
-    const isEth = theme === 'ethereum';
     const borderColor = isOtherActive
         ? `${activeChain!.color}60`
-        : isEth ? 'rgba(98,126,234,0.18)' : 'rgba(255,255,255,0.10)';
+        : 'rgba(255,255,255,0.10)';
     const bgColor = isOtherActive
         ? `${activeChain!.color}12`
-        : isEth ? 'rgba(98,126,234,0.05)' : 'rgba(255,255,255,0.04)';
+        : 'rgba(255,255,255,0.04)';
     const labelColor = isOtherActive
         ? activeChain!.color
-        : isEth ? 'rgba(30,41,59,0.5)' : 'rgba(255,255,255,0.35)';
+        : 'rgba(255,255,255,0.35)';
 
-    const dropdownBg = isEth
-        ? 'bg-white/95 border-[#627EEA]/20'
-        : 'bg-[#0d0d1a]/95 border-white/10';
+    const dropdownBg = 'bg-[#0d0d1a]/95 border-white/10';
 
     return (
         <div ref={ref} className="relative w-full">
@@ -177,10 +175,10 @@ export default function OthersDropdown() {
                                         aria-selected={false}
                                     >
                                         <span className="flex items-center gap-2.5 text-[11px] font-bold uppercase tracking-widest">
-                                            <span className={isEth ? 'text-slate-400' : 'text-white/40'}>{chain.icon}</span>
-                                            <span className={isEth ? 'text-slate-400' : 'text-white/40'}>{chain.label}</span>
+                                            <span className="text-white/40">{chain.icon}</span>
+                                            <span className="text-white/40">{chain.label}</span>
                                         </span>
-                                        <span className={`text-[8px] font-black uppercase tracking-widest px-1.5 py-0.5 rounded-full ${isEth ? 'text-slate-400 bg-slate-100' : 'text-white/30 bg-white/5'}`}>
+                                        <span className="text-[8px] font-black uppercase tracking-widest px-1.5 py-0.5 rounded-full text-white/30 bg-white/5">
                                             Soon
                                         </span>
                                     </div>
@@ -206,7 +204,7 @@ export default function OthersDropdown() {
                                         <span className={
                                             isActive
                                                 ? ''
-                                                : isEth ? 'text-slate-500 group-hover:text-slate-700' : 'text-white/50 hover:text-white/80'
+                                                : 'text-white/50 hover:text-white/80'
                                         }>
                                             {chain.label}
                                         </span>

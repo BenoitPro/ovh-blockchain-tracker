@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useRef } from 'react';
+import { CHAINS, ChainId } from '@/lib/chains';
 
 interface Cube {
     x: number;
@@ -19,9 +20,19 @@ interface Cube {
 
 interface BlockchainCubesProps {
     opacity?: number;
-    network?: 'solana' | 'ethereum' | 'avalanche';
+    network?: string;
     count?: number;
 }
+
+const hexToRgb = (hex: string) => {
+    let r = 255, g = 255, b = 255;
+    if (hex.startsWith('#')) {
+        r = parseInt(hex.slice(1, 3), 16);
+        g = parseInt(hex.slice(3, 5), 16);
+        b = parseInt(hex.slice(5, 7), 16);
+    }
+    return { r, g, b };
+};
 
 export default function BlockchainCubes({ opacity = 0.6, network = 'solana', count = 6 }: BlockchainCubesProps) {
     const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -35,6 +46,10 @@ export default function BlockchainCubes({ opacity = 0.6, network = 'solana', cou
 
         const ctx = canvas.getContext('2d');
         if (!ctx) return;
+
+        const currentChain = CHAINS[network as ChainId] || CHAINS.solana;
+        const accent = currentChain.accent;
+        const { r, g, b } = hexToRgb(accent);
 
         // Set canvas size
         const resizeCanvas = () => {
@@ -135,56 +150,28 @@ export default function BlockchainCubes({ opacity = 0.6, network = 'solana', cou
                 ctx.lineTo(p4[0], p4[1]);
                 ctx.closePath();
 
-                // Gradient fill with purple/blue tones
+                // Gradient fill
                 const gradient = ctx.createLinearGradient(
                     p1[0], p1[1], p3[0], p3[1]
                 );
 
-                if (network === 'ethereum') {
-                    // Ethereum: Indigo/Purple/Violet
-                    if (index % 2 === 0) {
-                        gradient.addColorStop(0, `rgba(98, 126, 234, ${cubeOpacity})`); // Eth Blue/Indigo
-                        gradient.addColorStop(1, `rgba(168, 85, 247, ${cubeOpacity * 0.65})`); // Purple
-                    } else {
-                        gradient.addColorStop(0, `rgba(168, 85, 247, ${cubeOpacity})`); // Purple
-                        gradient.addColorStop(1, `rgba(139, 92, 246, ${cubeOpacity * 0.65})`); // Violet
-                    }
-                } else if (network === 'avalanche') {
-                    // Avalanche: Red/Ruby
-                    if (index % 2 === 0) {
-                        gradient.addColorStop(0, `rgba(232, 65, 66, ${cubeOpacity})`); // Avalanche Red
-                        gradient.addColorStop(1, `rgba(180, 30, 30, ${cubeOpacity * 0.6})`); // Darker Red
-                    } else {
-                        gradient.addColorStop(0, `rgba(180, 30, 30, ${cubeOpacity})`); // Darker Red
-                        gradient.addColorStop(1, `rgba(232, 65, 66, ${cubeOpacity * 0.6})`); // Avalanche Red
-                    }
+                if (index % 2 === 0) {
+                    gradient.addColorStop(0, `rgba(${r}, ${g}, ${b}, ${cubeOpacity})`);
+                    // Create a pseudo-darker shade or pure white
+                    gradient.addColorStop(1, `rgba(255, 255, 255, ${cubeOpacity * 0.4})`);
                 } else {
-                    // Solana: Purple/Cyan (Current)
-                    if (index % 2 === 0) {
-                        gradient.addColorStop(0, `rgba(107, 79, 187, ${cubeOpacity})`); // Purple
-                        gradient.addColorStop(1, `rgba(0, 191, 255, ${cubeOpacity * 0.6})`); // Cyan
-                    } else {
-                        gradient.addColorStop(0, `rgba(0, 191, 255, ${cubeOpacity})`); // Cyan
-                        gradient.addColorStop(1, `rgba(107, 79, 187, ${cubeOpacity * 0.6})`); // Purple
-                    }
+                    gradient.addColorStop(0, `rgba(255, 255, 255, ${cubeOpacity * 0.4})`);
+                    gradient.addColorStop(1, `rgba(${r}, ${g}, ${b}, ${cubeOpacity})`);
                 }
 
                 ctx.fillStyle = gradient;
                 ctx.fill();
 
                 // Glowing edges
-                ctx.strokeStyle = network === 'ethereum' 
-                    ? `rgba(98, 126, 234, ${cubeOpacity * 1.8})` // Slightly stronger for eth light theme
-                    : network === 'avalanche'
-                    ? `rgba(232, 65, 66, ${cubeOpacity * 1.5})`
-                    : `rgba(0, 240, 255, ${cubeOpacity * 1.5})`; 
+                ctx.strokeStyle = `rgba(${r}, ${g}, ${b}, ${cubeOpacity * 1.5})`; 
                 ctx.lineWidth = 1.5;
-                ctx.shadowBlur = network === 'ethereum' ? 10 : 15;
-                ctx.shadowColor = network === 'ethereum' 
-                    ? 'rgba(98, 126, 234, 0.7)' 
-                    : network === 'avalanche'
-                    ? 'rgba(232, 65, 66, 0.8)'
-                    : 'rgba(0, 240, 255, 0.8)';
+                ctx.shadowBlur = 15;
+                ctx.shadowColor = `rgba(${r}, ${g}, ${b}, 0.8)`;
                 ctx.stroke();
             });
 
@@ -194,18 +181,10 @@ export default function BlockchainCubes({ opacity = 0.6, network = 'solana', cou
         // Draw connections between cubes
         const drawConnections = () => {
             const cubes = cubesRef.current;
-            ctx.strokeStyle = network === 'ethereum' 
-                ? 'rgba(98, 126, 234, 0.12)' 
-                : network === 'avalanche'
-                ? 'rgba(232, 65, 66, 0.15)'
-                : 'rgba(0, 240, 255, 0.15)';
+            ctx.strokeStyle = `rgba(${r}, ${g}, ${b}, 0.15)`;
             ctx.lineWidth = 1;
             ctx.shadowBlur = 10;
-            ctx.shadowColor = network === 'ethereum' 
-                ? 'rgba(98, 126, 234, 0.4)'
-                : network === 'avalanche'
-                ? 'rgba(232, 65, 66, 0.5)'
-                : 'rgba(0, 240, 255, 0.5)';
+            ctx.shadowColor = `rgba(${r}, ${g}, ${b}, 0.5)`;
 
             for (let i = 0; i < cubes.length; i++) {
                 for (let j = i + 1; j < cubes.length; j++) {
@@ -268,7 +247,7 @@ export default function BlockchainCubes({ opacity = 0.6, network = 'solana', cou
                 cancelAnimationFrame(animationFrameRef.current);
             }
         };
-    }, []);
+    }, [network, count]);
 
     return (
         <canvas

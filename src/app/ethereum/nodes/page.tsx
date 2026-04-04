@@ -7,10 +7,10 @@ export default function EthereumNodesPage() {
     return (
         <div className="min-h-screen relative overflow-x-hidden overflow-y-auto">
             {/* Animated Blockchain Cubes Background (Subtle for Eth) */}
-            <BlockchainCubes opacity={0.03} network="ethereum" />
+            <BlockchainCubes opacity={0.03} />
 
             {/* Floating Starry Points Background */}
-            <ParticlesBackground network="ethereum" />
+            <ParticlesBackground />
 
             <main className="relative z-10 container mx-auto px-6 py-12 max-w-3xl">
 

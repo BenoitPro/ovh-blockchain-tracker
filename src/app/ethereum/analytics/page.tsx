@@ -91,10 +91,10 @@ export default function EthereumAnalyticsPage() {
     if (loading) {
         return (
             <div className="min-h-screen relative">
-                <BlockchainCubes opacity={0.03} network="ethereum" />
-                <ParticlesBackground network="ethereum" />
+                <BlockchainCubes opacity={0.03} />
+                <ParticlesBackground />
                 <div className="relative z-10 flex items-center justify-center min-h-screen">
-                    <LoadingState network="ethereum" />
+                    <LoadingState />
                 </div>
 
             </div>
@@ -105,8 +105,8 @@ export default function EthereumAnalyticsPage() {
     if (error || !metrics) {
         return (
             <>
-                <BlockchainCubes opacity={0.03} network="ethereum" />
-                <ParticlesBackground network="ethereum" />
+                <BlockchainCubes opacity={0.03} />
+                <ParticlesBackground />
                 <ErrorState message={error || 'No data available'} onRetry={fetchData} />
             </>
         );
@@ -119,10 +119,10 @@ export default function EthereumAnalyticsPage() {
     return (
         <div className="min-h-screen relative overflow-x-hidden overflow-y-auto">
             {/* Animated Blockchain Cubes Background (Subtle for Eth) */}
-            <BlockchainCubes opacity={0.03} network="ethereum" />
+            <BlockchainCubes opacity={0.03} />
 
             {/* Floating Starry Points Background */}
-            <ParticlesBackground network="ethereum" />
+            <ParticlesBackground />
 
             <div className="relative z-10 flex flex-col min-h-screen">
                 <main className="flex-1 container mx-auto px-6 py-10 md:py-12 max-w-[1400px]">
@@ -153,7 +153,7 @@ export default function EthereumAnalyticsPage() {
                             totalNodes={metrics.totalNodes}
                             ovhNodes={ovhNodes}
                             marketShare={ovhMarketShare}
-                            network="ethereum"
+                           
                         />
                     </section>
 

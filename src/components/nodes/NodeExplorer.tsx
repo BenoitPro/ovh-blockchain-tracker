@@ -7,10 +7,6 @@ import Image from 'next/image';
 import NodeDetails from './NodeDetails';
 import ValidatorsList from '../dashboard/ValidatorsList';
 
-interface NodeExplorerProps {
-    initialNodes: EnrichedNode[];
-}
-
 const ROWS_PER_PAGE = 50;
 
 // Helper to get flag emoji from country code
@@ -23,10 +19,13 @@ const getFlagEmoji = (countryCode?: string) => {
     return String.fromCodePoint(...codePoints);
 };
 
-export default function NodeExplorer({ initialNodes }: NodeExplorerProps) {
+export default function NodeExplorer() {
+    const [nodes, setNodes] = useState<EnrichedNode[]>([]);
+    const [total, setTotal] = useState(0);
+    const [loading, setLoading] = useState(true);
+    const [page, setPage] = useState(1);
     const [searchQuery, setSearchQuery] = useState('');
     const [selectedNode, setSelectedNode] = useState<EnrichedNode | null>(null);
-    const [visibleCount, setVisibleCount] = useState(ROWS_PER_PAGE);
 
     // View Mode and Sort
     const [viewMode, setViewMode] = useState<'table' | 'top_ovh'>('table');
@@ -36,10 +35,30 @@ export default function NodeExplorer({ initialNodes }: NodeExplorerProps) {
     const [providerFilter, setProviderFilter] = useState('All');
     const [countryFilter, setCountryFilter] = useState('All');
 
-    // Reset visible count when filters change
+    const fetchNodes = async (pageNum: number, search: string, isAppend: boolean = false) => {
+        setLoading(true);
+        try {
+            const res = await fetch(`/api/nodes?page=${pageNum}&limit=${ROWS_PER_PAGE}&search=${encodeURIComponent(search)}`);
+            const data = await res.json();
+            if (data.success) {
+                setNodes(prev => isAppend ? [...prev, ...data.nodes] : data.nodes);
+                setTotal(data.total);
+            }
+        } catch (err) {
+            console.error('Failed to fetch nodes:', err);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    // Initial load and search
     useEffect(() => {
-        setVisibleCount(ROWS_PER_PAGE);
-    }, [searchQuery, providerFilter, countryFilter]);
+        const timer = setTimeout(() => {
+            setPage(1);
+            fetchNodes(1, searchQuery, false);
+        }, 300); // Debounce search
+        return () => clearTimeout(timer);
+    }, [searchQuery]);
 
     // Format Lambda to SOL (with K/M suffix)
     const formatLamports = (lamports?: number) => {
@@ -50,53 +69,32 @@ export default function NodeExplorer({ initialNodes }: NodeExplorerProps) {
         return `${sol.toFixed(0)} SOL`;
     };
 
-    // Extract unique values for filters
+    // Extract unique values for filters (from what we have so far)
     const uniqueProviders = useMemo(() => {
-        const providers = new Set(initialNodes.map(n => n.org).filter(Boolean));
+        const providers = new Set(nodes.map(n => n.org).filter(Boolean));
         return ['All', ...Array.from(providers).sort()];
-    }, [initialNodes]);
+    }, [nodes]);
 
     const uniqueCountries = useMemo(() => {
-        const countries = new Set(initialNodes.map(n => n.countryName).filter(Boolean));
+        const countries = new Set(nodes.map(n => n.countryName).filter(Boolean));
         return ['All', ...Array.from(countries).sort()];
-    }, [initialNodes]);
+    }, [nodes]);
 
     // Calculate total network stake for % calculation
     const totalStake = useMemo(() => {
-        return initialNodes.reduce((acc, node) => acc + (node.activatedStake || 0), 0);
-    }, [initialNodes]);
+        return nodes.reduce((acc, node) => acc + (node.activatedStake || 0), 0);
+    }, [nodes]);
 
+    // Local filtering of already loaded nodes
     const filteredNodes = useMemo(() => {
-        let nodes = initialNodes;
-
-        // Search
-        if (searchQuery.trim()) {
-            const query = searchQuery.toLowerCase();
-            nodes = nodes.filter(node =>
-                node.pubkey.toLowerCase().includes(query) ||
-                node.name?.toLowerCase().includes(query) ||
-                node.ip?.toLowerCase().includes(query) ||
-                node.org?.toLowerCase().includes(query) ||
-                node.asn?.toLowerCase().includes(query) ||
-                node.votePubkey?.toLowerCase().includes(query)
-            );
-        }
-
-        // Provider Filter
-        if (providerFilter !== 'All') {
-            nodes = nodes.filter(node => node.org === providerFilter);
-        }
-
-        // Country Filter
-        if (countryFilter !== 'All') {
-            nodes = nodes.filter(node => node.countryName === countryFilter);
-        }
-
-        return nodes;
-    }, [initialNodes, searchQuery, providerFilter, countryFilter]);
+        let n = nodes;
+        if (providerFilter !== 'All') n = n.filter(node => node.org === providerFilter);
+        if (countryFilter !== 'All') n = n.filter(node => node.countryName === countryFilter);
+        return n;
+    }, [nodes, providerFilter, countryFilter]);
 
     const sortedOvhNodes = useMemo(() => {
-        let ovhNodes = initialNodes.filter(n => n.org?.toLowerCase().includes('ovh') || n.provider?.toLowerCase().includes('ovh'));
+        let ovhNodes = nodes.filter(n => n.org?.toLowerCase().includes('ovh') || n.provider?.toLowerCase().includes('ovh'));
         if (sortBy === 'stake_desc') {
             ovhNodes.sort((a, b) => (b.activatedStake || 0) - (a.activatedStake || 0));
         } else if (sortBy === 'stake_asc') {
@@ -105,20 +103,21 @@ export default function NodeExplorer({ initialNodes }: NodeExplorerProps) {
             ovhNodes.sort((a, b) => (a.commission || 0) - (b.commission || 0));
         }
         return ovhNodes;
-    }, [initialNodes, sortBy]);
+    }, [nodes, sortBy]);
 
-    const visibleNodes = filteredNodes.slice(0, visibleCount);
-    const hasMore = visibleNodes.length < filteredNodes.length;
+    const hasMore = nodes.length < total;
 
     const loadMore = () => {
-        setVisibleCount(prev => prev + ROWS_PER_PAGE);
+        const nextPage = page + 1;
+        setPage(nextPage);
+        fetchNodes(nextPage, searchQuery, true);
     };
 
     const downloadCSV = () => {
         const headers = ['Validator Name', 'Pubkey', 'Vote Account', 'Stake (SOL)', 'Commission', 'Provider', 'ASN', 'Country', 'IP'];
         const csvContent = [
             headers.join(','),
-            ...filteredNodes.map(node => [
+            ...nodes.map(node => [
                 `"${node.name || 'Unknown'}"`,
                 node.pubkey,
                 node.votePubkey || '',
@@ -227,7 +226,7 @@ export default function NodeExplorer({ initialNodes }: NodeExplorerProps) {
                         {(providerFilter !== 'All' || countryFilter !== 'All' || searchQuery) && (
                             <div className="ml-auto flex items-center gap-2">
                                 <span className="text-xs text-[#00F0FF] font-mono">
-                                    {filteredNodes.length} nodes found
+                                    {total} nodes found
                                 </span>
                                 <button
                                     onClick={() => {
@@ -278,97 +277,114 @@ export default function NodeExplorer({ initialNodes }: NodeExplorerProps) {
 
                     {/* Table Rows */}
                     <div className="space-y-1">
-                        {visibleNodes.map((node, index) => {
-                            const isOVH = node.org?.toLowerCase().includes('ovh');
-                            const stakePercentage = node.activatedStake && totalStake ? ((node.activatedStake / totalStake) * 100).toFixed(2) : '0.00';
-                            const flag = getFlagEmoji(node.country);
-
-                            return (
-                                <div
-                                    key={node.pubkey}
-                                    onClick={() => setSelectedNode(node)}
-                                    className={`
-                                group relative grid grid-cols-1 md:grid-cols-12 gap-4 px-6 py-4 items-center rounded-xl transition-all cursor-pointer border
-                                ${isOVH
-                                            ? 'bg-[#00F0FF]/5 border-[#00F0FF]/20 hover:bg-[#00F0FF]/10'
-                                            : 'bg-black/20 border-white/5 hover:bg-white/5 hover:border-white/10'
-                                        }
-                            `}
-                                >
-                                    {/* OVH Badge */}
-                                    {isOVH && (
-                                        <div className="absolute -left-1 top-1/2 -translate-y-1/2 w-1 h-2/3 bg-[#00F0FF] rounded-r-full shadow-[0_0_10px_#00F0FF]"></div>
-                                    )}
-
-                                    {/* Rank */}
-                                    <div className="col-span-1 font-mono text-white/30 text-sm">{index + 1}</div>
-
-                                    {/* Validator Identity */}
-                                    <div className="col-span-4 flex items-center space-x-3 overflow-hidden">
-                                        <div className={`p-2 rounded-lg flex-shrink-0 relative overflow-hidden ${isOVH ? 'bg-[#00F0FF]/20 text-[#00F0FF]' : 'bg-white/5 text-white/30 group-hover:text-white transition-colors'}`}>
-                                            {node.image ? (
-                                                <Image src={node.image} alt={node.name || ''} width={20} height={20} className="w-5 h-5 rounded-full object-cover" />
-                                            ) : (
-                                                <ServerIcon className="h-5 w-5" />
-                                            )}
-                                        </div>
-                                        <div className="min-w-0">
-                                            <p className="text-white font-bold text-sm truncate group-hover:text-[#00F0FF] transition-colors">
-                                                {node.name || 'Unknown Validator'}
-                                            </p>
-                                            <p className="text-xs text-white/30 truncate font-mono">
-                                                {node.pubkey.slice(0, 8)}...{node.pubkey.slice(-8)}
-                                            </p>
-                                        </div>
-                                    </div>
-
-                                    {/* Stake */}
-                                    <div className="col-span-2 text-right">
-                                        <p className="text-white font-mono text-sm">{formatLamports(node.activatedStake)}</p>
-                                        <p className="text-xs text-white/30">{stakePercentage}%</p>
-                                    </div>
-
-                                    {/* Commission */}
-                                    <div className="col-span-1 text-center">
-                                        <span className={`text-xs px-2 py-1 rounded-md ${(node.commission || 0) === 100
-                                            ? 'bg-red-500/20 text-red-400'
-                                            : (node.commission || 0) === 0
-                                                ? 'bg-green-500/20 text-green-400'
-                                                : 'bg-white/10 text-white/60'
-                                            }`}>
-                                            {node.commission ?? 'N/A'}%
-                                        </span>
-                                    </div>
-
-                                    {/* Provider */}
-                                    <div className="col-span-2 min-w-0">
-                                        <p className={`text-sm truncate ${isOVH ? 'text-[#00F0FF] font-medium' : 'text-white/70'}`}>
-                                            {node.provider || node.org || 'Unknown'}
-                                        </p>
-                                        <p className="text-xs text-white/30 truncate">{node.asn || 'AS Unknown'}</p>
-                                    </div>
-
-                                    {/* Location */}
-                                    <div className="col-span-2 text-right">
-                                        <div className="flex items-center justify-end space-x-2">
-                                            <span className="text-2xl" title={node.countryName}>{flag}</span>
-                                            <span className="text-white/60 text-xs hidden lg:inline-block">{node.country || 'UNK'}</span>
-                                        </div>
-                                    </div>
-                                </div>
-                            );
-                        })}
-
-                        {/* Load More Trigger */}
-                        {hasMore && (
-                            <div className="pt-8 pb-4 text-center">
-                                <button
-                                    onClick={loadMore}
-                                    className="px-8 py-3 bg-white/5 hover:bg-white/10 border border-white/10 rounded-full text-white/60 hover:text-white transition-all text-sm uppercase tracking-widest"
-                                >
-                                    Load More Nodes ({filteredNodes.length - visibleCount} remaining)
-                                </button>
+                        {loading && nodes.length === 0 ? (
+                            <div className="py-20 text-center">
+                                <div className="animate-spin h-8 w-8 border-4 border-[#00F0FF]/30 border-t-[#00F0FF] rounded-full mx-auto mb-4"></div>
+                                <p className="text-white/40">Loading network nodes...</p>
                             </div>
+                        ) : (
+                            <>
+                                {filteredNodes.map((node: EnrichedNode, index: number) => {
+                                    const isOVH = node.org?.toLowerCase().includes('ovh');
+                                    const stakePercentage = node.activatedStake && totalStake ? ((node.activatedStake / totalStake) * 100).toFixed(2) : '0.00';
+                                    const flag = getFlagEmoji(node.country);
+
+                                    return (
+                                        <div
+                                            key={node.pubkey}
+                                            onClick={() => setSelectedNode(node)}
+                                            className={`
+                                        group relative grid grid-cols-1 md:grid-cols-12 gap-4 px-6 py-4 items-center rounded-xl transition-all cursor-pointer border
+                                        ${isOVH
+                                                    ? 'bg-[#00F0FF]/5 border-[#00F0FF]/20 hover:bg-[#00F0FF]/10'
+                                                    : 'bg-black/20 border-white/5 hover:bg-white/5 hover:border-white/10'
+                                                }
+                                    `}
+                                        >
+                                            {/* OVH Badge */}
+                                            {isOVH && (
+                                                <div className="absolute -left-1 top-1/2 -translate-y-1/2 w-1 h-2/3 bg-[#00F0FF] rounded-r-full shadow-[0_0_10px_#00F0FF]"></div>
+                                            )}
+
+                                            {/* Rank */}
+                                            <div className="col-span-1 font-mono text-white/30 text-sm">{index + 1}</div>
+
+                                            {/* Validator Identity */}
+                                            <div className="col-span-4 flex items-center space-x-3 overflow-hidden">
+                                                <div className={`p-2 rounded-lg flex-shrink-0 relative overflow-hidden ${isOVH ? 'bg-[#00F0FF]/20 text-[#00F0FF]' : 'bg-white/5 text-white/30 group-hover:text-white transition-colors'}`}>
+                                                    {node.image ? (
+                                                        <Image src={node.image} alt={node.name || ''} width={20} height={20} className="w-5 h-5 rounded-full object-cover" />
+                                                    ) : (
+                                                        <ServerIcon className="h-5 w-5" />
+                                                    )}
+                                                </div>
+                                                <div className="min-w-0">
+                                                    <p className="text-white font-bold text-sm truncate group-hover:text-[#00F0FF] transition-colors">
+                                                        {node.name || 'Unknown Validator'}
+                                                    </p>
+                                                    <p className="text-xs text-white/30 truncate font-mono">
+                                                        {node.pubkey.slice(0, 8)}...{node.pubkey.slice(-8)}
+                                                    </p>
+                                                </div>
+                                            </div>
+
+                                            {/* Stake */}
+                                            <div className="col-span-2 text-right">
+                                                <p className="text-white font-mono text-sm">{formatLamports(node.activatedStake)}</p>
+                                                <p className="text-xs text-white/30">{stakePercentage}%</p>
+                                            </div>
+
+                                            {/* Commission */}
+                                            <div className="col-span-1 text-center">
+                                                <span className={`text-xs px-2 py-1 rounded-md ${(node.commission || 0) === 100
+                                                    ? 'bg-red-500/20 text-red-400'
+                                                    : (node.commission || 0) === 0
+                                                        ? 'bg-green-500/20 text-green-400'
+                                                        : 'bg-white/10 text-white/60'
+                                                    }`}>
+                                                    {node.commission ?? 'N/A'}%
+                                                </span>
+                                            </div>
+
+                                            {/* Provider */}
+                                            <div className="col-span-2 min-w-0">
+                                                <p className={`text-sm truncate ${isOVH ? 'text-[#00F0FF] font-medium' : 'text-white/70'}`}>
+                                                    {node.provider || node.org || 'Unknown'}
+                                                </p>
+                                                <p className="text-xs text-white/30 truncate">{node.asn || 'AS Unknown'}</p>
+                                            </div>
+
+                                            {/* Location */}
+                                            <div className="col-span-2 text-right">
+                                                <div className="flex items-center justify-end space-x-2">
+                                                    <span className="text-2xl" title={node.countryName}>{flag}</span>
+                                                    <span className="text-white/60 text-xs hidden lg:inline-block">{node.country || 'UNK'}</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    );
+                                })}
+
+                                {/* Load More Trigger */}
+                                {hasMore && (
+                                    <div className="pt-8 pb-4 text-center">
+                                        <button
+                                            onClick={loadMore}
+                                            disabled={loading}
+                                            className="px-8 py-3 bg-white/5 hover:bg-white/10 border border-white/10 rounded-full text-white/60 hover:text-white transition-all text-sm uppercase tracking-widest flex items-center gap-2 mx-auto"
+                                        >
+                                            {loading ? (
+                                                <>
+                                                    <div className="animate-spin h-4 w-4 border-2 border-white/30 border-t-white rounded-full"></div>
+                                                    Loading...
+                                                </>
+                                            ) : (
+                                                `Load More Nodes (${total - nodes.length} remaining)`
+                                            )}
+                                        </button>
+                                    </div>
+                                )}
+                            </>
                         )}
                     </div>
                 </>

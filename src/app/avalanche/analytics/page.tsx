@@ -89,9 +89,9 @@ export default function AvalancheAnalyticsPage() {
     if (loading) {
         return (
             <div className="min-h-screen relative bg-[#0a0404]">
-                <ParticlesBackground network="avalanche" />
+                <ParticlesBackground />
                 <div className="relative z-10 flex items-center justify-center min-h-screen">
-                    <LoadingState network="avalanche" />
+                    <LoadingState />
                 </div>
             </div>
         );
@@ -100,8 +100,8 @@ export default function AvalancheAnalyticsPage() {
     if (error || !metrics) {
         return (
             <>
-                <ParticlesBackground network="avalanche" />
-                <ErrorState message={error || 'No data available'} onRetry={fetchData} network="avalanche" />
+                <ParticlesBackground />
+                <ErrorState message={error || 'No data available'} onRetry={fetchData} />
             </>
         );
     }
@@ -115,7 +115,7 @@ export default function AvalancheAnalyticsPage() {
             }}
         >
             {/* Floating Particles Background */}
-            <ParticlesBackground network="avalanche" />
+            <ParticlesBackground />
 
             <div className="relative z-10 flex flex-col min-h-screen">
                 <main className="flex-1 container mx-auto px-6 py-10 md:py-12 max-w-[1400px]">
@@ -146,7 +146,7 @@ export default function AvalancheAnalyticsPage() {
                             totalNodes={metrics.totalNodes}
                             ovhNodes={metrics.ovhNodes}
                             marketShare={metrics.marketShare}
-                            network="avalanche"
+                           
                         />
                     </section>
 

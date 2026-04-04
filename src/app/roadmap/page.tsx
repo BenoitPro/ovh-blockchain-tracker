@@ -11,7 +11,7 @@ import ParticlesBackground from '@/components/ParticlesBackground';
 
 type OpportunityScore = 1 | 2 | 3 | 4 | 5;
 type IpAccess = 'green' | 'yellow' | 'red';
-type Status = 'Integrated' | 'Phase 1' | 'Phase 2' | 'Optional' | 'Excluded';
+type OvhInterest = 'High' | 'Medium' | 'Low' | 'Skip';
 type Momentum = 'Rising' | 'Stable' | 'Declining';
 
 interface ChainRow {
@@ -20,7 +20,9 @@ interface ChainRow {
   color: string;
   tier: 1 | 2 | 3 | 4 | 5;
   validators: string;
-  hardware: string;
+  hardware: string;       // validator node specs — requirements + OVH machine
+  rpcNodes: string;       // RPC node count
+  rpcSpecs: string;       // RPC node specs — requirements + OVH machine
   validatorOpp: OpportunityScore;
   rpcOpp: OpportunityScore;
   appOpp: OpportunityScore;
@@ -28,8 +30,8 @@ interface ChainRow {
   ipAccess: IpAccess;
   ipNote: string;
   momentum: Momentum;
-  status: Status;
-  statusNote?: string;
+  ovhInterest: OvhInterest;
+  interestNote?: string;
 }
 
 // ---------------------------------------------------------------------------
@@ -42,8 +44,10 @@ const CHAIN_DATA: ChainRow[] = [
     name: 'Solana',
     color: '#9945FF',
     tier: 1,
-    validators: '~1,900',
-    hardware: 'Advance-4 / High-Grade (128GB RAM, NVMe)',
+    validators: '~800-900',
+    hardware: '512GB RAM, 24c/48t, 2-4TB NVMe — SCALE-A2',
+    rpcNodes: '*(to refine)*',
+    rpcSpecs: '*(to refine)* — likely SCALE-A1 or SCALE-A2',
     validatorOpp: 4,
     rpcOpp: 4,
     appOpp: 3,
@@ -51,15 +55,18 @@ const CHAIN_DATA: ChainRow[] = [
     ipAccess: 'green',
     ipNote: 'Public RPC, standard IP/ASN',
     momentum: 'Rising',
-    status: 'Integrated',
+    ovhInterest: 'High',
+    interestNote: 'SCALE-A2 per node; Firedancer may change hw profile',
   },
   {
     id: 'ethereum',
     name: 'Ethereum',
     color: '#627EEA',
     tier: 1,
-    validators: '~1,000,000',
-    hardware: 'Advance-1 / Rise-3 (16GB RAM, SSD)',
+    validators: '~1,070,000',
+    hardware: '16GB+ RAM, 4+ cores, 2TB SSD — Advance-2 or Public Cloud',
+    rpcNodes: '*(to refine)*',
+    rpcSpecs: '16-32GB RAM, 2TB+ (full) / 12TB+ (archive) — Advance-3',
     validatorOpp: 5,
     rpcOpp: 5,
     appOpp: 5,
@@ -67,15 +74,18 @@ const CHAIN_DATA: ChainRow[] = [
     ipAccess: 'green',
     ipNote: 'Public RPC, standard IP/ASN',
     momentum: 'Stable',
-    status: 'Integrated',
+    ovhInterest: 'High',
+    interestNote: 'Massive node count; archive RPC = high storage revenue',
   },
   {
     id: 'avalanche',
     name: 'Avalanche',
     color: '#E84142',
     tier: 2,
-    validators: '~1,500 *(to refine)*',
-    hardware: 'Advance-1 / Rise-3 (16GB RAM, 1TB NVMe)',
+    validators: '~656',
+    hardware: '16GB RAM, 8 cores, 1TB SSD — Advance-2',
+    rpcNodes: '*(to refine)*',
+    rpcSpecs: '*(to refine)* — likely Advance-2',
     validatorOpp: 4,
     rpcOpp: 3,
     appOpp: 3,
@@ -83,16 +93,18 @@ const CHAIN_DATA: ChainRow[] = [
     ipAccess: 'green',
     ipNote: 'Public HTTP API',
     momentum: 'Rising',
-    status: 'Phase 1',
-    statusNote: 'C/P/X-Chain split — decide which to track',
+    ovhInterest: 'Medium',
+    interestNote: 'Advance-2 range; subnet validators (L1s) could multiply count',
   },
   {
     id: 'sui',
     name: 'Sui',
     color: '#4DA2FF',
     tier: 2,
-    validators: '~100 *(to refine)*',
-    hardware: 'Advance-2 / High-Grade (32GB RAM, 2TB NVMe)',
+    validators: '~122',
+    hardware: '384GB RAM, 10TB+ NVMe (validator) — SCALE-A2',
+    rpcNodes: '*(to refine)*',
+    rpcSpecs: '128GB RAM, 10TB+ SSD (full node) — SCALE-A1',
     validatorOpp: 3,
     rpcOpp: 4,
     appOpp: 2,
@@ -100,16 +112,18 @@ const CHAIN_DATA: ChainRow[] = [
     ipAccess: 'green',
     ipNote: 'JSON-RPC public',
     momentum: 'Rising',
-    status: 'Phase 1',
-    statusNote: 'Permissioned validator set *(to refine)*',
+    ovhInterest: 'Medium',
+    interestNote: 'SCALE range per node (high ARPU) but few validators',
   },
   {
     id: 'hyperliquid',
     name: 'Hyperliquid',
     color: '#00FF87',
     tier: 3,
-    validators: '~20 *(to refine)*',
-    hardware: 'HFT-grade, low-latency *(to refine)*',
+    validators: '~21',
+    hardware: '*(to refine)* — HFT-grade, low-latency',
+    rpcNodes: '*(to refine)*',
+    rpcSpecs: '*(to refine)*',
     validatorOpp: 2,
     rpcOpp: 2,
     appOpp: 4,
@@ -117,8 +131,8 @@ const CHAIN_DATA: ChainRow[] = [
     ipAccess: 'yellow',
     ipNote: 'Limited public API *(to refine)*',
     momentum: 'Rising',
-    status: 'Phase 2',
-    statusNote: 'Closed/permissioned validator set; custom L1',
+    ovhInterest: 'Low',
+    interestNote: '21 validators only; opportunity is app layer, not infra',
   },
   {
     id: 'ton',
@@ -126,7 +140,9 @@ const CHAIN_DATA: ChainRow[] = [
     color: '#0088CC',
     tier: 3,
     validators: '~400 *(to refine)*',
-    hardware: 'Advance-1 (8 cores, 16GB RAM, 1TB SSD)',
+    hardware: '64GB RAM, 8 cores, 1TB SSD — Advance-2 ⚠️ OVH discouraged by TON docs',
+    rpcNodes: '*(to refine)*',
+    rpcSpecs: '*(to refine)*',
     validatorOpp: 3,
     rpcOpp: 2,
     appOpp: 3,
@@ -134,16 +150,18 @@ const CHAIN_DATA: ChainRow[] = [
     ipAccess: 'red',
     ipNote: 'ADNL (UDP-based) — ASN detection unreliable',
     momentum: 'Rising',
-    status: 'Phase 2',
-    statusNote: 'ADNL blocks standard IP/ASN detection',
+    ovhInterest: 'Low',
+    interestNote: 'OVH explicitly flagged for geo concentration by TON foundation',
   },
   {
     id: 'polkadot',
     name: 'Polkadot',
     color: '#E6007A',
     tier: 4,
-    validators: '~300 *(to refine)*',
-    hardware: 'Advance-1 (8 cores, 16GB RAM)',
+    validators: '~297',
+    hardware: '64GB RAM, 4-8 cores, 1TB NVMe — Advance-3',
+    rpcNodes: '*(to refine)*',
+    rpcSpecs: '*(to refine)* — likely Advance-2',
     validatorOpp: 3,
     rpcOpp: 2,
     appOpp: 2,
@@ -151,15 +169,17 @@ const CHAIN_DATA: ChainRow[] = [
     ipAccess: 'green',
     ipNote: 'Public RPC',
     momentum: 'Stable',
-    status: 'Optional',
+    ovhInterest: 'Medium',
   },
   {
     id: 'cosmos',
     name: 'Cosmos SDK (multi)',
     color: '#2E3148',
     tier: 4,
-    validators: 'Varies per chain *(to refine)*',
-    hardware: 'Varies per chain',
+    validators: 'Varies per chain',
+    hardware: '*(to refine per chain)*',
+    rpcNodes: '*(to refine)*',
+    rpcSpecs: '*(to refine per chain)*',
     validatorOpp: 3,
     rpcOpp: 2,
     appOpp: 2,
@@ -167,8 +187,8 @@ const CHAIN_DATA: ChainRow[] = [
     ipAccess: 'green',
     ipNote: 'Public RPC per chain',
     momentum: 'Stable',
-    status: 'Optional',
-    statusNote: 'Multi-chain SDK — generic implementation possible',
+    ovhInterest: 'Medium',
+    interestNote: 'Single integration covers 100+ chains via /net_info',
   },
   {
     id: 'btc-l2',
@@ -177,6 +197,8 @@ const CHAIN_DATA: ChainRow[] = [
     tier: 4,
     validators: 'N/A *(to refine)*',
     hardware: '*(to refine per L2)*',
+    rpcNodes: '*(to refine)*',
+    rpcSpecs: '*(to refine per L2)*',
     validatorOpp: 2,
     rpcOpp: 3,
     appOpp: 2,
@@ -184,8 +206,8 @@ const CHAIN_DATA: ChainRow[] = [
     ipAccess: 'yellow',
     ipNote: '*(to refine per L2)*',
     momentum: 'Rising',
-    status: 'Optional',
-    statusNote: 'Heterogeneous — no single API',
+    ovhInterest: 'Low',
+    interestNote: 'Heterogeneous — no single API, unclear hw profile',
   },
   {
     id: 'aptos',
@@ -193,7 +215,9 @@ const CHAIN_DATA: ChainRow[] = [
     color: '#00BFA5',
     tier: 5,
     validators: '~100 *(to refine)*',
-    hardware: 'High-grade',
+    hardware: '64GB RAM, 32 cores, 1TB SSD — SCALE-I3',
+    rpcNodes: '*(to refine)*',
+    rpcSpecs: '*(to refine)*',
     validatorOpp: 2,
     rpcOpp: 2,
     appOpp: 1,
@@ -201,8 +225,8 @@ const CHAIN_DATA: ChainRow[] = [
     ipAccess: 'green',
     ipNote: 'Public RPC',
     momentum: 'Declining',
-    status: 'Excluded',
-    statusNote: 'App ecosystem too weak; low OVH ROI',
+    ovhInterest: 'Skip',
+    interestNote: 'Declining momentum; ecosystem too thin for OVH ROI',
   },
   {
     id: 'near',
@@ -210,7 +234,9 @@ const CHAIN_DATA: ChainRow[] = [
     color: '#00C08B',
     tier: 5,
     validators: '~100 *(to refine)*',
-    hardware: 'Advance-1',
+    hardware: '32GB RAM, 8 cores, 1TB SSD — Advance-2',
+    rpcNodes: '*(to refine)*',
+    rpcSpecs: '*(to refine)*',
     validatorOpp: 1,
     rpcOpp: 1,
     appOpp: 1,
@@ -218,162 +244,11 @@ const CHAIN_DATA: ChainRow[] = [
     ipAccess: 'green',
     ipNote: 'Public RPC',
     momentum: 'Declining',
-    status: 'Excluded',
-    statusNote: 'Declining momentum; low OVH fit',
+    ovhInterest: 'Skip',
+    interestNote: 'Declining momentum; low OVH fit',
   },
 ];
 
-const TIMELINE_PHASES = [
-  {
-    id: 'integrated',
-    label: 'Integrated',
-    color: '#10B981',
-    chains: ['Solana', 'Ethereum'],
-    rationale: 'Live tracking — ASN-based detection operational',
-    eta: 'Done',
-    faded: false,
-    optional: false,
-  },
-  {
-    id: 'phase1',
-    label: 'Phase 1',
-    color: '#00F0FF',
-    chains: ['Avalanche', 'Sui'],
-    rationale: 'Public APIs, standard IP access, strong validator/app opportunity',
-    eta: 'Q2 2026',
-    faded: false,
-    optional: false,
-  },
-  {
-    id: 'phase2',
-    label: 'Phase 2',
-    color: '#3B82F6',
-    chains: ['Hyperliquid POC', 'TON (if ADNL resolved)'],
-    rationale: 'High momentum but infra access barriers to solve first',
-    eta: 'Q3–Q4 2026',
-    faded: false,
-    optional: false,
-  },
-  {
-    id: 'phase3',
-    label: 'Phase 3?',
-    color: '#6B7280',
-    chains: ['Polkadot', 'Cosmos SDK (multi)', 'BTC L2s?', 'Morpho?'],
-    rationale: 'Exploratory — depends on Phase 1/2 learnings and ecosystem growth',
-    eta: '2027?',
-    faded: true,
-    optional: true,
-  },
-];
-
-interface AccordionChain {
-  id: string;
-  name: string;
-  color: string;
-  phase: string;
-  endpoint: string;
-  specs: { ram: string; cpu: string; storage: string; bandwidth: string };
-  ovhSku: string;
-  redFlags: string[];
-  notes?: string;
-}
-
-const ACCORDION_CHAINS: AccordionChain[] = [
-  {
-    id: 'avalanche',
-    name: 'Avalanche',
-    color: '#E84142',
-    phase: 'Phase 1',
-    endpoint: `# Validator info
-curl -X POST https://api.avax.network/ext/info \\
-  -H "Content-Type: application/json" \\
-  -d '{"jsonrpc":"2.0","id":1,"method":"info.peers","params":{}}'
-
-# C-Chain RPC
-https://api.avax.network/ext/bc/C/rpc
-
-# P-Chain (validator tracking)
-curl -X POST https://api.avax.network/ext/bc/P \\
-  -H "Content-Type: application/json" \\
-  -d '{"jsonrpc":"2.0","id":1,"method":"platform.getCurrentValidators","params":{}}'`,
-    specs: { ram: '16 GB', cpu: '8 cores', storage: '1 TB NVMe SSD', bandwidth: '1 Gbps' },
-    ovhSku: 'Advance-1 (adv-1) or Rise-3',
-    redFlags: [
-      'Three sub-chains (C/P/X) — decide which to track; C-Chain most relevant for DeFi',
-      'C-Chain IP extraction requires parsing peers from P-Chain validator API *(to refine)*',
-      'Subnet validators (L1s) not included in main validator set',
-    ],
-  },
-  {
-    id: 'sui',
-    name: 'Sui',
-    color: '#4DA2FF',
-    phase: 'Phase 1',
-    endpoint: `# Validator set (JSON-RPC)
-curl -X POST https://fullnode.mainnet.sui.io \\
-  -H "Content-Type: application/json" \\
-  -d '{"jsonrpc":"2.0","id":1,"method":"suix_getLatestSuiSystemState","params":[]}'
-
-# Node info
-curl -X POST https://fullnode.mainnet.sui.io \\
-  -H "Content-Type: application/json" \\
-  -d '{"jsonrpc":"2.0","id":1,"method":"sui_getChainIdentifier","params":[]}'`,
-    specs: { ram: '32 GB', cpu: '10 cores', storage: '2 TB NVMe SSD', bandwidth: '1 Gbps' },
-    ovhSku: 'Advance-2 or High-Grade server',
-    redFlags: [
-      'High hardware requirements — costlier OVH SKU needed vs Avalanche',
-      'Validator set is permissioned *(to refine — unclear if fully open)*',
-      'IP addresses of validators may not be directly exposed via API *(to refine)*',
-    ],
-  },
-  {
-    id: 'hyperliquid',
-    name: 'Hyperliquid',
-    color: '#00FF87',
-    phase: 'Phase 2',
-    endpoint: `# No official public validator node API documented *(to refine)*
-# Community / explorer endpoint:
-https://app.hyperliquid.xyz/api  # *(to refine — not official)*
-
-# Block explorer API (unofficial):
-https://hyperliquid.xyz  # check for JSON API`,
-    specs: { ram: '*(to refine)*', cpu: '*(to refine — HFT-grade low latency required)*', storage: '*(to refine)*', bandwidth: 'Low latency > raw bandwidth' },
-    ovhSku: '*(to refine)* — likely high-frequency trading grade server',
-    redFlags: [
-      'Validator set is closed/permissioned — validator count ~20, not open to public staking',
-      'No public documentation for node IP enumeration *(to refine)*',
-      'Custom L1 — no standard Cosmos SDK or EVM RPC patterns apply',
-      'Primary opportunity is app ecosystem (perps DEX), not infra tracking',
-    ],
-    notes: 'Treat as a POC — focus on app ecosystem opportunity rather than validator tracking',
-  },
-  {
-    id: 'ton',
-    name: 'TON',
-    color: '#0088CC',
-    phase: 'Phase 2',
-    endpoint: `# HTTP API (toncenter — standard web API works)
-curl "https://toncenter.com/api/v2/getConsensusBlock" \\
-  -H "X-API-Key: YOUR_KEY"
-
-# Validators via lite-client (requires ADNL)
-# ADNL is UDP-based — cannot use standard TCP/HTTP tooling
-# lite-client binary required: https://github.com/ton-blockchain/ton
-
-# Alternative: use public indexer
-https://tonapi.io/v2/blockchain/validators  # *(to refine — availability)*`,
-    specs: { ram: '16 GB', cpu: '8 cores', storage: '1 TB SSD', bandwidth: '1 Gbps' },
-    ovhSku: 'Advance-1 (adv-1)',
-    redFlags: [
-      'ADNL (Abstract Datagram Network Layer) is UDP-based and custom — standard IP/ASN detection does NOT work on P2P layer',
-      'HTTP API (toncenter) works but only exposes limited validator data',
-      'Full node requires lite-client binary with ADNL support — significant custom implementation effort',
-      'Validator IP exposure is minimal through public APIs *(to refine)*',
-      'Telegram distribution is a distribution advantage, not an infra advantage',
-    ],
-    notes: 'Only viable if ADNL resolution is implemented — otherwise cannot reliably detect OVH nodes',
-  },
-];
 
 // ---------------------------------------------------------------------------
 // Helper components
@@ -388,17 +263,16 @@ function Stars({ score }: { score: number }) {
   );
 }
 
-function StatusBadge({ status }: { status: Status }) {
-  const styles: Record<Status, string> = {
-    'Integrated': 'bg-emerald-500/15 text-emerald-400 border-emerald-500/30',
-    'Phase 1': 'bg-cyan-500/15 text-cyan-400 border-cyan-500/30',
-    'Phase 2': 'bg-blue-500/15 text-blue-400 border-blue-500/30',
-    'Optional': 'bg-white/8 text-white/40 border-white/15',
-    'Excluded': 'bg-red-500/10 text-red-400/60 border-red-500/20',
+function OvhInterestBadge({ interest }: { interest: OvhInterest }) {
+  const styles: Record<OvhInterest, string> = {
+    'High':   'bg-emerald-500/15 text-emerald-400 border-emerald-500/30',
+    'Medium': 'bg-cyan-500/15 text-cyan-400 border-cyan-500/30',
+    'Low':    'bg-amber-500/15 text-amber-400 border-amber-500/30',
+    'Skip':   'bg-red-500/10 text-red-400/60 border-red-500/20',
   };
   return (
-    <span className={`text-[9px] font-black uppercase tracking-widest px-1.5 py-0.5 rounded-full border ${styles[status]}`}>
-      {status}
+    <span className={`text-[9px] font-black uppercase tracking-widest px-1.5 py-0.5 rounded-full border ${styles[interest]}`}>
+      {interest}
     </span>
   );
 }
@@ -502,15 +376,15 @@ export default function RoadmapPage() {
 
   return (
     <div className="relative min-h-screen">
-      <BlockchainCubes opacity={0.05} network="solana" />
-      <ParticlesBackground network="solana" />
+      <BlockchainCubes opacity={0.05} />
+      <ParticlesBackground />
       <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
 
         {/* Page header */}
         <div className="mb-10">
           <div className="flex items-center gap-3 mb-2">
             <h1 className="text-3xl font-black tracking-tight text-white">
-              Blockchain Roadmap
+              Benchmark
             </h1>
             <span className="text-[9px] font-black uppercase tracking-widest px-2 py-0.5 rounded-full border"
               style={{ color: accent, borderColor: `${accent}50`, background: `${accent}12` }}>
@@ -523,8 +397,6 @@ export default function RoadmapPage() {
         </div>
 
         <RoadmapTable accent={accent} />
-        <div className="mt-16"><RoadmapTimeline accent={accent} /></div>
-        <div className="mt-16"><ChainAccordions accent={accent} /></div>
       </div>
     </div>
   );
@@ -537,25 +409,77 @@ export default function RoadmapPage() {
 function RoadmapTable({ accent }: { accent: string }) {
   const tiers = [1, 2, 3, 4, 5] as const;
   const tierLabels: Record<number, string> = {
-    1: 'Integrated',
-    2: 'Phase 1 — Priority',
-    3: 'Phase 2',
-    4: 'Phase 3 / Optional',
-    5: 'Excluded',
+    1: 'Live',
+    2: 'High Interest',
+    3: 'Moderate Interest',
+    4: 'Low / Watch',
+    5: 'Out of Scope',
+  };
+
+  const handleDownloadCSV = () => {
+    const headers = ['Chain', 'Tier', 'Validators', 'Validator Specs', 'RPC Nodes', 'RPC Specs', 'Validator Opp.', 'RPC Opp.', 'App Ecosystem Opp.', 'App Protocols', 'IP Access', 'Momentum', 'OVH Interest'];
+
+    const rows = CHAIN_DATA.map(chain => {
+      const getVal = (field: string, def: string | number) => {
+        if (typeof window !== 'undefined') {
+          return localStorage.getItem(`roadmap-cell-${chain.id}-${field}`) || String(def);
+        }
+        return String(def);
+      };
+
+      return [
+        chain.name,
+        chain.tier,
+        getVal('validators', chain.validators),
+        getVal('hardware', chain.hardware),
+        getVal('rpcNodes', chain.rpcNodes),
+        getVal('rpcSpecs', chain.rpcSpecs),
+        chain.validatorOpp,
+        chain.rpcOpp,
+        chain.appOpp,
+        getVal('appEcosystem', chain.appEcosystem),
+        chain.ipNote,
+        chain.momentum,
+        chain.ovhInterest
+      ].map(val => `"${String(val).replace(/"/g, '""')}"`).join(',');
+    });
+
+    const csvContent = [headers.join(','), ...rows].join('\n');
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.setAttribute('href', url);
+    link.setAttribute('download', `benchmark-metrics-${new Date().toISOString().split('T')[0]}.csv`);
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
   };
 
   return (
     <section>
-      <h2 className="text-xl font-black text-white mb-6 flex items-center gap-3">
-        <span className="w-1 h-6 rounded-full" style={{ background: accent }} />
-        Chain Comparison
-      </h2>
+      <div className="flex items-center justify-between mb-6">
+        <h2 className="text-xl font-black text-white flex items-center gap-3">
+          <span className="w-1 h-6 rounded-full" style={{ background: accent }} />
+          Chain Comparison
+        </h2>
+        
+        <button
+          onClick={handleDownloadCSV}
+          className="flex items-center gap-2 px-3 py-1.5 rounded-lg border border-white/10 bg-white/5 hover:bg-white/10 hover:border-white/20 transition-all text-[10px] font-bold text-white/50 hover:text-white"
+        >
+          <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+          </svg>
+          CSV
+        </button>
+      </div>
 
       <div className="overflow-x-auto rounded-xl border border-white/10 bg-white/3 backdrop-blur-sm">
         <table className="w-full text-xs">
           <thead>
             <tr className="border-b border-white/10">
-              {['Chain', 'Validators', 'Hardware', 'Validator Opp.', 'RPC Opp.', 'App Ecosystem Opp.', 'App Protocols', 'IP Access', 'Momentum 25-26', 'Status'].map(h => (
+              {['Chain', 'Validators', 'Validator Specs', 'RPC Nodes', 'RPC Specs', 'Validator Opp.', 'RPC Opp.', 'App Ecosystem Opp.', 'App Protocols', 'IP Access', 'Momentum 25-26', 'OVH Interest'].map(h => (
                 <th key={h} className="px-3 py-3 text-left text-[9px] font-black uppercase tracking-widest text-white/30 whitespace-nowrap">
                   {h}
                 </th>
@@ -569,7 +493,7 @@ function RoadmapTable({ accent }: { accent: string }) {
               return (
                 <Fragment key={tier}>
                   <tr>
-                    <td colSpan={10} className="px-3 pt-4 pb-1">
+                    <td colSpan={12} className="px-3 pt-4 pb-1">
                       <span className="text-[9px] font-black uppercase tracking-widest text-white/20">
                         {tierLabels[tier]}
                       </span>
@@ -595,8 +519,14 @@ function RoadmapTable({ accent }: { accent: string }) {
                         <td className="px-3 py-3 text-white/60">
                           <EditableCell chainId={chain.id} field="validators" defaultValue={chain.validators} />
                         </td>
-                        <td className="px-3 py-3 text-white/60 max-w-[160px]">
+                        <td className="px-3 py-3 text-white/60 max-w-[180px]">
                           <EditableCell chainId={chain.id} field="hardware" defaultValue={chain.hardware} />
+                        </td>
+                        <td className="px-3 py-3 text-white/60">
+                          <EditableCell chainId={chain.id} field="rpcNodes" defaultValue={chain.rpcNodes} />
+                        </td>
+                        <td className="px-3 py-3 text-white/60 max-w-[180px]">
+                          <EditableCell chainId={chain.id} field="rpcSpecs" defaultValue={chain.rpcSpecs} />
                         </td>
                         <td className="px-3 py-3"><Stars score={chain.validatorOpp} /></td>
                         <td className="px-3 py-3"><Stars score={chain.rpcOpp} /></td>
@@ -608,9 +538,9 @@ function RoadmapTable({ accent }: { accent: string }) {
                         <td className="px-3 py-3"><MomentumTag momentum={chain.momentum} /></td>
                         <td className="px-3 py-3">
                           <div className="flex flex-col gap-1">
-                            <StatusBadge status={chain.status} />
-                            {chain.statusNote && (
-                              <span className="text-[9px] text-white/25 italic">{chain.statusNote}</span>
+                            <OvhInterestBadge interest={chain.ovhInterest} />
+                            {chain.interestNote && (
+                              <span className="text-[9px] text-white/25 italic">{chain.interestNote}</span>
                             )}
                           </div>
                         </td>
@@ -631,184 +561,3 @@ function RoadmapTable({ accent }: { accent: string }) {
   );
 }
 
-function RoadmapTimeline({ accent }: { accent: string }) {
-  return (
-    <section>
-      <h2 className="text-xl font-black text-white mb-8 flex items-center gap-3">
-        <span className="w-1 h-6 rounded-full" style={{ background: accent }} />
-        Implementation Timeline
-      </h2>
-
-      {/* Desktop horizontal timeline */}
-      <div className="hidden md:block relative">
-        <div className="absolute top-5 left-0 right-0 h-px bg-white/10" />
-        <div className="absolute top-5 left-0 w-1/4 h-px bg-emerald-400/60" />
-        <div className="absolute top-5 left-1/4 w-1/4 h-px" style={{ background: `${accent}60` }} />
-
-        <div className="grid grid-cols-4 gap-4">
-          {TIMELINE_PHASES.map((phase, i) => (
-            <div key={phase.id} className={`relative ${phase.faded ? 'opacity-50' : ''}`}>
-              <div className="flex justify-center mb-6">
-                <div
-                  className={`w-10 h-10 rounded-full flex items-center justify-center text-xs font-black z-10 relative ${phase.optional ? 'border-dashed border-2' : 'border-2'}`}
-                  style={{
-                    borderColor: phase.color,
-                    background: `${phase.color}20`,
-                    color: phase.color,
-                  }}
-                >
-                  {i + 1}
-                </div>
-              </div>
-
-              <div
-                className={`rounded-xl p-4 bg-white/3 backdrop-blur-sm ${phase.optional ? 'border border-dashed border-white/15' : 'border border-white/10'}`}
-              >
-                <div className="flex items-center justify-between mb-2">
-                  <span className="text-[9px] font-black uppercase tracking-widest" style={{ color: phase.color }}>
-                    {phase.label}
-                  </span>
-                  <span className="text-[9px] text-white/30">{phase.eta}</span>
-                </div>
-                <div className="space-y-1 mb-3">
-                  {phase.chains.map(c => (
-                    <div key={c} className="flex items-center gap-1.5">
-                      <span className="w-1 h-1 rounded-full shrink-0" style={{ background: phase.color }} />
-                      <span className={`text-xs font-bold ${phase.faded ? 'text-white/40 italic' : 'text-white'}`}>{c}</span>
-                    </div>
-                  ))}
-                </div>
-                <p className="text-[10px] text-white/30 leading-relaxed">{phase.rationale}</p>
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      {/* Mobile vertical timeline */}
-      <div className="md:hidden space-y-4">
-        {TIMELINE_PHASES.map((phase) => (
-          <div key={phase.id} className={`flex gap-4 ${phase.faded ? 'opacity-50' : ''}`}>
-            <div className="flex flex-col items-center">
-              <div
-                className="w-8 h-8 rounded-full border-2 flex items-center justify-center text-xs font-black shrink-0"
-                style={{ borderColor: phase.color, background: `${phase.color}20`, color: phase.color }}
-              >
-                ●
-              </div>
-              <div className="w-px flex-1 bg-white/10 mt-2" />
-            </div>
-            <div className={`rounded-xl p-4 bg-white/3 flex-1 mb-2 ${phase.optional ? 'border border-dashed border-white/15' : 'border border-white/10'}`}>
-              <div className="flex justify-between mb-2">
-                <span className="text-[9px] font-black uppercase tracking-widest" style={{ color: phase.color }}>{phase.label}</span>
-                <span className="text-[9px] text-white/30">{phase.eta}</span>
-              </div>
-              <div className="space-y-1 mb-2">
-                {phase.chains.map(c => (
-                  <span key={c} className={`block text-xs font-bold ${phase.faded ? 'text-white/40 italic' : 'text-white'}`}>· {c}</span>
-                ))}
-              </div>
-              <p className="text-[10px] text-white/30">{phase.rationale}</p>
-            </div>
-          </div>
-        ))}
-      </div>
-    </section>
-  );
-}
-function ChainAccordions({ accent }: { accent: string }) {
-  const [openId, setOpenId] = useState<string | null>(null);
-
-  return (
-    <section className="pb-16">
-      <h2 className="text-xl font-black text-white mb-6 flex items-center gap-3">
-        <span className="w-1 h-6 rounded-full" style={{ background: accent }} />
-        Chain Implementation Details
-      </h2>
-      <p className="text-white/30 text-sm mb-6">Phase 1 and Phase 2 chains — click to expand technical specs.</p>
-
-      <div className="space-y-3">
-        {ACCORDION_CHAINS.map(chain => {
-          const isOpen = openId === chain.id;
-          return (
-            <div
-              key={chain.id}
-              className="rounded-xl border border-white/10 bg-white/3 backdrop-blur-sm overflow-hidden"
-              style={isOpen ? { borderColor: `${chain.color}40` } : undefined}
-            >
-              <button
-                onClick={() => setOpenId(isOpen ? null : chain.id)}
-                className="w-full flex items-center justify-between px-5 py-4 text-left hover:bg-white/3 transition-colors"
-              >
-                <span className="flex items-center gap-3">
-                  <span className="w-3 h-3 rounded-full" style={{ background: chain.color }} />
-                  <span className="font-black text-white text-sm">{chain.name}</span>
-                  <span
-                    className="text-[9px] font-black uppercase tracking-widest px-1.5 py-0.5 rounded-full border"
-                    style={{ color: chain.color, borderColor: `${chain.color}40`, background: `${chain.color}12` }}
-                  >
-                    {chain.phase}
-                  </span>
-                </span>
-                <svg
-                  className={`w-4 h-4 text-white/30 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`}
-                  fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}
-                >
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
-                </svg>
-              </button>
-
-              {isOpen && (
-                <div className="px-5 pb-6 space-y-6 border-t border-white/8">
-                  <div className="pt-4">
-                    <p className="text-[9px] font-black uppercase tracking-widest text-white/30 mb-2">API Endpoint</p>
-                    <pre className="font-mono text-xs bg-black/40 border border-white/10 rounded-lg px-4 py-3 overflow-x-auto text-cyan-400/80 leading-relaxed whitespace-pre-wrap">
-                      {chain.endpoint}
-                    </pre>
-                  </div>
-
-                  <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                    {[
-                      { label: 'RAM', value: chain.specs.ram },
-                      { label: 'CPU', value: chain.specs.cpu },
-                      { label: 'Storage', value: chain.specs.storage },
-                      { label: 'Bandwidth', value: chain.specs.bandwidth },
-                    ].map(s => (
-                      <div key={s.label} className="rounded-lg bg-white/5 border border-white/8 px-3 py-2.5">
-                        <p className="text-[9px] text-white/30 uppercase tracking-widest mb-0.5">{s.label}</p>
-                        <p className="text-xs font-bold text-white">{s.value}</p>
-                      </div>
-                    ))}
-                  </div>
-
-                  <div>
-                    <p className="text-[9px] font-black uppercase tracking-widest text-white/30 mb-1">OVH Server Match</p>
-                    <p className="text-sm font-mono" style={{ color: chain.color }}>{chain.ovhSku}</p>
-                  </div>
-
-                  <div>
-                    <p className="text-[9px] font-black uppercase tracking-widest text-red-400/60 mb-2">Red Flags</p>
-                    <ul className="space-y-1.5">
-                      {chain.redFlags.map((flag, i) => (
-                        <li key={i} className="flex items-start gap-2 text-xs text-white/50">
-                          <span className="text-red-400/60 mt-0.5 shrink-0">⚠</span>
-                          <span dangerouslySetInnerHTML={{ __html: flag.replace(/\*(.*?)\*/g, '<em class="text-white/30">$1</em>') }} />
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-
-                  {chain.notes && (
-                    <div className="rounded-lg border border-white/8 bg-white/3 px-4 py-3">
-                      <p className="text-xs text-white/40 italic">{chain.notes}</p>
-                    </div>
-                  )}
-                </div>
-              )}
-            </div>
-          );
-        })}
-      </div>
-    </section>
-  );
-}

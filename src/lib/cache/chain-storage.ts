@@ -23,8 +23,7 @@ import { getDatabase } from '@/lib/db/database';
 export const CACHE_KEYS = {
     solana: 'solana-metrics',
     avalanche: 'avalanche-metrics',
-    // Future chains — uncomment when implemented:
-    // sui: 'sui-metrics',
+    sui: 'sui-metrics',
     // celestia: 'celestia-metrics',
 } as const;
 
@@ -32,8 +31,9 @@ export type ChainId = keyof typeof CACHE_KEYS;
 
 // TTL per chain (ms). Avalanche peers refresh quickly so 2h is safer than 1h.
 export const CACHE_TTL: Record<ChainId, number> = {
-    solana: 60 * 60 * 1000,       // 1 hour
+    solana: 60 * 60 * 1000,        // 1 hour
     avalanche: 2 * 60 * 60 * 1000, // 2 hours
+    sui: 2 * 60 * 60 * 1000,       // 2 hours (validators change only at epoch ~24h)
 };
 
 // ── Core types ─────────────────────────────────────────────────────────────────

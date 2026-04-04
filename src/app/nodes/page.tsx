@@ -1,19 +1,21 @@
 import ParticlesBackground from '@/components/ParticlesBackground';
 import NodeExplorer from '@/components/nodes/NodeExplorer';
-import { fetchEnrichedNodes } from '@/lib/solana/getAllNodes';
-import { EnrichedNode } from '@/types';
+import { readCache } from '@/lib/cache/storage';
 
-// Mark as dynamic to avoid build-time MaxMind issues and ensure fresh data
+// Force dynamic to get fresh metrics but from cache
 export const dynamic = 'force-dynamic';
 
 export default async function NodesPage() {
-    let nodes: EnrichedNode[] = [];
-    let error = null;
-
+    let totalNodes = 0;
+    
+    // Get stats from already cached metrics (very fast, no RPC call)
     try {
-        nodes = await fetchEnrichedNodes();
+        const cache = await readCache();
+        if (cache?.data) {
+            totalNodes = cache.nodeCount || 0;
+        }
     } catch (err) {
-        error = err instanceof Error ? err.message : 'Failed to fetch nodes';
+        // Fallback silently
     }
 
     return (
@@ -26,17 +28,11 @@ export default async function NodesPage() {
                             Network Explorer
                         </h2>
                         <p className="text-white/50 mt-2">
-                            Explore all {nodes.length} nodes currently contributing to the Solana network.
+                            Explore all {totalNodes > 0 ? totalNodes.toLocaleString() : 'thousands of'} nodes currently contributing to the Solana network.
                         </p>
                     </div>
 
-                    {error ? (
-                        <div className="bg-red-500/10 border border-red-500/20 p-6 rounded-2xl text-center">
-                            <p className="text-red-400">Error loading nodes: {error}</p>
-                        </div>
-                    ) : (
-                        <NodeExplorer initialNodes={nodes} />
-                    )}
+                    <NodeExplorer />
             </main>
         </div>
     );

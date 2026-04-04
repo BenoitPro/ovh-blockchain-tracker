@@ -6,20 +6,27 @@ import path from 'path';
 
 const SCHEMA_PATH = path.join(process.cwd(), 'src', 'lib', 'db', 'schema.sql');
 
-let db: Client | null = null;
-let isInitialized = false;
+// Singleton connection persisted across HMR reloads
+const globalForDb = globalThis as unknown as {
+    db: Client | undefined;
+    isInitialized: boolean;
+};
+
+let db: Client | undefined = globalForDb.db;
+let isInitialized = globalForDb.isInitialized ?? false;
 
 /**
  * Get or create the Turso database connection
  * Singleton pattern to ensure only one connection exists
  */
 export function getDatabase(): Client {
-    if (db) {
-        if (!isInitialized) {
-            initializeSchema(db);
+    if (globalForDb.db) {
+        if (!globalForDb.isInitialized) {
+            initializeSchema(globalForDb.db);
+            globalForDb.isInitialized = true;
             isInitialized = true;
         }
-        return db;
+        return globalForDb.db;
     }
 
     const { tursoUrl, tursoAuthToken } = getEnvConfig();
@@ -30,20 +37,22 @@ export function getDatabase(): Client {
 
     try {
         // Create database client
-        db = createClient({
+        globalForDb.db = createClient({
             url: tursoUrl || 'file:./data/metrics.db', // Fallback for local testing
             authToken: tursoAuthToken,
         });
+        db = globalForDb.db;
 
         logger.info(`[Database] Connected to Turso database: ${tursoUrl ? 'Remote' : 'Local'}`);
 
-        // Initialize schema if needed (fire and forget as it's async in libsql context when running multiple queries, we will await the batch)
-        if (!isInitialized) {
-            initializeSchema(db);
+        // Initialize schema if needed
+        if (!globalForDb.isInitialized) {
+            initializeSchema(globalForDb.db);
+            globalForDb.isInitialized = true;
             isInitialized = true;
         }
 
-        return db;
+        return globalForDb.db;
     } catch (error) {
         logger.error('[Database] Failed to initialize database:', error);
         throw error;
@@ -103,9 +112,11 @@ async function initializeSchema(database: Client): Promise<void> {
  * Close the database connection
  */
 export function closeDatabase(): void {
-    if (db) {
-        db.close();
-        db = null;
+    if (globalForDb.db) {
+        globalForDb.db.close();
+        globalForDb.db = undefined;
+        db = undefined;
+        globalForDb.isInitialized = false;
         isInitialized = false;
         logger.info('[Database] Database connection closed');
     }

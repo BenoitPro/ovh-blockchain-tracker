@@ -71,8 +71,14 @@ export const PROVIDER_LABELS: Record<string, string> = {
     others: 'Others',
 };
 
+// Sui RPC
+export const SUI_RPC_ENDPOINT = 'https://fullnode.mainnet.sui.io:443';
+
 // Cache keys — one per chain (all share the same `cache` table, different keys)
 export const CACHE_KEY = 'solana-metrics';           // Legacy Solana key — kept unchanged
 export const CACHE_KEY_AVALANCHE = 'avalanche-metrics';
+export const CACHE_KEY_SUI = 'sui-metrics';
+
 export const CACHE_TTL_MS = 60 * 60 * 1000;         // Solana: 1h
 export const CACHE_TTL_AVALANCHE_MS = 2 * 60 * 60 * 1000; // Avalanche: 2h
+export const CACHE_TTL_SUI_MS = 2 * 60 * 60 * 1000;       // Sui: 2h

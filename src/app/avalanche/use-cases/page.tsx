@@ -187,8 +187,8 @@ export default function AvalancheUseCasesPage() {
                 backgroundAttachment: 'fixed'
             }}
         >
-            <BlockchainCubes opacity={0.07} network="avalanche" count={10} />
-            <ParticlesBackground network="avalanche" />
+            <BlockchainCubes opacity={0.07} count={10} />
+            <ParticlesBackground />
 
             <div className="relative z-10">
                 <main className="p-6 w-full max-w-4xl mx-auto">
@@ -197,7 +197,6 @@ export default function AvalancheUseCasesPage() {
                             <>Real-World <span style={{ color: ACCENT, textShadow: `0 0 20px ${ACCENT}80` }}>Avalanche</span> Use Cases</>
                         }
                         subtitle="How builders leverage OVHcloud's raw performance for Subnets and Validators"
-                        accentColor={ACCENT}
                     />
 
                     {/* Stats banner */}

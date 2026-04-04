@@ -74,8 +74,8 @@ export default function EthereumGuidePage() {
     return (
         <main className="relative min-h-screen overflow-hidden bg-[#f8faff]">
             {/* Background elements */}
-            <ParticlesBackground network="ethereum" />
-            <BlockchainCubes network="ethereum" opacity={0.4} />
+            <ParticlesBackground />
+            <BlockchainCubes opacity={0.4} />
 
             <div className="relative z-10 max-w-5xl mx-auto px-6 py-20 lg:py-28">
                 {/* Hero section */}

@@ -2,12 +2,13 @@ import { useState } from 'react';
 import { ServerIcon, ChartPieIcon, InformationCircleIcon, XMarkIcon } from '@heroicons/react/24/outline';
 import { formatPercentage } from '@/lib/solana/calculateMetrics';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useNetworkTheme } from '@/components/NetworkThemeProvider';
+import { CHAINS, ChainId } from '@/lib/chains';
 
 interface KPICardsProps {
     totalNodes: number;
     ovhNodes: number;
     marketShare: number;
-    network?: 'solana' | 'ethereum' | 'avalanche';
     vertical?: boolean;
     align?: 'left' | 'center' | 'right';
 }
@@ -16,50 +17,37 @@ export default function KPICards({
     totalNodes, 
     ovhNodes, 
     marketShare, 
-    network = 'solana', 
     vertical = false,
     align = 'center'
 }: KPICardsProps) {
     const [activeTooltip, setActiveTooltip] = useState<number | null>(null);
-    const isEth = network === 'ethereum';
-    const isAvax = network === 'avalanche';
+    const { theme } = useNetworkTheme();
+    const currentChainName = CHAINS[theme as ChainId]?.name || 'Network';
 
     const metrics = [
         {
-            title: isEth ? 'Total Execution Nodes' : isAvax ? 'Total Avalanche Nodes' : 'Total Network Nodes',
+            title: `Total ${currentChainName} Nodes`,
             value: totalNodes.toLocaleString(),
             icon: ServerIcon,
-            color: isAvax ? '#E84142' : '#A855F7',
-            tooltipTitle: isEth ? 'Total Execution Nodes' : isAvax ? 'Total Avalanche Nodes' : 'Total Network Nodes',
-            tooltipContent: isEth
-                ? 'Total number of discovered execution-layer nodes across the entire Ethereum network during the last crawl.'
-                : isAvax
-                ? 'Total number of discovered Avalanche peers from the primary network snapshot.'
-                : 'Total number of active nodes detected globally on the network.'
+            color: 'var(--chain-accent)',
+            tooltipTitle: `Total ${currentChainName} Nodes`,
+            tooltipContent: `Total number of discovered nodes across the entire ${currentChainName} network during the last crawl.`
         },
         {
-            title: isEth ? 'Active OVH Nodes' : isAvax ? 'OVHcloud Nodes' : 'Active OVH Nodes (RPC + Staking)',
+            title: 'Active OVHcloud Nodes',
             value: ovhNodes.toString(),
             icon: ServerIcon,
-            color: isAvax ? '#FF6B6B' : '#00F0FF',
-            tooltipTitle: isEth ? 'Active OVH Nodes' : isAvax ? 'OVHcloud Nodes' : 'Active OVH Nodes (RPC + Staking)',
-            tooltipContent: isEth
-                ? 'Number of Ethereum execution-layer nodes mapped to OVHcloud ASNs via MaxMind GeoLite2.'
-                : isAvax
-                ? 'Number of Avalanche nodes hosted on OVHcloud ASNs.'
-                : 'Total number of Solana network nodes (both RPC and voting validators) currently identifying as hosting on OVHcloud infrastructure via their ASN.'
+            color: 'var(--chain-accent)',
+            tooltipTitle: 'Active OVHcloud Nodes',
+            tooltipContent: `Number of ${currentChainName} network nodes currently identifying as hosting on OVHcloud infrastructure.`
         },
         {
             title: 'Market Share (All Nodes)',
             value: formatPercentage(marketShare),
             icon: ChartPieIcon,
-            color: isAvax ? '#FF3333' : '#6B4FBB',
+            color: 'var(--chain-accent)',
             tooltipTitle: 'Node Market Share',
-            tooltipContent: isEth
-                ? 'Percentage of total Ethereum execution-layer nodes hosted on OVHcloud infrastructure.'
-                : isAvax
-                ? 'Percentage of Avalanche nodes hosted on OVHcloud infrastructure from the fetched snapshot.'
-                : 'Percentage of total network nodes (RPC + Staking) hosted on OVH.'
+            tooltipContent: `Percentage of total ${currentChainName} nodes hosted on OVHcloud infrastructure.`
         }
     ];
 
@@ -89,7 +77,7 @@ export default function KPICards({
                         style={{ background: `radial-gradient(circle, ${item.color} 0%, transparent 60%)` }}
                     />
                     
-                    <div className={`flex items-center gap-1.5 md:gap-2 mb-0.5 md:mb-1 text-slate-400 ${isEth ? 'group-hover:text-slate-700' : 'group-hover:text-white'} transition-colors duration-300 ${vertical && align === 'right' ? 'flex-row-reverse' : ''}`}>
+                    <div className={`flex items-center gap-1.5 md:gap-2 mb-0.5 md:mb-1 text-slate-400 group-hover:text-white transition-colors duration-300 ${vertical && align === 'right' ? 'flex-row-reverse' : ''}`}>
                         <item.icon className="w-4 h-4 md:w-5 md:h-5 opacity-70" style={{ color: item.color }} />
                         <span className="text-[9px] md:text-[10px] font-bold uppercase tracking-[0.1em] md:tracking-[0.15em] shrink-0 text-center">{item.title}</span>
                         <InformationCircleIcon className="w-3.5 h-3.5 md:w-4 md:h-4 opacity-30 hover:opacity-100 transition-opacity" />
@@ -97,7 +85,7 @@ export default function KPICards({
                     
                     <h3 
                         className="text-xl sm:text-2xl md:text-3xl font-black drop-shadow-[0_0_20px_rgba(255,255,255,0.1)] transition-transform duration-300 group-hover:scale-105"
-                        style={{ color: item.color, textShadow: `0 0 30px ${item.color}60` }}
+                        style={{ color: item.color, textShadow: `0 0 30px color-mix(in srgb, ${item.color} 60%, transparent)` }}
                     >
                         {item.value}
                     </h3>
@@ -110,7 +98,7 @@ export default function KPICards({
                                 animate={{ opacity: 1, scale: 1, y: 0 }}
                                 exit={{ opacity: 0, scale: 0.95, y: 10 }}
                                 className={`absolute bottom-full ${vertical ? 'right-0' : ''} mb-4 z-50 w-72 bg-[#050510]/95 backdrop-blur-xl border border-white/10 rounded-2xl p-5 shadow-2xl text-left cursor-default`}
-                                style={{ boxShadow: `0 10px 40px ${item.color}20` }}
+                                style={{ boxShadow: `0 10px 40px color-mix(in srgb, ${item.color} 20%, transparent)` }}
                                 onClick={(e) => e.stopPropagation()}
                             >
                                 <button 

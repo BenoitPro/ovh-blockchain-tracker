@@ -3,20 +3,13 @@ import { ExclamationTriangleIcon } from '@heroicons/react/24/outline';
 interface ErrorStateProps {
     message: string;
     onRetry?: () => void;
-    network?: 'solana' | 'ethereum' | 'avalanche';
 }
 
-export default function ErrorState({ message, onRetry, network = 'solana' }: ErrorStateProps) {
-    const isEth = network === 'ethereum';
-    const isAvax = network === 'avalanche';
-    const bgClass = isEth ? 'bg-white' : isAvax ? 'bg-[#0a0404]' : 'bg-[#000E1E]';
-    const textClass = isEth ? 'text-slate-800' : 'text-white';
-    const subTextClass = isEth ? 'text-slate-500' : 'text-gray-400';
-    const btnClass = isEth 
-        ? 'bg-[#627EEA] hover:bg-[#526AD4] text-white' 
-        : isAvax 
-        ? 'bg-[#E84142] hover:bg-[#D63A3A] text-white' 
-        : 'bg-[#00F0FF] hover:bg-[#00D4E6] text-[#000E1E]';
+export default function ErrorState({ message, onRetry }: ErrorStateProps) {
+    const bgClass = 'bg-[#000E1E]';
+    const textClass = 'text-white';
+    const subTextClass = 'text-gray-400';
+    const btnClass = 'bg-[#00F0FF] hover:bg-[#00D4E6] text-[#000E1E]';
 
     return (
         <div className={`min-h-screen flex items-center justify-center ${bgClass}`}>

@@ -1,4 +1,4 @@
-import { SolanaNode, EnrichedNode } from '@/types';
+import { EnrichedNode } from '@/types';
 import { fetchSolanaNodes, extractIP } from './fetchNodes';
 import { batchGetASN, initMaxMind, batchGetCountry } from '@/lib/asn/maxmind';
 import { identifyProvider } from './filterOVH';
@@ -8,14 +8,14 @@ import { SOLANA_RPC_ENDPOINT } from '@/lib/config/constants';
 // Cache for validator names
 let validatorMapCache: Map<string, { name: string; image: string; }> | null = null;
 
-async function fetchValidatorList() {
-    if (validatorMapCache) return validatorMapCache;
+async function fetchValidatorList(forceRefresh: boolean = false) {
+    if (validatorMapCache && !forceRefresh) return validatorMapCache;
 
     try {
         // Fetch from stakewiz.com public API
         const response = await fetch('https://api.stakewiz.com/validators', {
             headers: { 'Content-Type': 'application/json' },
-            cache: 'no-store' // Avoid caching very large payloads with Turbopack
+            cache: 'no-store'
         });
 
         if (response.ok) {
@@ -23,17 +23,23 @@ async function fetchValidatorList() {
             const map = new Map<string, { name: string; image: string; }>();
 
             data.forEach((v: any) => {
-                if (v.identity) {
-                    map.set(v.identity, {
-                        name: v.name || 'Unknown Validator',
-                        image: v.image || '' // Stakewiz returns logo in `image`
-                    });
-                }
+                // FALLBACK: If name is blank, we try to get it from image filename as a last resort
+                // or just keep it as Unknown Validator if no logo either.
+                let name = (v.name || v.username || '').trim();
+                
+                // CRITICAL: We also map both identity AND vote_identity
+                const info = {
+                    name: name || 'Unknown Validator',
+                    image: v.image || ''
+                };
+                
+                if (v.identity) map.set(v.identity, info);
+                if (v.vote_identity) map.set(v.vote_identity, info);
             });
 
-            // Add manual overrides for top validators if missing
-            if (!map.has('JupmVLmA8RoyTUbTMMuTtoPWHEINQobxgTeGTrPNkzT')) {
-                map.set('JupmVLmA8RoyTUbTMMuTtoPWHEINQobxgTeGTrPNkzT', { name: 'Jupiter', image: '' });
+            // Re-apply a SHIELD for the JUPITER key which often fails in API
+            if (!map.has('JupmVLmA8RoyTUbTMMuTtoPWHEiNQobxgTeGTrPNkzT')) {
+                map.set('JupmVLmA8RoyTUbTMMuTtoPWHEiNQobxgTeGTrPNkzT', { name: 'Jupiter', image: '' });
             }
 
             validatorMapCache = map;
@@ -43,7 +49,7 @@ async function fetchValidatorList() {
         logger.warn('Failed to fetch validator list, using basic map');
     }
 
-    return new Map();
+    return validatorMapCache || new Map();
 }
 
 /**
@@ -61,8 +67,7 @@ async function fetchVoteAccounts(): Promise<Map<string, { stake: number; commiss
                 params: [{
                     commitment: 'finalized',
                 }]
-            }),
-            cache: 'no-store' // Avoid Turbopack large cache crashes
+            })
         });
 
         if (!response.ok) throw new Error(`Vote accounts RPC error: ${response.status}`);
@@ -86,14 +91,14 @@ async function fetchVoteAccounts(): Promise<Map<string, { stake: number; commiss
         return voteMap;
     } catch (error) {
         logger.error('Error fetching vote accounts:', error);
-        return new Map(); // Return empty map on error to allow partial data
+        return new Map();
     }
 }
 
 /**
  * Fetch all Solana nodes and enrich them with ASN/Org info using MaxMind + Stake info
  */
-export async function fetchEnrichedNodes(): Promise<EnrichedNode[]> {
+export async function fetchEnrichedNodes(forceRefresh: boolean = false): Promise<EnrichedNode[]> {
     try {
         // Ensure MaxMind is initialized
         await initMaxMind();
@@ -102,7 +107,7 @@ export async function fetchEnrichedNodes(): Promise<EnrichedNode[]> {
         const [nodes, voteMap, validatorNames] = await Promise.all([
             fetchSolanaNodes(),
             fetchVoteAccounts(),
-            fetchValidatorList()
+            fetchValidatorList(forceRefresh)
         ]);
 
         // Extract all IPs for batch processing
@@ -122,7 +127,12 @@ export async function fetchEnrichedNodes(): Promise<EnrichedNode[]> {
             const asnInfo = ip ? asnResults.get(ip) : null;
             const countryInfo = ip ? countryResults.get(ip) : null;
             const voteInfo = voteMap.get(node.pubkey);
-            const validatorInfo = validatorNames?.get(node.pubkey);
+            
+            // Try to find name by node identity OR by vote identity
+            let validatorInfo = validatorNames?.get(node.pubkey);
+            if (!validatorInfo && voteInfo?.votePubkey) {
+                validatorInfo = validatorNames?.get(voteInfo.votePubkey);
+            }
 
             return {
                 ...node,
@@ -143,7 +153,7 @@ export async function fetchEnrichedNodes(): Promise<EnrichedNode[]> {
         // Sort by Stake (descending) by default
         enrichedNodes.sort((a, b) => (b.activatedStake || 0) - (a.activatedStake || 0));
 
-        logger.info(`[Explorer] Enriched ${enrichedNodes.length} nodes with ASN, Stake & Country info`);
+        logger.info(`[Explorer] Enriched ${enrichedNodes.length} nodes (Identified ${Array.from(validatorNames?.values() || []).filter(v => v.name !== 'Unknown Validator').length} validators)`);
         return enrichedNodes;
     } catch (error) {
         logger.error('Error fetching enriched nodes:', error);

@@ -7,19 +7,20 @@ import { useState, useEffect } from 'react';
 import ChainToggle from '@/components/ChainToggle';
 import OthersDropdown from '@/components/OthersDropdown';
 import { useNetworkTheme } from '@/components/NetworkThemeProvider';
+import { CHAINS } from '@/lib/chains';
 
 export default function Sidebar() {
     const pathname = usePathname();
     const { theme } = useNetworkTheme();
-    const isEth = theme === 'ethereum';
-    const isAvax = theme === 'avalanche';
-    const isHyperliquid = theme === 'hyperliquid';
-    const isNodes = pathname.startsWith('/nodes') || pathname.startsWith('/ethereum/nodes') || pathname.startsWith('/avalanche/nodes') || pathname.startsWith('/hyperliquid/nodes');
-    const isUseCases = pathname.startsWith('/use-cases') || pathname.startsWith('/ethereum/use-cases') || pathname.startsWith('/avalanche/use-cases') || pathname.startsWith('/hyperliquid/use-cases');
-    const isAnalytics = pathname.startsWith('/analytics') || pathname.startsWith('/ethereum/analytics') || pathname.startsWith('/avalanche/analytics') || pathname.startsWith('/hyperliquid/analytics');
+    const currentChain = CHAINS[theme] || CHAINS.solana;
+    const accent = currentChain.accent;
+
+    const isNodes = pathname.includes('/nodes');
+    const isUseCases = pathname.includes('/use-cases');
+    const isAnalytics = pathname.includes('/analytics');
     const isAbout = pathname.startsWith('/about');
     const isRoadmap = pathname.startsWith('/roadmap');
-    const isDashboard = pathname === '/' || pathname === '/ethereum' || pathname === '/avalanche' || pathname === '/hyperliquid';
+    const isDashboard = currentChain.id === 'solana' ? pathname === '/' : pathname === currentChain.route;
 
     const [mobileOpen, setMobileOpen] = useState(false);
 
@@ -35,34 +36,17 @@ export default function Sidebar() {
       setMobileOpen(false);
     }
 
-    const accent = isEth ? '#627EEA' : isAvax ? '#E84142' : isHyperliquid ? '#00E5BE' : '#00F0FF';
-
     /* ── Theming helpers ──────────────────────────────────────────────── */
-    const sidebarBg = isEth
-        ? 'bg-white/80 backdrop-blur-xl border-r border-[#627EEA]/12'
-        : isAvax
-        ? 'bg-[#0a0404]/80 backdrop-blur-xl border-r border-[#E84142]/15'
-        : isHyperliquid
-        ? 'bg-[#040b08]/80 backdrop-blur-xl border-r border-[#00E5BE]/15'
-        : 'bg-black/60 backdrop-blur-xl border-r border-white/10';
+    const sidebarBg = 'bg-[#050510]/80 backdrop-blur-xl border-r border-white/5'; // Using simple base classes, colors handled by CSS vars if needed, but here simple transparency is enough
+    const divider = 'bg-white/10';
 
-    const divider = isEth ? 'bg-[#627EEA]/12' : 'bg-white/10';
+    const navActiveStyle = {
+      background: `color-mix(in srgb, var(--chain-accent) 10%, transparent)`,
+      color: 'var(--chain-accent)'
+    };
 
-    const navActiveStyle = isEth
-        ? { background: 'rgba(98,126,234,0.10)', color: '#627EEA' }
-        : isAvax
-        ? { background: 'rgba(232,65,66,0.10)', color: '#E84142' }
-        : isHyperliquid
-        ? { background: 'rgba(0,229,190,0.10)', color: '#00E5BE' }
-        : { background: 'rgba(0,240,255,0.08)', color: '#00F0FF' };
-
-    const navInactiveClass = isEth
-        ? 'text-slate-400 hover:bg-[#627EEA]/5'
-        : 'text-white/40 hover:bg-white/5';
-
-    const sectionLabelClass = isEth
-        ? 'text-slate-300 text-[9px] font-bold uppercase tracking-[0.2em] px-3 mb-1'
-        : 'text-white/25 text-[9px] font-bold uppercase tracking-[0.2em] px-3 mb-1';
+    const navInactiveClass = 'text-white/40 hover:bg-white/5 hover:text-white/70';
+    const sectionLabelClass = 'text-white/25 text-[9px] font-bold uppercase tracking-[0.2em] px-3 mb-1';
 
     const navLinkBase = `flex items-center gap-3 px-3 py-2.5 rounded-lg text-[11px] font-bold uppercase tracking-widest transition-all duration-200`;
 
@@ -72,8 +56,8 @@ export default function Sidebar() {
             <button
                 className="lg:hidden fixed top-4 left-4 z-50 p-2.5 rounded-xl transition-all duration-200"
                 style={{
-                    background: isEth ? 'rgba(255,255,255,0.85)' : 'rgba(0,0,0,0.7)',
-                    border: `1px solid ${accent}40`,
+                    background: 'rgba(0,0,0,0.7)',
+                    border: `1px solid color-mix(in srgb, var(--chain-accent) 40%, transparent)`,
                     backdropFilter: 'blur(12px)',
                 }}
                 onClick={() => setMobileOpen(true)}
@@ -97,7 +81,7 @@ export default function Sidebar() {
                 className={`fixed left-0 top-0 h-screen w-60 z-40 flex flex-col overflow-y-auto transition-transform duration-300
                     ${mobileOpen ? 'translate-x-0' : '-translate-x-full'} lg:translate-x-0
                     ${sidebarBg}`}
-                style={isEth ? { boxShadow: '1px 0 24px rgba(98,126,234,0.06)' } : { boxShadow: '1px 0 30px rgba(0,0,0,0.4)' }}
+                style={{ boxShadow: '1px 0 30px rgba(0,0,0,0.4)' }}
             >
 
                 {/* ── Close button (mobile only) ───────────────────────────── */}
@@ -127,10 +111,7 @@ export default function Sidebar() {
                                 width={200}
                                 height={50}
                                 className="h-10 w-auto"
-                                style={isEth
-                                    ? { filter: 'brightness(0) saturate(100%) invert(14%) sepia(30%) saturate(500%) hue-rotate(190deg) brightness(90%)' }
-                                    : { filter: 'brightness(1.15) drop-shadow(0 0 12px rgba(255,255,255,0.25))' }
-                                }
+                                style={{ filter: 'brightness(1.15) drop-shadow(0 0 12px rgba(255,255,255,0.25))' }}
                                 priority
                             />
                         </div>
@@ -156,7 +137,7 @@ export default function Sidebar() {
 
                     {/* Dashboard */}
                     <Link
-                        href={isEth ? '/ethereum' : isAvax ? '/avalanche' : isHyperliquid ? '/hyperliquid' : '/'}
+                        href={currentChain.id === 'solana' ? '/' : currentChain.route}
                         className={`${navLinkBase} ${isDashboard ? '' : navInactiveClass}`}
                         style={isDashboard ? navActiveStyle : undefined}
                     >
@@ -172,7 +153,7 @@ export default function Sidebar() {
                     {/* Explorer — private */}
                     {isLoggedIn && (
                         <Link
-                            href={isEth ? '/ethereum/nodes' : isAvax ? '/avalanche/nodes' : isHyperliquid ? '/hyperliquid/nodes' : '/nodes'}
+                            href={`${currentChain.route === '/' ? '' : currentChain.route}/nodes`}
                             className={`${navLinkBase} ${isNodes ? '' : navInactiveClass}`}
                             style={isNodes ? navActiveStyle : undefined}
                         >
@@ -191,7 +172,7 @@ export default function Sidebar() {
 
                     {/* Analytics */}
                     <Link
-                        href={isEth ? '/ethereum/analytics' : isAvax ? '/avalanche/analytics' : isHyperliquid ? '/hyperliquid/analytics' : '/analytics'}
+                        href={`${currentChain.route === '/' ? '' : currentChain.route}/analytics`}
                         className={`${navLinkBase} ${isAnalytics ? '' : navInactiveClass}`}
                         style={isAnalytics ? navActiveStyle : undefined}
                     >
@@ -204,7 +185,7 @@ export default function Sidebar() {
 
                     {/* Use Cases */}
                     <Link
-                        href={isEth ? '/ethereum/use-cases' : isAvax ? '/avalanche/use-cases' : isHyperliquid ? '/hyperliquid/use-cases' : '/use-cases'}
+                        href={`${currentChain.route === '/' ? '' : currentChain.route}/use-cases`}
                         className={`${navLinkBase} ${isUseCases ? '' : navInactiveClass}`}
                         style={isUseCases ? navActiveStyle : undefined}
                     >
@@ -215,7 +196,7 @@ export default function Sidebar() {
                     </Link>
 
                     {/* Guide (Ethereum only) */}
-                    {isEth && (
+                    {theme === 'ethereum' && (
                         <Link
                             href="/ethereum/guide"
                             className={`${navLinkBase} ${pathname === '/ethereum/guide' ? '' : navInactiveClass}`}
@@ -229,7 +210,7 @@ export default function Sidebar() {
                     )}
 
                     {/* Decentralization (Hyperliquid) */}
-                    {isHyperliquid && (
+                    {theme === 'hyperliquid' && (
                         <Link
                             href="/hyperliquid/decentralize"
                             className={`${navLinkBase} ${pathname.startsWith('/hyperliquid/decentralize') ? '' : navInactiveClass}`}
@@ -245,21 +226,9 @@ export default function Sidebar() {
 
                 {/* ── 4. CTA & Resources ────────────────────────────────────────── */}
                 <div className="px-3 pb-6 mt-auto space-y-3">
-                    {/* Team & Contact (Global) */}
-                    <Link
-                        href="/about"
-                        className={`${navLinkBase} ${isAbout ? '' : navInactiveClass}`}
-                        style={isAbout ? { background: isEth ? 'rgba(255,255,255,0.05)' : 'rgba(255,255,255,0.05)', color: '#ffffff' } : undefined}
-                    >
-                        <svg className="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                            <path strokeLinecap="round" strokeLinejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
-                        </svg>
-                        Team & Contact
-                    </Link>
-
                     {/* Lead & Roadmap — private links at the bottom */}
                     {isLoggedIn && (
-                        <div className="space-y-0.5 rounded-xl border p-1" style={{ borderColor: isEth ? 'rgba(98,126,234,0.15)' : 'rgba(255,255,255,0.08)' }}>
+                        <div className="space-y-0.5 rounded-xl border border-white/10 p-1">
                             <Link
                                 href="/lead"
                                 className={`${navLinkBase} w-full ${pathname.startsWith('/lead') ? '' : navInactiveClass}`}
@@ -269,8 +238,7 @@ export default function Sidebar() {
                                     <path strokeLinecap="round" strokeLinejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" />
                                 </svg>
                                 Lead
-                                <span className="ml-auto text-[8px] font-black uppercase tracking-widest px-1.5 py-0.5 rounded-full border"
-                                    style={{ color: accent, borderColor: `${accent}50`, background: `${accent}12` }}>
+                                <span className="ml-auto text-[8px] font-black uppercase tracking-widest px-1.5 py-0.5 rounded-full border border-[var(--chain-accent)]/50 bg-[var(--chain-accent)]/10 text-[var(--chain-accent)]">
                                     Interne
                                 </span>
                             </Link>
@@ -282,9 +250,8 @@ export default function Sidebar() {
                                 <svg className="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                                     <path strokeLinecap="round" strokeLinejoin="round" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />
                                 </svg>
-                                Roadmap
-                                <span className="ml-auto text-[8px] font-black uppercase tracking-widest px-1.5 py-0.5 rounded-full border"
-                                    style={{ color: accent, borderColor: `${accent}50`, background: `${accent}12` }}>
+                                Benchmark
+                                <span className="ml-auto text-[8px] font-black uppercase tracking-widest px-1.5 py-0.5 rounded-full border border-[var(--chain-accent)]/50 bg-[var(--chain-accent)]/10 text-[var(--chain-accent)]">
                                     Interne
                                 </span>
                             </Link>
@@ -295,9 +262,7 @@ export default function Sidebar() {
                     {isLoggedIn ? (
                       <button
                         onClick={handleLogout}
-                        className={`w-full text-center text-[9px] uppercase tracking-[0.15em] transition-colors duration-200 py-1 ${
-                          isEth ? 'text-slate-400/40 hover:text-slate-400/70' : 'text-white/20 hover:text-white/50'
-                        }`}
+                        className={`w-full text-center text-[9px] uppercase tracking-[0.15em] transition-colors duration-200 py-1 text-white/20 hover:text-[var(--chain-accent)]`}
                       >
                         Déconnexion
                       </button>
@@ -305,9 +270,7 @@ export default function Sidebar() {
                       <Link
                         href="/login"
                         onClick={() => setMobileOpen(false)}
-                        className={`block w-full text-center text-[9px] uppercase tracking-[0.15em] transition-colors duration-200 py-1 ${
-                          isEth ? 'text-slate-400/40 hover:text-slate-400/70' : 'text-white/20 hover:text-white/50'
-                        }`}
+                        className={`block w-full text-center text-[9px] uppercase tracking-[0.15em] transition-colors duration-200 py-1 text-white/20 hover:text-[var(--chain-accent)]`}
                       >
                         Admin
                       </Link>
@@ -316,14 +279,12 @@ export default function Sidebar() {
 
                     {/* Contact CTA */}
                     <Link
-                        href="/about#contact-section"
-                        className="w-full group relative flex items-center justify-center gap-3 px-3 py-3 rounded-xl text-[11px] font-black uppercase tracking-widest transition-all duration-300 overflow-hidden text-white"
-                        style={{ boxShadow: isEth ? '0 0 20px rgba(98,126,234,0.35)' : '0 0 20px rgba(0,240,255,0.3)' }}
+                        href="/about"
+                        className="w-full group relative flex items-center justify-center gap-3 px-3 py-3 rounded-xl text-[11px] font-black uppercase tracking-widest transition-all duration-300 overflow-hidden text-white shadow-[0_0_20px_color-mix(in_srgb,var(--chain-accent)_35%,transparent)]"
                         onClick={() => setMobileOpen(false)}
                     >
                         <div
-                            className="absolute inset-0 opacity-90 group-hover:opacity-100 transition-opacity duration-300"
-                            style={{ background: isEth ? 'linear-gradient(135deg, #627EEA, #4F6DD4)' : 'linear-gradient(135deg, #22D3EE, #3B82F6)' }}
+                            className="absolute inset-0 opacity-90 group-hover:opacity-100 transition-opacity duration-300 bg-[linear-gradient(135deg,var(--chain-accent),color-mix(in_srgb,var(--chain-accent)_50%,#fff))] "
                         />
                         <svg className="w-4 h-4 shrink-0 text-white relative z-10" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
                             <path strokeLinecap="round" strokeLinejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
@@ -336,11 +297,7 @@ export default function Sidebar() {
                         href="https://www.ovhcloud.com/en/lp/powering-blockchain-ethos/"
                         target="_blank"
                         rel="noopener noreferrer"
-                        className={`group w-full flex items-center justify-center gap-2 py-3 rounded-xl transition-all duration-300 text-[9px] uppercase tracking-[0.15em] font-black ${
-                            isEth
-                                ? 'border border-[#627EEA]/25 bg-[#627EEA]/8 text-[#627EEA]/60 hover:text-[#627EEA] hover:bg-[#627EEA]/15 hover:border-[#627EEA]/40'
-                                : 'border border-white/12 bg-white/5 text-white/50 hover:text-white hover:border-white/25 hover:bg-white/10'
-                        }`}
+                        className={`group w-full flex items-center justify-center gap-2 py-3 rounded-xl transition-all duration-300 text-[9px] uppercase tracking-[0.15em] font-black border border-white/12 bg-white/5 text-white/50 hover:text-white hover:border-white/25 hover:bg-white/10`}
                     >
                         <svg className="w-3.5 h-3.5 transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
                             <path strokeLinecap="round" strokeLinejoin="round" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />

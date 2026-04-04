@@ -2,8 +2,9 @@
 
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { usePathname } from 'next/navigation';
+import { ChainId, CHAINS } from '@/lib/chains';
 
-export type Theme = 'solana' | 'ethereum' | 'avalanche' | 'hyperliquid';
+export type Theme = ChainId;
 
 interface NetworkThemeContextType {
     theme: Theme;
@@ -24,14 +25,11 @@ export default function NetworkThemeProvider({ children }: { children: React.Rea
         const savedTheme = localStorage.getItem('network-theme') as Theme | null;
         
         // Let path take precedence on direct loads
-        if (pathname === '/' || pathname.startsWith('/solana')) {
+        const matchingChain = Object.values(CHAINS).find(c => pathname.startsWith(c.route) && c.route !== '/');
+        if (matchingChain) {
+            setTheme(matchingChain.id);
+        } else if (pathname === '/' || pathname.startsWith('/solana')) {
             setTheme('solana');
-        } else if (pathname.startsWith('/ethereum')) {
-            setTheme('ethereum');
-        } else if (pathname.startsWith('/avalanche')) {
-            setTheme('avalanche');
-        } else if (pathname.startsWith('/hyperliquid')) {
-            setTheme('hyperliquid');
         } else if (pathname.startsWith('/lead') || pathname.startsWith('/roadmap')) {
             setTheme('solana');
         } else if (savedTheme) {
@@ -46,17 +44,12 @@ export default function NetworkThemeProvider({ children }: { children: React.Rea
         let newTheme: Theme = theme;
 
         // Force theme based on current section
-        if (pathname.startsWith('/ethereum')) {
-            newTheme = 'ethereum';
-        } else if (pathname.startsWith('/avalanche')) {
-            newTheme = 'avalanche';
-        } else if (pathname.startsWith('/hyperliquid')) {
-            newTheme = 'hyperliquid';
+        const matchingChain = Object.values(CHAINS).find(c => pathname.startsWith(c.route) && c.route !== '/');
+        if (matchingChain) {
+            newTheme = matchingChain.id;
         } else if (pathname === '/' || pathname.startsWith('/solana') || pathname.startsWith('/lead') || pathname.startsWith('/roadmap')) {
             newTheme = 'solana';
         }
-        // If on a global page like /about, do not override CURRENT known theme
-        // Let it stay as it is (preserved from last dashboard/page visit)
 
         if (newTheme !== theme) {
             setTheme(newTheme);
@@ -64,13 +57,13 @@ export default function NetworkThemeProvider({ children }: { children: React.Rea
         
         localStorage.setItem('network-theme', newTheme);
         
-        document.documentElement.classList.remove('eth-theme', 'avax-theme', 'hl-theme');
-        if (newTheme === 'ethereum') {
-            document.documentElement.classList.add('eth-theme');
-        } else if (newTheme === 'avalanche') {
-            document.documentElement.classList.add('avax-theme');
-        } else if (newTheme === 'hyperliquid') {
-            document.documentElement.classList.add('hl-theme');
+        Object.values(CHAINS).forEach(c => {
+            if (c.cssClass) document.documentElement.classList.remove(c.cssClass);
+        });
+        
+        const currentChain = CHAINS[newTheme];
+        if (currentChain?.cssClass) {
+            document.documentElement.classList.add(currentChain.cssClass);
         }
     }, [pathname, mounted, theme]);
 
