@@ -72,6 +72,19 @@ const OTHER_CHAINS: OtherChain[] = [
             </svg>
         ),
     },
+    {
+        id: 'tron',
+        label: 'Tron',
+        ticker: 'TRX',
+        href: '/tron',
+        color: '#FF060A',
+        live: true,
+        icon: (
+            <svg width="12" height="13" viewBox="0 0 24 28" fill="currentColor" className="shrink-0">
+                <path d="M23.7 6.8L20.3 1.2C20 0.7 19.5 0.4 18.9 0.4H5.1C4.5 0.4 4 0.7 3.7 1.2L0.3 6.8C-0.1 7.5 0 8.3 0.5 8.9L11.4 27.3C11.7 27.7 12.1 28 12.5 28H12.6C13 28 13.4 27.7 13.7 27.3L24.5 8.9C25 8.3 25.1 7.5 23.7 6.8ZM13.5 22.8L13.5 9.8L20.5 8.2L13.5 22.8ZM11.5 9.8L11.5 22.8L4.5 8.2L11.5 9.8ZM12.5 8L5.3 6.3L12.5 2.4L19.7 6.3L12.5 8Z" />
+            </svg>
+        ),
+    },
 ];
 
 export default function OthersDropdown() {

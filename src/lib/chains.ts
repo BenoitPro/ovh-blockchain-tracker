@@ -1,4 +1,4 @@
-export type ChainId = 'solana' | 'ethereum' | 'avalanche' | 'hyperliquid' | 'sui';
+export type ChainId = 'solana' | 'ethereum' | 'avalanche' | 'hyperliquid' | 'sui' | 'tron';
 
 export interface ChainConfig {
   id: ChainId;
@@ -49,5 +49,13 @@ export const CHAINS: Record<ChainId, ChainConfig> = {
     route: '/sui',
     cssClass: 'sui-theme',
     bgTint: 'rgba(77,162,255,0.10)',
+  },
+  tron: {
+    id: 'tron',
+    name: 'Tron',
+    accent: '#FF060A',
+    route: '/tron',
+    cssClass: 'tron-theme',
+    bgTint: 'rgba(255,6,10,0.10)',
   },
 };
