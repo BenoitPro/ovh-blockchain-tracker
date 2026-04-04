@@ -1,4 +1,5 @@
 import { TronNode, TronOVHNode, TronIPInfo, TronProviderCategorizationResult } from '@/types/tron';
+export type { TronProviderCategorizationResult } from '@/types/tron';
 import { logger } from '@/lib/utils';
 import {
     initMaxMind,
