@@ -78,7 +78,3 @@ export const SUI_RPC_ENDPOINT = 'https://fullnode.mainnet.sui.io:443';
 
 // Tron API
 export const TRON_API_URL = 'https://api.trongrid.io';
-
-// Cache keys
-export const CACHE_KEY_TRON = 'tron-metrics';
-export const CACHE_TTL_TRON_MS = 2 * 60 * 60 * 1000; // 2 hours

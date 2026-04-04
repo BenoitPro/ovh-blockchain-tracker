@@ -10,6 +10,7 @@
  *   'solana-metrics'    → Solana dashboard (legacy key, unchanged)
  *   'avalanche-metrics' → Avalanche dashboard
  *   'sui-metrics'       → Sui (Phase 1, future)
+ *   'tron-metrics'      → Tron dashboard
  *   'celestia-metrics'  → Celestia (Phase 2, future)
  *
  * This pattern is intentionally ADDITIVE — adding a new chain never touches existing cache entries,
