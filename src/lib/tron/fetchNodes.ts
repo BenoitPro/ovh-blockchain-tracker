@@ -17,9 +17,31 @@ interface TronListNodesResponse {
 }
 
 /**
- * Normalise an IP string from the TronGrid response.
+ * Decode a TronGrid host field to a plain string.
+ *
+ * TronGrid encodes the host bytes as a hex string (proto `bytes` → JSON hex).
+ * e.g. "3230352e3230392e3131332e323534" → "205.209.113.254"
+ * Plain strings (already decoded) are returned as-is.
+ */
+function decodeHost(raw: string): string {
+  if (!raw) return '';
+  // Detect hex: even length, only 0-9a-f, and longer than a normal IP
+  if (/^[0-9a-f]+$/i.test(raw) && raw.length % 2 === 0 && raw.length > 15) {
+    try {
+      const decoded = Buffer.from(raw, 'hex').toString('utf8');
+      return decoded;
+    } catch {
+      return raw;
+    }
+  }
+  return raw;
+}
+
+/**
+ * Normalise a decoded host string to an IPv4 address, or null if unusable.
  *
  * Edge cases handled:
+ *  - Hex-encoded bytes (TronGrid proto encoding) → decoded first
  *  - IPv6-mapped IPv4 "::ffff:1.2.3.4" → "1.2.3.4"
  *  - Pure IPv6 → null (MaxMind GeoLite2 ASN DB only covers IPv4)
  *  - Hostname strings → null (skip DNS resolution for simplicity)
@@ -27,12 +49,14 @@ interface TronListNodesResponse {
 export function normaliseIP(raw: string): string | null {
   if (!raw) return null;
 
+  const host = decodeHost(raw);
+
   // IPv6-mapped IPv4
-  const mapped = raw.match(/^::ffff:(\d+\.\d+\.\d+\.\d+)$/i);
+  const mapped = host.match(/^::ffff:(\d+\.\d+\.\d+\.\d+)$/i);
   if (mapped) return mapped[1];
 
   // Pure IPv4
-  if (/^\d+\.\d+\.\d+\.\d+$/.test(raw)) return raw;
+  if (/^\d+\.\d+\.\d+\.\d+$/.test(host)) return host;
 
   // Anything else (pure IPv6, hostnames) — skip
   return null;

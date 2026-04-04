@@ -53,14 +53,14 @@ export default function MarketShareTracker() {
   return (
     <ComingSoonCard
       title="Market Share Tracker"
-      description="Suivi dynamique de l'empreinte OVH vs concurrents"
+      description="Dynamic tracking of OVH footprint vs competitors"
     >
       <div className="p-5">
         {/* Header */}
         <div className="flex items-start justify-between mb-4">
           <div>
             <h3 className="text-sm font-black text-white">Market Share Tracker</h3>
-            <p className="text-white/30 text-[10px] mt-0.5">Répartition par provider infrastructure</p>
+            <p className="text-white/30 text-[10px] mt-0.5">Distribution by infrastructure provider</p>
           </div>
           <div className="text-right">
             <div className="text-2xl font-black" style={{ color: '#00F0FF' }}>{ovhShare}%</div>
@@ -92,7 +92,7 @@ export default function MarketShareTracker() {
             <YAxis type="category" dataKey="name" tick={{ fontSize: 10, fill: 'rgba(255,255,255,0.5)' }} axisLine={false} tickLine={false} width={80} />
             <Tooltip
               contentStyle={{ background: '#0a0a0f', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 8, fontSize: 11 }}
-              formatter={(value: number) => [`${value}%`, 'Share']}
+              formatter={(value: number | undefined) => [`${value ?? 0}%`, 'Share']}
             />
             <Bar dataKey="value" radius={[0, 3, 3, 0]}>
               {data.map((entry) => (
@@ -102,7 +102,7 @@ export default function MarketShareTracker() {
           </BarChart>
         </ResponsiveContainer>
 
-        <p className="text-[9px] text-white/20 mt-3 italic">* Données simulées basées sur détection ASN</p>
+        <p className="text-[9px] text-white/20 mt-3 italic">* Simulated data based on ASN detection</p>
       </div>
     </ComingSoonCard>
   );

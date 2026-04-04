@@ -32,7 +32,7 @@ const CHAINS_DATA: ChainSentiment[] = [
     telegramSources: 3,
     twitterSources: 2,
     topics: [
-      { label: 'Latence', sentiment: 'positive' },
+      { label: 'Latency', sentiment: 'positive' },
       { label: 'Pricing', sentiment: 'neutral' },
       { label: 'Support', sentiment: 'positive' },
     ],
@@ -51,7 +51,7 @@ const CHAINS_DATA: ChainSentiment[] = [
     telegramSources: 5,
     twitterSources: 4,
     topics: [
-      { label: 'Latence', sentiment: 'positive' },
+      { label: 'Latency', sentiment: 'positive' },
       { label: 'Pricing', sentiment: 'neutral' },
       { label: 'Support', sentiment: 'neutral' },
     ],
@@ -70,7 +70,7 @@ const CHAINS_DATA: ChainSentiment[] = [
     telegramSources: 2,
     twitterSources: 1,
     topics: [
-      { label: 'Latence', sentiment: 'neutral' },
+      { label: 'Latency', sentiment: 'neutral' },
       { label: 'Pricing', sentiment: 'positive' },
       { label: 'Support', sentiment: 'neutral' },
     ],
@@ -89,7 +89,7 @@ const CHAINS_DATA: ChainSentiment[] = [
     telegramSources: 2,
     twitterSources: 1,
     topics: [
-      { label: 'Latence', sentiment: 'neutral' },
+      { label: 'Latency', sentiment: 'neutral' },
       { label: 'Pricing', sentiment: 'neutral' },
       { label: 'Support', sentiment: 'negative' },
     ],
@@ -123,14 +123,14 @@ export default function CommunitySentiment() {
   return (
     <ComingSoonCard
       title="Community Sentiment"
-      description="Monitoring réputation OVH sur les communautés validateurs"
+      description="Monitoring OVH reputation across validator communities"
     >
       <div className="p-5">
         {/* Header */}
         <div className="flex items-start justify-between mb-4">
           <div>
             <h3 className="text-sm font-black text-white">Community Sentiment</h3>
-            <p className="text-white/30 text-[10px] mt-0.5">{totalSources} sources monitorées [mock]</p>
+            <p className="text-white/30 text-[10px] mt-0.5">{totalSources} sources monitored [mock]</p>
           </div>
         </div>
 
@@ -212,15 +212,15 @@ export default function CommunitySentiment() {
           className="w-full flex items-center justify-between px-3 py-2 rounded-lg border border-white/10 hover:bg-white/3 transition-colors"
           onClick={() => setReportOpen(!reportOpen)}
         >
-          <span className="text-[10px] font-bold text-white/50">Rapport hebdomadaire [mock]</span>
+          <span className="text-[10px] font-bold text-white/50">Weekly report [mock]</span>
           <span className="text-white/20 text-xs">{reportOpen ? '▲' : '▼'}</span>
         </button>
         {reportOpen && (
           <div className="mt-2 px-3 py-3 rounded-lg border border-white/5 bg-white/2">
             <ul className="flex flex-col gap-2">
-              <li className="text-[10px] text-white/50 leading-relaxed">• Sentiment OVH globalement stable cette semaine. Solana reste le marché le plus positif (74%), porté par les retours sur la latence Frankfurt.</li>
-              <li className="text-[10px] text-white/50 leading-relaxed">• Point d'attention sur Ethereum : mention de problèmes de compatibilité avec certains relais MEV. À surveiller.</li>
-              <li className="text-[10px] text-white/50 leading-relaxed">• Sui en baisse de 5 points — l'écosystème validateurs est encore petit et les retours sur les performances réseau restent mitigés.</li>
+              <li className="text-[10px] text-white/50 leading-relaxed">• OVH sentiment globally stable this week. Solana remains the most positive market (74%), driven by positive feedback on Frankfurt latency.</li>
+              <li className="text-[10px] text-white/50 leading-relaxed">• Watch point on Ethereum: mentions of compatibility issues with some MEV relays. To monitor.</li>
+              <li className="text-[10px] text-white/50 leading-relaxed">• Sui down 5 points — the validator ecosystem is still small and network performance feedback remains mixed.</li>
             </ul>
           </div>
         )}

@@ -15,12 +15,12 @@ interface ChainRow {
 }
 
 const ROWS: ChainRow[] = [
-  { chain: 'Solana',      color: '#9945FF', validator: 4, rpc: 4, app: 3, hwFit: 'SCALE-A2',  ipAccess: 'green',  ovhScore: 4.2, tooltip: 'Fort potentiel validateurs + RPC. Firedancer peut modifier le profil HW.' },
-  { chain: 'Ethereum',    color: '#627EEA', validator: 5, rpc: 5, app: 5, hwFit: 'Advance-2', ipAccess: 'green',  ovhScore: 5.0, tooltip: 'Priorité maximale. 1M+ validateurs, archive RPC = fort revenu storage.' },
-  { chain: 'Avalanche',   color: '#E84142', validator: 4, rpc: 3, app: 3, hwFit: 'Advance-2', ipAccess: 'green',  ovhScore: 3.5, tooltip: 'Bonne opportunité validateurs. Subnets peuvent multiplier le count.' },
-  { chain: 'Sui',         color: '#4DA2FF', validator: 3, rpc: 4, app: 2, hwFit: 'SCALE-A2',  ipAccess: 'green',  ovhScore: 3.1, tooltip: 'Peu de validateurs mais ARPU élevé (SCALE-A2). Écosystème en croissance.' },
-  { chain: 'Hyperliquid', color: '#00FF87', validator: 2, rpc: 2, app: 4, hwFit: 'HFT-grade', ipAccess: 'yellow', ovhScore: 2.4, tooltip: 'Seulement 21 validateurs. Opportunité sur la couche applicative.' },
-  { chain: 'TON',         color: '#0088CC', validator: 3, rpc: 2, app: 3, hwFit: 'Advance-2', ipAccess: 'red',    ovhScore: 1.8, tooltip: 'OVH explicitement déconseillé par la TON Foundation (concentration géo).' },
+  { chain: 'Solana',      color: '#9945FF', validator: 4, rpc: 4, app: 3, hwFit: 'SCALE-A2',  ipAccess: 'green',  ovhScore: 4.2, tooltip: 'Strong validator + RPC potential. Firedancer may change HW profile.' },
+  { chain: 'Ethereum',    color: '#627EEA', validator: 5, rpc: 5, app: 5, hwFit: 'Advance-2', ipAccess: 'green',  ovhScore: 5.0, tooltip: 'Top priority. 1M+ validators, archive RPC = high storage revenue.' },
+  { chain: 'Avalanche',   color: '#E84142', validator: 4, rpc: 3, app: 3, hwFit: 'Advance-2', ipAccess: 'green',  ovhScore: 3.5, tooltip: 'Good validator opportunity. Subnets can multiply node count.' },
+  { chain: 'Sui',         color: '#4DA2FF', validator: 3, rpc: 4, app: 2, hwFit: 'SCALE-A2',  ipAccess: 'green',  ovhScore: 3.1, tooltip: 'Few validators but high ARPU (SCALE-A2). Growing ecosystem.' },
+  { chain: 'Hyperliquid', color: '#00FF87', validator: 2, rpc: 2, app: 4, hwFit: 'HFT-grade', ipAccess: 'yellow', ovhScore: 2.4, tooltip: 'Only 21 validators. Opportunity is at the application layer.' },
+  { chain: 'TON',         color: '#0088CC', validator: 3, rpc: 2, app: 3, hwFit: 'Advance-2', ipAccess: 'red',    ovhScore: 1.8, tooltip: 'OVH explicitly discouraged by the TON Foundation (geo concentration).' },
 ];
 
 const COLUMNS = [
@@ -51,13 +51,13 @@ export default function StrategicHeatmap() {
   return (
     <ComingSoonCard
       title="Strategic Heatmap"
-      description="Croisement besoins hardware × présence OVH pour définir les priorités"
+      description="Cross-referencing hardware requirements × OVH presence to define priorities"
     >
       <div className="p-5">
         <div className="flex items-start justify-between mb-5">
           <div>
             <h3 className="text-sm font-black text-white">Strategic Heatmap</h3>
-            <p className="text-white/30 text-[10px] mt-0.5">Score d'opportunité OVH par chain et type de nœud</p>
+            <p className="text-white/30 text-[10px] mt-0.5">OVH opportunity score by chain and node type</p>
           </div>
         </div>
 
@@ -109,7 +109,7 @@ export default function StrategicHeatmap() {
             </tbody>
           </table>
         </div>
-        <p className="text-[9px] text-white/20 mt-2 italic">* Survoler une ligne pour voir le raisonnement · OVH Score = moyenne pondérée (Validator 40%, RPC 30%, App 20%, IP 10%)</p>
+        <p className="text-[9px] text-white/20 mt-2 italic">* Hover over a row to see the rationale · OVH Score = weighted average (Validator 40%, RPC 30%, App 20%, IP 10%)</p>
       </div>
     </ComingSoonCard>
   );

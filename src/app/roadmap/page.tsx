@@ -412,7 +412,7 @@ export default function RoadmapPage() {
               Intelligence Dashboard
             </h2>
             <p className="text-white/30 text-sm mt-1">
-              Modules en cours de développement — survolez pour voir le statut
+              Modules in development — hover to see status
             </p>
           </div>
 

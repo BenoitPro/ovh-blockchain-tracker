@@ -27,7 +27,7 @@ const EVOLUTION_ALL = [
   { month: 'Nov', OVH: 7990, Hetzner: 11480, AWS: 14520, GCP: 4920 },
   { month: 'Dec', OVH: 8140, Hetzner: 11820, AWS: 14890, GCP: 5010 },
   { month: 'Jan', OVH: 8310, Hetzner: 12140, AWS: 15180, GCP: 5080 },
-  { month: 'Fév', OVH: 8430, Hetzner: 12490, AWS: 15440, GCP: 5140 },
+  { month: 'Feb', OVH: 8430, Hetzner: 12490, AWS: 15440, GCP: 5140 },
   { month: 'Mar', OVH: 8497, Hetzner: 12759, AWS: 15903, GCP: 5286 },
 ];
 
@@ -37,7 +37,7 @@ const EVOLUTION_BY_CHAIN: Record<string, typeof EVOLUTION_ALL> = {
     { month: 'Nov', OVH: 131, Hetzner: 191, AWS: 168, GCP: 57 },
     { month: 'Dec', OVH: 138, Hetzner: 198, AWS: 174, GCP: 59 },
     { month: 'Jan', OVH: 141, Hetzner: 204, AWS: 180, GCP: 61 },
-    { month: 'Fév', OVH: 144, Hetzner: 209, AWS: 185, GCP: 63 },
+    { month: 'Feb', OVH: 144, Hetzner: 209, AWS: 185, GCP: 63 },
     { month: 'Mar', OVH: 147, Hetzner: 213, AWS: 189, GCP: 64 },
   ],
   Ethereum: [
@@ -45,7 +45,7 @@ const EVOLUTION_BY_CHAIN: Record<string, typeof EVOLUTION_ALL> = {
     { month: 'Nov', OVH: 7810, Hetzner: 11240, AWS: 14290, GCP: 4860 },
     { month: 'Dec', OVH: 7950, Hetzner: 11580, AWS: 14660, GCP: 4950 },
     { month: 'Jan', OVH: 8110, Hetzner: 11890, AWS: 14940, GCP: 5020 },
-    { month: 'Fév', OVH: 8180, Hetzner: 12240, AWS: 15210, GCP: 5080 },
+    { month: 'Feb', OVH: 8180, Hetzner: 12240, AWS: 15210, GCP: 5080 },
     { month: 'Mar', OVH: 8240, Hetzner: 12380, AWS: 15610, GCP: 5180 },
   ],
   Avalanche: [
@@ -53,7 +53,7 @@ const EVOLUTION_BY_CHAIN: Record<string, typeof EVOLUTION_ALL> = {
     { month: 'Nov', OVH: 81, Hetzner: 122, AWS: 89, GCP: 27 },
     { month: 'Dec', OVH: 84, Hetzner: 126, AWS: 91, GCP: 28 },
     { month: 'Jan', OVH: 86, Hetzner: 129, AWS: 94, GCP: 29 },
-    { month: 'Fév', OVH: 87, Hetzner: 131, AWS: 96, GCP: 30 },
+    { month: 'Feb', OVH: 87, Hetzner: 131, AWS: 96, GCP: 30 },
     { month: 'Mar', OVH: 89, Hetzner: 134, AWS: 98, GCP: 31 },
   ],
 };
@@ -83,14 +83,14 @@ export default function CompetitorBenchmark() {
   return (
     <ComingSoonCard
       title="Competitor Benchmark"
-      description="Comparaison ASN en temps réel vs Hetzner, AWS, GCP"
+      description="Real-time ASN comparison vs Hetzner, AWS, GCP"
     >
       <div className="p-5">
         {/* Header */}
         <div className="flex items-start justify-between mb-4">
           <div>
             <h3 className="text-sm font-black text-white">Competitor Benchmark</h3>
-            <p className="text-white/30 text-[10px] mt-0.5">Nœuds détectés par provider via ASN</p>
+            <p className="text-white/30 text-[10px] mt-0.5">Nodes detected by provider via ASN</p>
           </div>
         </div>
 
@@ -113,14 +113,14 @@ export default function CompetitorBenchmark() {
 
         {/* Grouped bar chart */}
         <div className="mb-6">
-          <p className="text-[9px] text-white/30 uppercase tracking-widest font-bold mb-2">Répartition actuelle</p>
+          <p className="text-[9px] text-white/30 uppercase tracking-widest font-bold mb-2">Current distribution</p>
           <ResponsiveContainer width="100%" height={200}>
             <BarChart data={barData} margin={{ left: 0, right: 16, top: 4, bottom: 0 }}>
               <XAxis dataKey="name" tick={{ fontSize: 10, fill: 'rgba(255,255,255,0.4)' }} axisLine={false} tickLine={false} />
               <YAxis tickFormatter={fmt} tick={{ fontSize: 9, fill: 'rgba(255,255,255,0.3)' }} axisLine={false} tickLine={false} />
               <Tooltip
                 contentStyle={{ background: '#0a0a0f', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 8, fontSize: 11 }}
-                formatter={(value: number, name: string) => [fmt(value), name]}
+                formatter={(value: number | undefined, name: string) => [fmt(value ?? 0), name]}
               />
               <Legend wrapperStyle={{ fontSize: 10, paddingTop: 8 }} />
               {Object.keys(PROVIDER_COLORS).map(p => (
@@ -132,7 +132,7 @@ export default function CompetitorBenchmark() {
 
         {/* Evolution area chart */}
         <div className="mb-6">
-          <p className="text-[9px] text-white/30 uppercase tracking-widest font-bold mb-2">Évolution 6 mois</p>
+          <p className="text-[9px] text-white/30 uppercase tracking-widest font-bold mb-2">6-month evolution</p>
           <ResponsiveContainer width="100%" height={160}>
             <AreaChart data={evolutionData} margin={{ left: 0, right: 16, top: 4, bottom: 0 }}>
               <defs>
@@ -148,7 +148,7 @@ export default function CompetitorBenchmark() {
               <YAxis tickFormatter={fmt} tick={{ fontSize: 9, fill: 'rgba(255,255,255,0.3)' }} axisLine={false} tickLine={false} />
               <Tooltip
                 contentStyle={{ background: '#0a0a0f', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 8, fontSize: 11 }}
-                formatter={(value: number, name: string) => [fmt(value), name]}
+                formatter={(value: number | undefined, name: string) => [fmt(value ?? 0), name]}
               />
               {Object.entries(PROVIDER_COLORS).map(([name, color]) => (
                 <Area
@@ -174,7 +174,7 @@ export default function CompetitorBenchmark() {
                 {Object.keys(PROVIDER_COLORS).map(p => (
                   <th key={p} className={`px-3 py-2 text-right text-[9px] font-black uppercase tracking-widest ${p === 'OVH' ? 'text-[#00F0FF]/70' : 'text-white/30'}`}>{p}</th>
                 ))}
-                <th className="px-3 py-2 text-right text-[9px] font-black uppercase tracking-widest text-white/30">Δ OVH /7j</th>
+                <th className="px-3 py-2 text-right text-[9px] font-black uppercase tracking-widest text-white/30">Δ OVH /7d</th>
               </tr>
             </thead>
             <tbody>
@@ -198,7 +198,7 @@ export default function CompetitorBenchmark() {
             </tbody>
           </table>
         </div>
-        <p className="text-[9px] text-white/20 mt-2 italic">* Données simulées — détection ASN via MaxMind GeoLite2</p>
+        <p className="text-[9px] text-white/20 mt-2 italic">* Simulated data — ASN detection via MaxMind GeoLite2</p>
       </div>
     </ComingSoonCard>
   );

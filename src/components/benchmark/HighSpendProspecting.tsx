@@ -50,18 +50,18 @@ export default function HighSpendProspecting() {
   return (
     <ComingSoonCard
       title="High-Spend Prospecting"
-      description="Validateurs top-tier (500+ nœuds) pas encore chez OVH"
+      description="Top-tier validators (500+ nodes) not yet on OVH"
     >
       <div className="p-5">
         {/* Header */}
         <div className="flex items-start justify-between mb-4">
           <div>
             <h3 className="text-sm font-black text-white">High-Spend Prospecting</h3>
-            <p className="text-white/30 text-[10px] mt-0.5">Top validateurs mondiaux — potentiel de migration OVH</p>
+            <p className="text-white/30 text-[10px] mt-0.5">Top global validators — OVH migration potential</p>
           </div>
           <div className="text-right">
             <div className="text-lg font-black text-[#00F0FF]">${(totalArr / 1000).toFixed(0)}k</div>
-            <div className="text-[9px] text-white/30 uppercase tracking-widest">ARR potentiel</div>
+            <div className="text-[9px] text-white/30 uppercase tracking-widest">Potential ARR</div>
           </div>
         </div>
 
@@ -77,7 +77,7 @@ export default function HighSpendProspecting() {
                   : 'text-white/30 hover:text-white/60 border border-transparent'
               }`}
             >
-              {f === 'ALL' ? `Tous (${VALIDATORS.length})` : `${f} (${VALIDATORS.filter(v => v.priority === f).length})`}
+              {f === 'ALL' ? `All (${VALIDATORS.length})` : `${f} (${VALIDATORS.filter(v => v.priority === f).length})`}
             </button>
           ))}
         </div>
@@ -88,12 +88,12 @@ export default function HighSpendProspecting() {
             <thead>
               <tr className="border-b border-white/5">
                 <th className="px-3 py-2 text-left text-[9px] font-black uppercase tracking-widest text-white/30 w-6">#</th>
-                <th className="px-3 py-2 text-left text-[9px] font-black uppercase tracking-widest text-white/30">Validateur</th>
-                <th className="px-3 py-2 text-right text-[9px] font-black uppercase tracking-widest text-white/30">Nœuds</th>
-                <th className="px-3 py-2 text-left text-[9px] font-black uppercase tracking-widest text-white/30">Provider actuel</th>
+                <th className="px-3 py-2 text-left text-[9px] font-black uppercase tracking-widest text-white/30">Validator</th>
+                <th className="px-3 py-2 text-right text-[9px] font-black uppercase tracking-widest text-white/30">Nodes</th>
+                <th className="px-3 py-2 text-left text-[9px] font-black uppercase tracking-widest text-white/30">Current provider</th>
                 <th className="px-3 py-2 text-left text-[9px] font-black uppercase tracking-widest text-white/30">Chains</th>
                 <th className="px-3 py-2 text-right text-[9px] font-black uppercase tracking-widest text-[#00F0FF]/50">Est. ARR</th>
-                <th className="px-3 py-2 text-center text-[9px] font-black uppercase tracking-widest text-white/30">Priorité</th>
+                <th className="px-3 py-2 text-center text-[9px] font-black uppercase tracking-widest text-white/30">Priority</th>
               </tr>
             </thead>
             <tbody>
@@ -127,7 +127,7 @@ export default function HighSpendProspecting() {
               {/* Totals row */}
               <tr className="border-t border-white/10 bg-white/2">
                 <td colSpan={2} className="px-3 py-2 text-[9px] font-black uppercase tracking-widest text-white/30">
-                  Total ({filtered.length} validateurs)
+                  Total ({filtered.length} validators)
                 </td>
                 <td className="px-3 py-2 text-right font-black text-white/60">{totalNodes.toLocaleString()}</td>
                 <td colSpan={2} />
@@ -138,7 +138,7 @@ export default function HighSpendProspecting() {
           </table>
         </div>
         <p className="text-[9px] text-white/20 mt-2 italic">
-          * Est. ARR = nœuds × ~$500/mois (SCALE-A2 ref). Serveurs réels varient selon chain et usage. Données simulées.
+          * Est. ARR = nodes × ~$500/month (SCALE-A2 ref). Actual servers vary by chain and usage. Simulated data.
         </p>
       </div>
     </ComingSoonCard>

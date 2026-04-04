@@ -13,14 +13,14 @@ const CHAIN_BREAKDOWN = [
   { chain: 'TON',       color: '#0088CC', nodes: 0,    serverRef: 'Advance-2', pricePerMonth: 150,  included: false },
 ];
 
-const MONTHS = ['Avr', 'Mai', 'Jun', 'Jul', 'Aoû', 'Sep', 'Oct', 'Nov', 'Déc', 'Jan', 'Fév', 'Mar'];
+const MONTHS = ['Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec', 'Jan', 'Feb', 'Mar'];
 
 const HISTORICAL = [
   { month: 'Oct\'25', mrr: 1089 },
   { month: 'Nov\'25', mrr: 1148 },
-  { month: 'Déc\'25', mrr: 1198 },
+  { month: 'Dec\'25', mrr: 1198 },
   { month: 'Jan\'26', mrr: 1242 },
-  { month: 'Fév\'26', mrr: 1288 },
+  { month: 'Feb\'26', mrr: 1288 },
   { month: 'Mar\'26', mrr: 1332 },
 ];
 
@@ -67,13 +67,13 @@ export default function RevenueProjection() {
   return (
     <ComingSoonCard
       title="Revenue Projection"
-      description="Simulateur d'impact CA selon la croissance des parts de marché"
+      description="Revenue impact simulator based on market share growth"
     >
       <div className="p-5">
         <div className="flex items-start justify-between mb-5">
           <div>
             <h3 className="text-sm font-black text-white">Revenue Projection</h3>
-            <p className="text-white/30 text-[10px] mt-0.5">Estimation basse — nœuds validateurs uniquement (hors RPC, storage, app)</p>
+            <p className="text-white/30 text-[10px] mt-0.5">Conservative estimate — validator nodes only (excl. RPC, storage, app)</p>
           </div>
         </div>
 
@@ -83,14 +83,14 @@ export default function RevenueProjection() {
             className="w-full flex items-center justify-between px-4 py-3 hover:bg-white/2 transition-colors"
             onClick={() => setAssumptionsOpen(!assumptionsOpen)}
           >
-            <span className="text-[10px] font-black uppercase tracking-widest text-white/40">Hypothèses & méthodologie</span>
+            <span className="text-[10px] font-black uppercase tracking-widest text-white/40">Assumptions & methodology</span>
             <span className="text-white/20 text-xs">{assumptionsOpen ? '▲' : '▼'}</span>
           </button>
           {assumptionsOpen && (
             <div className="px-4 pb-4 border-t border-white/5">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-3">
                 <div>
-                  <p className="text-[9px] font-black uppercase tracking-widest text-white/25 mb-2">Chains incluses</p>
+                  <p className="text-[9px] font-black uppercase tracking-widest text-white/25 mb-2">Included chains</p>
                   <div className="flex flex-col gap-1.5">
                     {CHAIN_BREAKDOWN.map(c => (
                       <div key={c.chain} className={`flex items-center gap-2 ${!c.included ? 'opacity-35' : ''}`}>
@@ -98,19 +98,19 @@ export default function RevenueProjection() {
                         <span className="text-[10px] text-white/60 w-20">{c.chain}</span>
                         <span className="text-[9px] font-bold text-white/30 bg-white/5 px-1.5 py-0.5 rounded">{c.serverRef}</span>
                         <span className="text-[9px] text-white/40 ml-auto">${c.pricePerMonth}/mo</span>
-                        {!c.included && <span className="text-[8px] text-red-400/50 italic">exclu</span>}
+                        {!c.included && <span className="text-[8px] text-red-400/50 italic">excluded</span>}
                       </div>
                     ))}
                   </div>
                 </div>
                 <div>
-                  <p className="text-[9px] font-black uppercase tracking-widest text-white/25 mb-2">Méthodologie</p>
+                  <p className="text-[9px] font-black uppercase tracking-widest text-white/25 mb-2">Methodology</p>
                   <ul className="flex flex-col gap-1.5">
-                    <li className="text-[10px] text-white/40 leading-relaxed">• Nœuds OVH détectés via ASN MaxMind × prix serveur de référence par chain</li>
-                    <li className="text-[10px] text-white/40 leading-relaxed">• Serveur de référence = machine OVH recommandée pour ce type de nœud</li>
-                    <li className="text-[10px] text-white/40 leading-relaxed">• Exclut : RPC nodes, storage additionnel, app nodes, setups multi-serveurs</li>
-                    <li className="text-[10px] text-white/40 leading-relaxed">• Hyperliquid et TON exclus (detection ASN peu fiable ou OVH déconseillé)</li>
-                    <li className="text-[10px] text-white/40 leading-relaxed">• Part de marché actuelle OVH : 16.2% (estimation Solana)</li>
+                    <li className="text-[10px] text-white/40 leading-relaxed">• OVH nodes detected via MaxMind ASN × reference server price per chain</li>
+                    <li className="text-[10px] text-white/40 leading-relaxed">• Reference server = recommended OVH machine for that node type</li>
+                    <li className="text-[10px] text-white/40 leading-relaxed">• Excludes: RPC nodes, additional storage, app nodes, multi-server setups</li>
+                    <li className="text-[10px] text-white/40 leading-relaxed">• Hyperliquid and TON excluded (unreliable ASN detection or OVH discouraged)</li>
+                    <li className="text-[10px] text-white/40 leading-relaxed">• Current OVH market share: 16.2% (Solana estimate)</li>
                   </ul>
                 </div>
               </div>
@@ -120,14 +120,14 @@ export default function RevenueProjection() {
 
         {/* Block B: Current state breakdown */}
         <div className="mb-5">
-          <p className="text-[9px] font-black uppercase tracking-widest text-white/25 mb-3">État actuel estimé</p>
+          <p className="text-[9px] font-black uppercase tracking-widest text-white/25 mb-3">Current state (estimated)</p>
           <div className="overflow-x-auto rounded-lg border border-white/5">
             <table className="w-full text-xs">
               <thead>
                 <tr className="border-b border-white/5">
                   <th className="px-3 py-2 text-left text-[9px] font-black uppercase tracking-widest text-white/30">Chain</th>
-                  <th className="px-3 py-2 text-right text-[9px] font-black uppercase tracking-widest text-white/30">Nœuds OVH</th>
-                  <th className="px-3 py-2 text-left text-[9px] font-black uppercase tracking-widest text-white/30">Serveur réf.</th>
+                  <th className="px-3 py-2 text-right text-[9px] font-black uppercase tracking-widest text-white/30">OVH Nodes</th>
+                  <th className="px-3 py-2 text-left text-[9px] font-black uppercase tracking-widest text-white/30">Ref. server</th>
                   <th className="px-3 py-2 text-right text-[9px] font-black uppercase tracking-widest text-white/30">MRR (est.)</th>
                   <th className="px-3 py-2 text-right text-[9px] font-black uppercase tracking-widest text-white/30">ARR (est.)</th>
                 </tr>
@@ -160,17 +160,17 @@ export default function RevenueProjection() {
               </tbody>
             </table>
           </div>
-          <p className="text-[9px] text-white/20 mt-1.5 italic">↓ estimation conservatrice — hors RPC, storage, app nodes</p>
+          <p className="text-[9px] text-white/20 mt-1.5 italic">↓ conservative estimate — excl. RPC, storage, app nodes</p>
         </div>
 
         {/* Block C: Simulator */}
         <div className="mb-5">
-          <p className="text-[9px] font-black uppercase tracking-widest text-white/25 mb-4">Simulateur de scénario (12 mois)</p>
+          <p className="text-[9px] font-black uppercase tracking-widest text-white/25 mb-4">12-month scenario simulator</p>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 mb-5">
             <div>
               <div className="flex justify-between items-center mb-2">
-                <label className="text-[10px] font-bold text-white/50">Part de marché OVH cible</label>
+                <label className="text-[10px] font-bold text-white/50">Target OVH market share</label>
                 <span className="text-sm font-black text-[#00F0FF]">{targetShare}%</span>
               </div>
               <input
@@ -181,14 +181,14 @@ export default function RevenueProjection() {
                 style={{ background: `linear-gradient(to right, #00F0FF ${((targetShare - 17) / 28) * 100}%, rgba(255,255,255,0.1) ${((targetShare - 17) / 28) * 100}%)` }}
               />
               <div className="flex justify-between mt-1">
-                <span className="text-[9px] text-white/25">actuel: 16.2%</span>
+                <span className="text-[9px] text-white/25">current: 16.2%</span>
                 <span className="text-[9px] text-white/25">max: 45%</span>
               </div>
             </div>
 
             <div>
               <div className="flex justify-between items-center mb-2">
-                <label className="text-[10px] font-bold text-white/50">Croissance annuelle du marché</label>
+                <label className="text-[10px] font-bold text-white/50">Annual market growth</label>
                 <span className="text-sm font-black text-[#00F0FF]">+{marketGrowth}%</span>
               </div>
               <input
@@ -207,10 +207,10 @@ export default function RevenueProjection() {
 
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-5">
             {[
-              { label: 'MRR actuel', value: fmtK(currentMrr), sub: '/mois' },
-              { label: 'ARR actuel', value: fmtK(currentArr), sub: '/an' },
-              { label: `MRR projeté (12m)`, value: fmtK(projectedMrr), sub: `+${fmtK(deltaMrr)}`, highlight: true },
-              { label: `ARR projeté (12m)`, value: fmtK(projectedArr), sub: `+${deltaArrPct}% ↑`, highlight: true },
+              { label: 'Current MRR', value: fmtK(currentMrr), sub: '/month' },
+              { label: 'Current ARR', value: fmtK(currentArr), sub: '/yr' },
+              { label: `Projected MRR (12m)`, value: fmtK(projectedMrr), sub: `+${fmtK(deltaMrr)}`, highlight: true },
+              { label: `Projected ARR (12m)`, value: fmtK(projectedArr), sub: `+${deltaArrPct}% ↑`, highlight: true },
             ].map(item => (
               <div key={item.label} className={`rounded-xl p-3 border ${item.highlight ? 'border-[#00F0FF]/20 bg-[#00F0FF]/5' : 'border-white/5 bg-white/2'}`}>
                 <div className={`text-lg font-black ${item.highlight ? 'text-[#00F0FF]' : 'text-white'}`}>{item.value}</div>
@@ -241,9 +241,9 @@ export default function RevenueProjection() {
               <YAxis tickFormatter={v => `$${v}k`} tick={{ fontSize: 9, fill: 'rgba(255,255,255,0.3)' }} axisLine={false} tickLine={false} />
               <Tooltip
                 contentStyle={{ background: '#0a0a0f', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 8, fontSize: 11 }}
-                formatter={(value: number | null, name: string) => value ? [`$${value}k/mo`, name === 'actual' ? 'Historique' : name === 'projected' ? 'Projection scénario' : 'Croissance marché seule'] : ['-']}
+                formatter={(value: number | null | undefined, name: string) => value ? [`$${value}k/mo`, name === 'actual' ? 'Historical' : name === 'projected' ? 'Scenario projection' : 'Market growth only'] : ['-']}
               />
-              <ReferenceLine x="Mar'26*" stroke="rgba(255,255,255,0.15)" strokeDasharray="4 4" label={{ value: 'Auj.', fill: 'rgba(255,255,255,0.3)', fontSize: 9 }} />
+              <ReferenceLine x="Mar'26*" stroke="rgba(255,255,255,0.15)" strokeDasharray="4 4" label={{ value: 'Now', fill: 'rgba(255,255,255,0.3)', fontSize: 9 }} />
               <Area type="monotone" dataKey="actual" stroke="#00F0FF" strokeWidth={2} fill="url(#gradActual)" connectNulls={false} dot={false} />
               <Area type="monotone" dataKey="baseline" stroke="#6B7280" strokeWidth={1} strokeDasharray="4 4" fill="url(#gradBaseline)" connectNulls={false} dot={false} />
               <Area type="monotone" dataKey="projected" stroke="#00F0FF" strokeWidth={2} strokeDasharray="6 3" fill="url(#gradProjected)" connectNulls={false} dot={false} />
@@ -251,13 +251,13 @@ export default function RevenueProjection() {
           </ResponsiveContainer>
 
           <div className="flex gap-4 mt-2">
-            <span className="flex items-center gap-1.5 text-[9px] text-white/30"><span className="w-4 h-0.5 bg-[#00F0FF] inline-block" />Historique</span>
-            <span className="flex items-center gap-1.5 text-[9px] text-white/30"><span className="w-4 h-0.5 bg-[#00F0FF] inline-block opacity-60" />Projection scénario</span>
-            <span className="flex items-center gap-1.5 text-[9px] text-white/30"><span className="w-4 h-0.5 bg-gray-500 inline-block opacity-60" />Croissance marché seule</span>
+            <span className="flex items-center gap-1.5 text-[9px] text-white/30"><span className="w-4 h-0.5 bg-[#00F0FF] inline-block" />Historical</span>
+            <span className="flex items-center gap-1.5 text-[9px] text-white/30"><span className="w-4 h-0.5 bg-[#00F0FF] inline-block opacity-60" />Scenario projection</span>
+            <span className="flex items-center gap-1.5 text-[9px] text-white/30"><span className="w-4 h-0.5 bg-gray-500 inline-block opacity-60" />Market growth only</span>
           </div>
         </div>
 
-        <p className="text-[9px] text-white/20 italic">* Données simulées. Estimation conservative excluant RPC, storage et app nodes.</p>
+        <p className="text-[9px] text-white/20 italic">* Simulated data. Conservative estimate excluding RPC, storage and app nodes.</p>
       </div>
     </ComingSoonCard>
   );
