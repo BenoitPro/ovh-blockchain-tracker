@@ -1,5 +1,5 @@
-import { SolanaNode, OVHNode, DashboardMetrics, ProviderBreakdownEntry } from '@/types';
-import { PROVIDER_COLORS, PROVIDER_LABELS } from '@/lib/config/constants';
+import { SolanaNode, OVHNode, DashboardMetrics } from '@/types';
+import { buildProviderBreakdown } from '@/lib/shared/providerBreakdown';
 
 import { ProviderCategorizationResult } from './filterOVH';
 
@@ -47,75 +47,11 @@ export function calculateMetrics(
 
     // Build structured provider breakdown for comparison chart
     // Providers with > 5% market share are shown individually; the rest go into "Others"
-    const MARKET_SHARE_THRESHOLD = 5;
-
-    const eligibleEntries: ProviderBreakdownEntry[] = [];
-    // Start "others" count from the existing "others" bucket, then adjust below
-    let totalOthersCount = (distribution as any).others || 0;
-    const newOthersBreakdown: Record<string, number> = { ...(othersBreakdown ?? {}) };
-
-    // 1. Process known providers (fixed categories)
-    for (const [key, count] of Object.entries(distribution)) {
-        if (key === 'others' || (count as number) === 0) continue;
-        const marketShare = totalNodes > 0 ? ((count as number) / totalNodes) * 100 : 0;
-        if (marketShare > MARKET_SHARE_THRESHOLD) {
-            eligibleEntries.push({
-                key,
-                label: PROVIDER_LABELS[key] ?? key,
-                nodeCount: (count as number),
-                marketShare,
-                color: PROVIDER_COLORS[key] ?? '#6B7280',
-            });
-        } else {
-            // Below threshold: merge into "others"
-            totalOthersCount += (count as number);
-            newOthersBreakdown[PROVIDER_LABELS[key] ?? key] = (count as number);
-        }
-    }
-
-    // 2. Promote any org from othersBreakdown that exceeds the threshold
-    if (othersBreakdown) {
-        for (const [org, orgCount] of Object.entries(othersBreakdown)) {
-            const orgMarketShare = totalNodes > 0 ? ((orgCount as number) / totalNodes) * 100 : 0;
-            if (orgMarketShare > MARKET_SHARE_THRESHOLD) {
-                eligibleEntries.push({
-                    key: org.toLowerCase().replace(/[^a-z0-9]/g, '_'),
-                    label: org,
-                    nodeCount: (orgCount as number),
-                    marketShare: orgMarketShare,
-                    color: '#6B7280',
-                });
-                // Remove from the "others" pool
-                totalOthersCount -= (orgCount as number);
-                delete newOthersBreakdown[org];
-            }
-        }
-    }
-
-    // 3. Add the aggregated "Others" entry
-    if (totalOthersCount > 0) {
-        const othersMarketShare = totalNodes > 0 ? (totalOthersCount / totalNodes) * 100 : 0;
-        const topOthers = Object.entries(newOthersBreakdown)
-            .sort((a, b) => b[1] - a[1])
-            .slice(0, 5)
-            .map(([org, orgCount]) => ({
-                label: org,
-                nodeCount: orgCount,
-                marketShare: totalNodes > 0 ? (orgCount / totalNodes) * 100 : 0,
-            }));
-
-        const othersEntry: ProviderBreakdownEntry = {
-            key: 'others',
-            label: 'Others',
-            nodeCount: totalOthersCount,
-            marketShare: othersMarketShare,
-            color: PROVIDER_COLORS['others'],
-        };
-        if (topOthers.length > 0) othersEntry.subProviders = topOthers;
-        eligibleEntries.push(othersEntry);
-    }
-
-    const providerBreakdown = eligibleEntries.sort((a, b) => b.nodeCount - a.nodeCount);
+    const providerBreakdown = buildProviderBreakdown(
+        (distribution as Record<string, number>) ?? {},
+        othersBreakdown ?? {},
+        totalNodes
+    );
 
     return {
         totalNodes,
@@ -123,7 +59,7 @@ export function calculateMetrics(
         marketShare,
         geoDistribution,
         globalGeoDistribution,
-        providerDistribution: distribution, 
+        providerDistribution: distribution,
         providerBreakdown,
         othersBreakdown,
         topValidators,
