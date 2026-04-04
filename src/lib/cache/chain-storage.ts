@@ -24,6 +24,7 @@ export const CACHE_KEYS = {
     solana: 'solana-metrics',
     avalanche: 'avalanche-metrics',
     sui: 'sui-metrics',
+    tron: 'tron-metrics',
     // celestia: 'celestia-metrics',
 } as const;
 
@@ -34,6 +35,7 @@ export const CACHE_TTL: Record<ChainId, number> = {
     solana: 60 * 60 * 1000,        // 1 hour
     avalanche: 2 * 60 * 60 * 1000, // 2 hours
     sui: 2 * 60 * 60 * 1000,       // 2 hours (validators change only at epoch ~24h)
+    tron: 2 * 60 * 60 * 1000,      // 2 hours
 };
 
 // ── Core types ─────────────────────────────────────────────────────────────────

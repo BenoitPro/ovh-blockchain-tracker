@@ -74,11 +74,11 @@ export const PROVIDER_LABELS: Record<string, string> = {
 // Sui RPC
 export const SUI_RPC_ENDPOINT = 'https://fullnode.mainnet.sui.io:443';
 
-// Cache keys — one per chain (all share the same `cache` table, different keys)
-export const CACHE_KEY = 'solana-metrics';           // Legacy Solana key — kept unchanged
-export const CACHE_KEY_AVALANCHE = 'avalanche-metrics';
-export const CACHE_KEY_SUI = 'sui-metrics';
+// Cache keys and TTLs are now centralized in lib/cache/chain-storage.ts
 
-export const CACHE_TTL_MS = 60 * 60 * 1000;         // Solana: 1h
-export const CACHE_TTL_AVALANCHE_MS = 2 * 60 * 60 * 1000; // Avalanche: 2h
-export const CACHE_TTL_SUI_MS = 2 * 60 * 60 * 1000;       // Sui: 2h
+// Tron API
+export const TRON_API_URL = 'https://api.trongrid.io';
+
+// Cache keys
+export const CACHE_KEY_TRON = 'tron-metrics';
+export const CACHE_TTL_TRON_MS = 2 * 60 * 60 * 1000; // 2 hours
