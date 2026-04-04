@@ -241,7 +241,8 @@ export default function RevenueProjection() {
               <YAxis tickFormatter={v => `$${v}k`} tick={{ fontSize: 9, fill: 'rgba(255,255,255,0.3)' }} axisLine={false} tickLine={false} />
               <Tooltip
                 contentStyle={{ background: '#0a0a0f', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 8, fontSize: 11 }}
-                formatter={(value: number | null | undefined, name: string) => value ? [`$${value}k/mo`, name === 'actual' ? 'Historical' : name === 'projected' ? 'Scenario projection' : 'Market growth only'] : ['-']}
+                // @ts-expect-error recharts formatter type
+                formatter={(value: any, name: string) => value ? [`$${value}k/mo`, name === 'actual' ? 'Historical' : name === 'projected' ? 'Scenario projection' : 'Market growth only'] : ['-']}
               />
               <ReferenceLine x="Mar'26*" stroke="rgba(255,255,255,0.15)" strokeDasharray="4 4" label={{ value: 'Now', fill: 'rgba(255,255,255,0.3)', fontSize: 9 }} />
               <Area type="monotone" dataKey="actual" stroke="#00F0FF" strokeWidth={2} fill="url(#gradActual)" connectNulls={false} dot={false} />

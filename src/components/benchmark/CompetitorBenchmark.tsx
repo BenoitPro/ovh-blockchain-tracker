@@ -120,7 +120,8 @@ export default function CompetitorBenchmark() {
               <YAxis tickFormatter={fmt} tick={{ fontSize: 9, fill: 'rgba(255,255,255,0.3)' }} axisLine={false} tickLine={false} />
               <Tooltip
                 contentStyle={{ background: '#0a0a0f', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 8, fontSize: 11 }}
-                formatter={(value: number | undefined, name: string) => [fmt(value ?? 0), name]}
+                // @ts-expect-error recharts formatter type
+                formatter={(value: any, name: string) => [fmt(Number(value ?? 0)), name]}
               />
               <Legend wrapperStyle={{ fontSize: 10, paddingTop: 8 }} />
               {Object.keys(PROVIDER_COLORS).map(p => (
@@ -148,7 +149,8 @@ export default function CompetitorBenchmark() {
               <YAxis tickFormatter={fmt} tick={{ fontSize: 9, fill: 'rgba(255,255,255,0.3)' }} axisLine={false} tickLine={false} />
               <Tooltip
                 contentStyle={{ background: '#0a0a0f', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 8, fontSize: 11 }}
-                formatter={(value: number | undefined, name: string) => [fmt(value ?? 0), name]}
+                // @ts-expect-error recharts formatter type
+                formatter={(value: any, name: string) => [fmt(Number(value ?? 0)), name]}
               />
               {Object.entries(PROVIDER_COLORS).map(([name, color]) => (
                 <Area
