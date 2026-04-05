@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import ParticlesBackground from '@/components/ParticlesBackground';
 import AnimatedTagline from '@/components/dashboard/AnimatedTagline';
+import UseCasesHero from '@/components/dashboard/UseCasesHero';
 
 const ACCENT = '#E84142';
 
@@ -197,51 +198,7 @@ export default function AvalancheUseCasesPage() {
                         subtitle="How builders leverage OVHcloud's raw performance for Subnets and Validators"
                     />
 
-                    {/* Stats banner */}
-                    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3 mb-6">
-                        {/* Avalanche Nodes */}
-                        <div 
-                            className="rounded-xl p-3 border border-[#E84142]/20 bg-black/40 backdrop-blur-xl text-center flex flex-col justify-center gap-0.5 transition-all hover:border-[#E84142]/40"
-                            style={{ boxShadow: `0 2px 20px ${ACCENT}15` }}
-                        >
-                             <p className="text-[8px] uppercase tracking-[0.15em] text-[#E84142]/70 font-bold">Hosted Nodes</p>
-                             <p className="text-2xl font-black" style={{ color: ACCENT }}>~19%</p>
-                             <p className="text-[8px] text-white/30 uppercase tracking-[0.1em]">market share</p>
-                        </div>
-                        {/* Blockchain Support */}
-                        <div 
-                            className="rounded-xl p-3 border border-white/8 bg-black/30 backdrop-blur-xl text-center flex flex-col justify-center gap-0.5 transition-all hover:border-white/15"
-                        >
-                             <p className="text-[8px] uppercase tracking-[0.15em] text-white/30 font-bold">Chains Support</p>
-                             <p className="text-2xl font-black text-white">100+</p>
-                             <p className="text-[8px] text-white/20 uppercase tracking-[0.1em]">L1 & L2 networks</p>
-                        </div>
-                        {/* Storage Performance */}
-                        <div 
-                            className="rounded-xl p-3 border border-white/8 bg-black/30 backdrop-blur-xl text-center flex flex-col justify-center gap-0.5 transition-all hover:border-[#E84142]/30"
-                            style={{ boxShadow: `0 2px 20px ${ACCENT}05` }}
-                        >
-                             <p className="text-[8px] uppercase tracking-[0.15em] text-white/30 font-bold">Bare Metal SSD</p>
-                             <p className="text-2xl font-black text-white">NVMe</p>
-                             <p className="text-[8px] text-[#E84142]/80 uppercase tracking-[0.1em]">3000+ IOPS Ready</p>
-                        </div>
-                         {/* Data Centers */}
-                         <div 
-                            className="rounded-xl p-3 border border-white/8 bg-black/30 backdrop-blur-xl text-center flex flex-col justify-center gap-0.5 transition-all hover:border-white/15"
-                        >
-                             <p className="text-[8px] uppercase tracking-[0.15em] text-white/30 font-bold">Infra Reach</p>
-                             <p className="text-2xl font-black text-white">46</p>
-                             <p className="text-[8px] text-white/20 uppercase tracking-[0.1em]">Datacenters</p>
-                        </div>
-                        {/* Bandwidth */}
-                        <div 
-                            className="rounded-xl p-3 border border-white/8 bg-black/30 backdrop-blur-xl text-center flex flex-col justify-center gap-0.5 transition-all hover:border-white/15"
-                        >
-                             <p className="text-[8px] uppercase tracking-[0.15em] text-white/30 font-bold">Secure Network</p>
-                             <p className="text-2xl font-black text-white">vRack</p>
-                             <p className="text-[8px] text-[#E84142]/80 uppercase tracking-[0.1em]">Private cluster</p>
-                        </div>
-                    </div>
+                    <UseCasesHero chainId="avalanche" />
 
                     <p className="text-[9px] text-center text-white/40 mb-12 uppercase tracking-[0.22em] font-medium max-w-3xl mx-auto leading-relaxed">
                         Enabling next-gen Avalanche architectures, from single API Endpoints to<br className="hidden sm:block" /> 
