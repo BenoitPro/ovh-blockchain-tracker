@@ -8,90 +8,10 @@ import { SOLANA_RPC_ENDPOINT } from '@/lib/config/constants';
 // Singleton persisted across HMR reloads — same pattern as maxmind.ts and database.ts
 const globalForSolana = globalThis as unknown as {
     validatorMapCache: Map<string, { name: string; image: string }> | undefined;
+    validatorMapCacheTime: number | undefined;
 };
 
-const BASE58_ALPHABET = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
-const VALIDATOR_INFO_CONFIG_KEY = 'Va1idator1nfo111111111111111111111111111111';
-const CONFIG_PROGRAM_ID = 'Config1111111111111111111111111111111111111';
-
-function base58Encode(bytes: Buffer): string {
-    let leadingZeros = 0;
-    for (const byte of bytes) {
-        if (byte === 0) leadingZeros++;
-        else break;
-    }
-    const digits = [0];
-    for (let i = 0; i < bytes.length; i++) {
-        let carry = bytes[i];
-        for (let j = 0; j < digits.length; j++) {
-            carry += digits[j] << 8;
-            digits[j] = carry % 58;
-            carry = Math.floor(carry / 58);
-        }
-        while (carry > 0) {
-            digits.push(carry % 58);
-            carry = Math.floor(carry / 58);
-        }
-    }
-    return '1'.repeat(leadingZeros) + digits.reverse().map(d => BASE58_ALPHABET[d]).join('');
-}
-
-/**
- * Fetch validator identities and names from Solana's on-chain Config program.
- * This is the official Solana validator info registry — no API key, no rate limits.
- * Binary format per account: [1 byte key_count=2] [32 bytes Va1idator1nfo key] [1 byte signer=0]
- *   [32 bytes identity pubkey] [1 byte signer=1] [8 bytes JSON length u64] [JSON string]
- */
-async function fetchOnchainValidatorInfo(): Promise<Map<string, { name: string; image: string }>> {
-    const map = new Map<string, { name: string; image: string }>();
-    try {
-        const response = await fetch(SOLANA_RPC_ENDPOINT, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                jsonrpc: '2.0',
-                id: 1,
-                method: 'getProgramAccounts',
-                params: [CONFIG_PROGRAM_ID, { encoding: 'base64' }]
-            }),
-            cache: 'no-store'
-        });
-        if (!response.ok) throw new Error(`Config RPC error: ${response.status}`);
-        const data = await response.json();
-        if (data.error) throw new Error(data.error.message);
-
-        const accounts: Array<{ pubkey: string; account: { data: [string, string] } }> = data.result || [];
-
-        for (const item of accounts) {
-            try {
-                const raw = Buffer.from(item.account.data[0], 'base64');
-                // Must have exactly 2 keys and be long enough for the full header
-                if (raw.length < 75 || raw[0] !== 2) continue;
-                // Key 1 must be the ValidatorInfo config key
-                if (base58Encode(raw.slice(1, 33)) !== VALIDATOR_INFO_CONFIG_KEY) continue;
-                // Key 2 (bytes 34-65) is the validator identity pubkey
-                const identity = base58Encode(raw.slice(34, 66));
-                // JSON starts at offset 75 (67-byte header + 8-byte u64 length prefix)
-                const text = raw.slice(75).toString('utf-8');
-                const jsonStart = text.indexOf('{');
-                const jsonEnd = text.lastIndexOf('}');
-                if (jsonStart < 0 || jsonEnd < jsonStart) continue;
-                const info = JSON.parse(text.slice(jsonStart, jsonEnd + 1));
-                const name = (info.name || '').trim();
-                const image = (info.iconUrl || '').trim();
-                if (name || image) {
-                    map.set(identity, { name, image });
-                }
-            } catch {
-                // skip malformed accounts
-            }
-        }
-        logger.info(`[Solana] On-chain validator info: ${map.size} entries fetched`);
-    } catch (e) {
-        logger.warn('[Solana] Failed to fetch on-chain validator info:', e);
-    }
-    return map;
-}
+const VALIDATOR_CACHE_TTL = 24 * 60 * 60 * 1000; // 24 hours — validator names rarely change
 
 /**
  * Fetch validator names from Marinade Finance's public registry.
@@ -128,27 +48,18 @@ async function fetchMarinadeValidatorInfo(): Promise<Map<string, { name: string;
 }
 
 async function fetchValidatorList(forceRefresh: boolean = false) {
-    if (globalForSolana.validatorMapCache && !forceRefresh) return globalForSolana.validatorMapCache;
+    const cacheAge = Date.now() - (globalForSolana.validatorMapCacheTime || 0);
+    if (globalForSolana.validatorMapCache && !forceRefresh && cacheAge < VALIDATOR_CACHE_TTL) {
+        return globalForSolana.validatorMapCache;
+    }
 
     const map = new Map<string, { name: string; image: string }>();
 
-    // Run primary sources in parallel
-    const [marinadeMap, onchainMap] = await Promise.all([
-        fetchMarinadeValidatorInfo(),
-        fetchOnchainValidatorInfo(),
-    ]);
-
-    // Priority 1: Marinade (best coverage: 53/100 top validators, includes Alchemy, Jupiter, Galaxy…)
+    // Primary source: Marinade (best coverage: 53/100 top validators, includes Alchemy, Jupiter, Galaxy…)
+    const marinadeMap = await fetchMarinadeValidatorInfo();
     marinadeMap.forEach((info, identity) => map.set(identity, info));
 
-    // Priority 2: On-chain Config program (adds validators not in Marinade)
-    onchainMap.forEach((info, identity) => {
-        if (!map.has(identity) && (info.name || info.image)) {
-            map.set(identity, info);
-        }
-    });
-
-    // Priority 3: StakeWiz as last resort (currently degraded for top validators)
+    // Secondary: StakeWiz (on-chain Config program removed — getProgramAccounts response is 50-200 MB)
     try {
         const response = await fetch('https://api.stakewiz.com/validators', {
             headers: { 'Content-Type': 'application/json' },
@@ -172,6 +83,7 @@ async function fetchValidatorList(forceRefresh: boolean = false) {
     logger.info(`[Solana] Validator map: ${map.size} entries, ${namedCount} with names`);
 
     globalForSolana.validatorMapCache = map;
+    globalForSolana.validatorMapCacheTime = Date.now();
     return map;
 }
 
