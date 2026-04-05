@@ -86,7 +86,7 @@ export default function UseCasesHero({ chainId }: Props) {
             )}
 
             {/* D — Chain-specific highlights */}
-            {config.techHighlights.map((h) => (
+            {config.techHighlights.slice(0, 2).map((h) => (
                 <StatTile key={h.label} label={h.label} value={h.value} sub={h.sub} accent={accent} />
             ))}
 
