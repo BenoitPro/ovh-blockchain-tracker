@@ -1,10 +1,9 @@
 'use client';
 
-import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import ParticlesBackground from '@/components/ParticlesBackground';
 import VerifiedResidentsGrid from '@/components/dashboard/VerifiedResidentsGrid';
-import { EthSnapshotMetrics } from '@/types';
+import UseCasesHero from '@/components/dashboard/UseCasesHero';
 
 const ACCENT = '#627EEA';
 
@@ -205,20 +204,6 @@ function UseCaseCard({ company, role, chains, description, quote, person, highli
 }
 
 export default function EthereumUseCasesPage() {
-    const [metrics, setMetrics] = useState<EthSnapshotMetrics | null>(null);
-
-    useEffect(() => {
-        fetch('/api/ethereum')
-            .then((r) => r.json())
-            .then((d) => { if (d.success) setMetrics(d.data); })
-            .catch(() => {});
-    }, []);
-
-    const ovhEntry = metrics?.providerBreakdown.find((p) => p.key === 'ovh');
-    const ovhShare = ovhEntry?.marketShare ?? null;
-    const ovhNodes = ovhEntry?.nodeCount ?? null;
-    const totalNodes = metrics?.totalNodes ?? null;
-
     return (
         <div className="min-h-screen relative overflow-hidden bg-[#050510]">
             <ParticlesBackground />
@@ -240,32 +225,7 @@ export default function EthereumUseCasesPage() {
                         </p>
                     </div>
 
-                    {/* Stats banner — live data */}
-                    <div className="grid grid-cols-3 gap-3 mb-14">
-                        {[
-                            {
-                                label: 'OVH Market Share',
-                                value: ovhShare !== null ? `${ovhShare.toFixed(1)}%` : '—',
-                                sub: 'of Ethereum nodes',
-                            },
-                            {
-                                label: 'OVH Nodes',
-                                value: ovhNodes !== null ? ovhNodes.toLocaleString() : '—',
-                                sub: 'execution-layer',
-                            },
-                            {
-                                label: 'Nodes Tracked',
-                                value: totalNodes !== null ? totalNodes.toLocaleString() : '—',
-                                sub: 'total crawled',
-                            },
-                        ].map(({ label, value, sub }) => (
-                            <div key={label} className="rounded-xl p-4 border border-white/8 bg-black/30 text-center">
-                                <p className="text-[8px] uppercase tracking-[0.15em] text-white/30 font-bold mb-1">{label}</p>
-                                <p className="text-2xl font-black" style={{ color: ACCENT }}>{value}</p>
-                                <p className="text-[9px] text-white/20 mt-1">{sub}</p>
-                            </div>
-                        ))}
-                    </div>
+                    <UseCasesHero chainId="ethereum" />
 
                     {/* Case Studies */}
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-24">
