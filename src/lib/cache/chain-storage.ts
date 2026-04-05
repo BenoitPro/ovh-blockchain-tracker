@@ -27,6 +27,7 @@ export const CACHE_KEYS = {
     sui: 'sui-metrics',
     tron: 'tron-metrics',
     // celestia: 'celestia-metrics',
+    'solana-prospects': 'solana-prospects-data',
 } as const;
 
 export type ChainId = keyof typeof CACHE_KEYS;
@@ -37,6 +38,7 @@ export const CACHE_TTL: Record<ChainId, number> = {
     avalanche: 2 * 60 * 60 * 1000, // 2 hours
     sui: 2 * 60 * 60 * 1000,       // 2 hours (validators change only at epoch ~24h)
     tron: 2 * 60 * 60 * 1000,      // 2 hours
+    'solana-prospects': 6 * 60 * 60 * 1000, // 6 hours
 };
 
 // ── Core types ─────────────────────────────────────────────────────────────────
