@@ -1,5 +1,6 @@
 import { AvalancheNode, AvalancheOVHNode, AvalancheIPInfo } from '@/types';
 import { fetchAvalanchePeers, extractAvalancheIP } from './fetchPeers';
+import { fetchAvalancheValidatorInfo } from './fetchValidatorInfo';
 import {
     initMaxMind,
     batchGetASN,
@@ -18,7 +19,11 @@ export async function fetchEnrichedAvalancheNodes(): Promise<AvalancheOVHNode[]>
     try {
         await initMaxMind();
 
-        const peers: AvalancheNode[] = await fetchAvalanchePeers();
+        // Run peer fetch + validator info fetch in parallel
+        const [peers, validatorInfo] = await Promise.all([
+            fetchAvalanchePeers(),
+            fetchAvalancheValidatorInfo(),
+        ]);
 
         // Extract clean IPs for batch lookup
         const ips: string[] = [];
@@ -46,17 +51,29 @@ export async function fetchEnrichedAvalancheNodes(): Promise<AvalancheOVHNode[]>
                 longitude: 0,
             };
 
+            const meta = validatorInfo.get(peer.nodeID);
+
             return {
                 ...peer,
                 ipInfo,
                 provider: identifyProvider(ipInfo.asn, ipInfo.org),
+                name: meta?.name,
+                stakeAmount: meta?.stakeAmount,
+                delegationFee: meta?.delegationFee,
+                rewardAddress: meta?.rewardAddress,
             };
         });
 
-        // Sort by uptime descending
-        enriched.sort((a, b) => (b.observedUptime ?? 0) - (a.observedUptime ?? 0));
+        // Sort by stake descending (biggest validators first), fallback to uptime
+        enriched.sort((a, b) => {
+            const stakeA = parseInt(a.stakeAmount || '0');
+            const stakeB = parseInt(b.stakeAmount || '0');
+            if (stakeB !== stakeA) return stakeB - stakeA;
+            return (b.observedUptime ?? 0) - (a.observedUptime ?? 0);
+        });
 
-        logger.info(`[Avalanche/Explorer] Enriched ${enriched.length} peers`);
+        const named = enriched.filter(n => n.name).length;
+        logger.info(`[Avalanche/Explorer] Enriched ${enriched.length} peers | ${named} identified`);
         return enriched;
     } catch (error) {
         logger.error('[Avalanche/Explorer] Enrichment failed:', error);
