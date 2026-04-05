@@ -4,6 +4,7 @@ import Link from 'next/link';
 import ParticlesBackground from '@/components/ParticlesBackground';
 import AnimatedTagline from '@/components/dashboard/AnimatedTagline';
 import VerifiedResidentsGrid from '@/components/dashboard/VerifiedResidentsGrid';
+import UseCasesHero from '@/components/dashboard/UseCasesHero';
 
 const ACCENT = '#00F0FF';
 
@@ -219,14 +220,7 @@ export default function UseCasesPage() {
                         subtitle="On-Chain Verified Presence on OVHcloud Infrastructure"
                     />
 
-                    {/* Stats banner omitted for brevity or kept if short */}
-                    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3 mb-12">
-                        <div className="rounded-xl p-3 border border-white/8 bg-black/30 text-center">
-                             <p className="text-[8px] uppercase tracking-[0.15em] text-white/30 font-bold">Solana Share</p>
-                             <p className="text-2xl font-black text-[#00F0FF]">~15%</p>
-                        </div>
-                        {/* ... other stats cards ... */}
-                    </div>
+                    <UseCasesHero chainId="solana" />
 
                     {/* Qualitative Case Studies */}
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-24">
