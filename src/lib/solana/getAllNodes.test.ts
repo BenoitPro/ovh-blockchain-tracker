@@ -1,5 +1,27 @@
 import { describe, it, expect } from 'vitest';
 
+describe('network timeouts', () => {
+    it('fetchVoteAccounts has AbortSignal.timeout', () => {
+        const fs = require('fs');
+        const source = fs.readFileSync('./src/lib/solana/getAllNodes.ts', 'utf-8');
+        const section = source.slice(
+            source.indexOf('async function fetchVoteAccounts'),
+            source.indexOf('async function fetchVoteAccounts') + 1000
+        );
+        expect(section).toContain('AbortSignal.timeout');
+    });
+
+    it('fetchOnchainValidatorInfo has AbortSignal.timeout', () => {
+        const fs = require('fs');
+        const source = fs.readFileSync('./src/lib/solana/getAllNodes.ts', 'utf-8');
+        const section = source.slice(
+            source.indexOf('async function fetchOnchainValidatorInfo'),
+            source.indexOf('async function fetchOnchainValidatorInfo') + 600
+        );
+        expect(section).toContain('AbortSignal.timeout');
+    });
+});
+
 describe('getAllNodes — VALIDATOR_CACHE_TTL', () => {
     it('VALIDATOR_CACHE_TTL is at least 24 hours', async () => {
         const fs = await import('fs');

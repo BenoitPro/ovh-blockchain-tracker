@@ -23,7 +23,8 @@ async function fetchMarinadeValidatorInfo(): Promise<Map<string, { name: string;
     try {
         const response = await fetch('https://validators-api.marinade.finance/validators?limit=1000', {
             headers: { 'User-Agent': 'Mozilla/5.0', 'Accept': 'application/json' },
-            cache: 'no-store'
+            cache: 'no-store',
+            signal: AbortSignal.timeout(8_000)
         });
         if (!response.ok) throw new Error(`Marinade API error: ${response.status}`);
         const data = await response.json();
@@ -47,6 +48,23 @@ async function fetchMarinadeValidatorInfo(): Promise<Map<string, { name: string;
     return map;
 }
 
+/**
+ * Fetch on-chain validator info from the Config program (getProgramAccounts).
+ * NOTE: disabled — response payload is 50-200 MB. Kept as a stub with timeout
+ * so the pattern is available if a filtered RPC is used in the future.
+ */
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+async function fetchOnchainValidatorInfo(): Promise<Map<string, { name: string; image: string }>> {
+    const map = new Map<string, { name: string; image: string }>();
+    try {
+        // Intentionally not called — payload too large. Timeout guard in place if re-enabled.
+        void AbortSignal.timeout(10_000);
+    } catch (e) {
+        logger.warn('[Solana] fetchOnchainValidatorInfo error:', e);
+    }
+    return map;
+}
+
 async function fetchValidatorList(forceRefresh: boolean = false) {
     const cacheAge = Date.now() - (globalForSolana.validatorMapCacheTime || 0);
     if (globalForSolana.validatorMapCache && !forceRefresh && cacheAge < VALIDATOR_CACHE_TTL) {
@@ -63,7 +81,8 @@ async function fetchValidatorList(forceRefresh: boolean = false) {
     try {
         const response = await fetch('https://api.stakewiz.com/validators', {
             headers: { 'Content-Type': 'application/json' },
-            cache: 'no-store'
+            cache: 'no-store',
+            signal: AbortSignal.timeout(6_000)
         });
         if (response.ok) {
             const data = await response.json();
@@ -102,7 +121,8 @@ async function fetchVoteAccounts(): Promise<Map<string, { stake: number; commiss
                 params: [{
                     commitment: 'finalized',
                 }]
-            })
+            }),
+            signal: AbortSignal.timeout(15_000)
         });
 
         if (!response.ok) throw new Error(`Vote accounts RPC error: ${response.status}`);
