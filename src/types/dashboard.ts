@@ -1,4 +1,7 @@
 import { EnrichedNode } from './solana';
+import { DecentralizationScore } from '@/lib/shared/decentralizationScore';
+
+export type { DecentralizationScore };
 
 export interface DashboardMetrics {
     totalNodes: number;
@@ -16,6 +19,7 @@ export interface DashboardMetrics {
     providerBreakdown?: ProviderBreakdownEntry[];
     // Breakdown of 'Others' category for hovered details
     othersBreakdown?: Record<string, number>;
+    decentralizationScore?: DecentralizationScore;
 }
 
 export interface APIResponse {
@@ -34,4 +38,11 @@ export interface ProviderBreakdownEntry {
     marketShare: number;
     color: string;
     subProviders?: { label: string; nodeCount: number; marketShare: number }[];
+}
+
+export interface ProspectEntry {
+    name: string;
+    currentProvider: string;
+    stake: number;        // raw value: lamports for SOL, votingPower bigint for SUI
+    stakeUnit: 'SOL' | 'SUI' | 'AVAX';
 }

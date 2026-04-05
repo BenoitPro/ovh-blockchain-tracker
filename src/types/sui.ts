@@ -1,3 +1,5 @@
+import { ProspectEntry } from './dashboard';
+
 /**
  * Sui-specific types
  *
@@ -60,6 +62,7 @@ export interface SuiDashboardMetrics {
     topValidators: SuiOVHNode[];
     /** % of total network voting power held by OVH validators */
     ovhVotingPowerShare?: number;
+    topProspects?: ProspectEntry[];
 }
 
 export interface SuiAPIResponse {
