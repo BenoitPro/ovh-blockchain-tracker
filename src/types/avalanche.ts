@@ -35,6 +35,10 @@ export interface AvalancheIPInfo {
 export interface AvalancheOVHNode extends AvalancheNode {
     ipInfo: AvalancheIPInfo;
     provider?: string;
+    name?: string;           // Organization name (from Avascan or formatted nodeID)
+    stakeAmount?: string;    // AVAX staked in nAVAX (e.g. "2000000000000")
+    delegationFee?: number;  // Delegation fee 0–100 (%)
+    rewardAddress?: string;  // Primary reward wallet address (P-avax1...)
 }
 
 /**
