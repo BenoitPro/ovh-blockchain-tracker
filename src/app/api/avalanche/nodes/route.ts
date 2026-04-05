@@ -17,6 +17,7 @@ export async function GET(request: Request) {
         if (search) {
             filtered = allNodes.filter(n =>
                 n.nodeID.toLowerCase().includes(search) ||
+                (n.name || '').toLowerCase().includes(search) ||
                 (n.ipInfo?.ip || '').toLowerCase().includes(search) ||
                 (n.provider || '').toLowerCase().includes(search) ||
                 (n.ipInfo?.country_name || '').toLowerCase().includes(search) ||
