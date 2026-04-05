@@ -6,29 +6,39 @@ import { extractAvalancheIP } from '@/lib/avalanche/fetchPeers';
 
 const AVAX_CONFIG: NodeExplorerConfig<AvalancheOVHNode> = {
     apiEndpoint: '/api/avalanche/nodes',
-    accentColor: '#E84142', // Avalanche red
+    accentColor: '#E84142',
+    showFeeColumn: false,
 
     getKey: (n) => n.nodeID,
     getIdentifier: (n) => n.nodeID,
     getName: (n) => {
-        // Show short nodeID (last 8 chars) as display name since peers have no human name
+        if (n.name) return n.name;
+        // Fallback: short nodeID (last 10 chars)
         const id = n.nodeID.replace('NodeID-', '');
         return id.length > 12 ? `…${id.slice(-10)}` : id;
     },
     getImage: undefined,
 
-    getPrimaryMetric: (n) => n.observedUptime ?? 0,
-    formatPrimaryMetric: (n) => ({
-        main: `${(n.observedUptime ?? 0).toFixed(1)}%`,
-        sub: 'uptime',
-    }),
-
-    // No commission concept in Avalanche — repurpose column for client version
-    formatCommission: (n) => {
-        const v = (n.version || '').replace('avalanche/', 'v');
-        return v || '—';
+    // Primary metric: stake in AVAX (nAVAX ÷ 1e9)
+    getPrimaryMetric: (n) => parseInt(n.stakeAmount || '0'),
+    formatPrimaryMetric: (n) => {
+        const nAvax = parseInt(n.stakeAmount || '0');
+        if (nAvax === 0) {
+            // Fallback to uptime when no stake data available
+            return { main: `${(n.observedUptime ?? 0).toFixed(1)}%`, sub: 'uptime' };
+        }
+        const avax = nAvax / 1e9;
+        const formatted = avax >= 1_000_000
+            ? `${(avax / 1_000_000).toFixed(2)}M`
+            : avax >= 1_000
+            ? `${(avax / 1_000).toFixed(1)}K`
+            : avax.toFixed(0);
+        return { main: `${formatted} AVAX`, sub: 'staked' };
     },
-    getCommissionValue: () => 50, // neutral styling
+
+    // Fee column hidden — these values won't render but must be provided
+    formatCommission: () => '—',
+    getCommissionValue: () => 50,
 
     getProvider: (n) => n.provider || 'Unknown',
     getASN: (n) => n.ipInfo?.asn || 'AS Unknown',
@@ -40,27 +50,32 @@ const AVAX_CONFIG: NodeExplorerConfig<AvalancheOVHNode> = {
     isOVH: (n) => (n.provider || '').toLowerCase().includes('ovh'),
 
     sortOptions: [
+        { value: 'stake_desc', label: 'Stake (Highest First)' },
+        { value: 'stake_asc', label: 'Stake (Lowest First)' },
         { value: 'uptime_desc', label: 'Uptime (Highest First)' },
-        { value: 'uptime_asc', label: 'Uptime (Lowest First)' },
         { value: 'provider_asc', label: 'Provider (A → Z)' },
     ],
     sortNodes: (nodes, sortBy) => {
         const n = [...nodes];
-        if (sortBy === 'uptime_desc') n.sort((a, b) => (b.observedUptime ?? 0) - (a.observedUptime ?? 0));
-        else if (sortBy === 'uptime_asc') n.sort((a, b) => (a.observedUptime ?? 0) - (b.observedUptime ?? 0));
+        if (sortBy === 'stake_desc') n.sort((a, b) => parseInt(b.stakeAmount || '0') - parseInt(a.stakeAmount || '0'));
+        else if (sortBy === 'stake_asc') n.sort((a, b) => parseInt(a.stakeAmount || '0') - parseInt(b.stakeAmount || '0'));
+        else if (sortBy === 'uptime_desc') n.sort((a, b) => (b.observedUptime ?? 0) - (a.observedUptime ?? 0));
         else if (sortBy === 'provider_asc') n.sort((a, b) => (a.provider || '').localeCompare(b.provider || ''));
         return n;
     },
     getOVHNodes: (nodes) => nodes.filter(n => (n.provider || '').toLowerCase().includes('ovh')),
 
     viewModeLabels: { all: 'All Providers', ovh: 'OVH Only' },
-    searchPlaceholder: 'Search by NodeID, IP, Provider, Version, or Country…',
+    searchPlaceholder: 'Search by Name, NodeID, IP, Provider, or Country…',
     csvFilename: 'avalanche_nodes_export',
-    csvHeaders: ['NodeID', 'IP', 'Version', 'Uptime (%)', 'Provider', 'ASN', 'Country'],
+    csvHeaders: ['Name', 'NodeID', 'IP', 'Stake (AVAX)', 'Delegation Fee (%)', 'Reward Address', 'Uptime (%)', 'Provider', 'ASN', 'Country'],
     getCSVRow: (n) => [
+        `"${n.name || ''}"`,
         `"${n.nodeID}"`,
         extractAvalancheIP(n.ip) || n.ip,
-        `"${n.version || ''}"`,
+        n.stakeAmount ? (parseInt(n.stakeAmount) / 1e9).toFixed(2) : '',
+        n.delegationFee !== undefined ? n.delegationFee.toFixed(2) : '',
+        n.rewardAddress || '',
         (n.observedUptime ?? 0).toFixed(2),
         `"${n.provider || 'Unknown'}"`,
         n.ipInfo?.asn || '',
