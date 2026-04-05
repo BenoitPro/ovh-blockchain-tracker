@@ -2,14 +2,18 @@ import { SolanaNode, IPInfo, OVHNode, EnrichedNode } from '@/types';
 import { extractIP } from './fetchNodes';
 import { logger, RateLimiter } from '@/lib/utils';
 import {
-    initMaxMind,
     getASNFromMaxMind,
     getCountryFromMaxMind,
     isOVHIP,
-    batchGetASN
 } from '@/lib/asn/maxmind';
-import { OVH_ASN_LIST, PROVIDER_ASN_MAP } from '@/lib/config/constants';
+import { OVH_ASN_LIST } from '@/lib/config/constants';
 import { identifyProvider } from '@/lib/shared/providers';
+import {
+    categorizeByProvider,
+    ProviderCategorizationResult,
+} from '@/lib/shared/filterOVH';
+
+export type { ProviderCategorizationResult };
 
 // Simple in-memory cache for geolocation data
 const geoCache = new Map<string, IPInfo>();
@@ -163,12 +167,6 @@ export async function filterOVHNodes(nodes: SolanaNode[]): Promise<OVHNode[]> {
     return ovhNodes;
 }
 
-export interface ProviderCategorizationResult {
-    distribution: Record<string, number>;
-    othersBreakdown: Record<string, number>;
-    globalGeoDistribution: Record<string, number>;
-}
-
 /**
  * Categorize all nodes by provider using MaxMind (ultra-fast)
  * This is 150x faster than the old ip-api.com method
@@ -176,62 +174,11 @@ export interface ProviderCategorizationResult {
 export async function categorizeNodesByProvider(
     nodes: SolanaNode[]
 ): Promise<ProviderCategorizationResult> {
-    const distribution: Record<string, number> = {};
-    const othersBreakdown: Record<string, number> = {};
-    const globalGeoDistribution: Record<string, number> = {};
-
-    // Initialize distribution for all known providers
-    for (const key of Object.keys(PROVIDER_ASN_MAP)) {
-        distribution[key] = 0;
-    }
-    distribution.others = 0;
-
-    logger.info(`[MaxMind] Categorizing ${nodes.length} nodes by provider...`);
-
-    // Extract all IPs
-    const ips: string[] = [];
-    for (const node of nodes) {
-        const ip = extractIP(node.gossip);
-        if (ip) {
-            ips.push(ip);
-        } else {
-            distribution.others++;
-        }
-    }
-
-    // Batch process all IPs with MaxMind
-    const asnResults = batchGetASN(ips);
-
-    // Step: Get country info for all IPs too
-    ips.forEach(ip => {
-        const countryInfo = getCountryFromMaxMind(ip);
-        if (countryInfo?.countryCode) {
-            globalGeoDistribution[countryInfo.countryCode] = (globalGeoDistribution[countryInfo.countryCode] || 0) + 1;
-        }
-    });
-
-    // Categorize by ASN
-    for (const asnInfo of asnResults.values()) {
-        let categorized = false;
-
-        for (const [provider, providerInfo] of Object.entries(PROVIDER_ASN_MAP)) {
-            if (providerInfo.asns.includes(asnInfo.asn)) {
-                distribution[provider]++;
-                categorized = true;
-                break;
-            }
-        }
-
-        if (!categorized) {
-            distribution.others++;
-            const org = asnInfo.org || 'Unknown Provider';
-            othersBreakdown[org] = (othersBreakdown[org] || 0) + 1;
-        }
-    }
-
-    logger.debug(`[MaxMind] Provider distribution:`, distribution);
-
-    return { distribution, othersBreakdown, globalGeoDistribution };
+    return categorizeByProvider(
+        nodes,
+        (node) => extractIP(node.gossip),
+        'Solana',
+    );
 }
 
 

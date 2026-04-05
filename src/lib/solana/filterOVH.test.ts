@@ -6,7 +6,9 @@ import * as maxmind from '@/lib/asn/maxmind';
 
 // Mock MaxMind module
 vi.mock('@/lib/asn/maxmind', () => ({
+    initMaxMind: vi.fn().mockResolvedValue(undefined),
     getASNFromMaxMind: vi.fn(),
+    getCountryFromMaxMind: vi.fn().mockReturnValue(null),
     isOVHIP: vi.fn(),
     batchGetASN: vi.fn(),
 }));

@@ -43,12 +43,6 @@ export interface SuiOVHNode extends SuiValidator {
     provider?: string;
 }
 
-export interface SuiProviderCategorizationResult {
-    distribution: Record<string, number>;
-    othersBreakdown: Record<string, number>;
-    globalGeoDistribution: Record<string, number>;
-}
-
 /**
  * Dashboard metrics specific to Sui.
  * Notable addition vs Avalanche: `ovhVotingPowerShare` —
