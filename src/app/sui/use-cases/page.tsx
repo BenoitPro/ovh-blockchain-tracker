@@ -29,7 +29,7 @@ export default function SuiUseCasesPage() {
                         <div className="relative z-10 max-w-3xl border-l-[3px] border-[#4DA2FF] pl-10">
                             <h2 className="text-3xl font-black text-white mb-6 uppercase tracking-tight">Verified <span className="text-[#4DA2FF]">Infrastructure Audits</span></h2>
                             <p className="text-xl text-gray-300 leading-relaxed mb-8">
-                                Our **On-Chain** monitoring engine programmatically identifies top-tier network contributors and validator operations leveraging OVHcloud's industrial-grade infrastructure to power the Sui network.
+                                Our <strong>On-Chain</strong> monitoring engine programmatically identifies top-tier network contributors and validator operations leveraging OVHcloud's industrial-grade infrastructure to power the Sui network.
                             </p>
                             <p className="text-gray-400 text-sm italic">
                                 — Automated Infrastructure Audit Source
