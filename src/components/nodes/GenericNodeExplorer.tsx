@@ -46,6 +46,7 @@ export interface NodeExplorerConfig<T> {
 
     // Theme
     accentColor: string;
+    showFeeColumn?: boolean;  // default true — set false to hide Fee/Version column
 
     // Sort
     sortOptions: Array<{ value: string; label: string }>;
@@ -243,11 +244,11 @@ export default function GenericNodeExplorer<T>({ config }: { config: NodeExplore
             </div>
 
             {/* Table */}
-            <div className="hidden md:grid grid-cols-12 gap-4 px-6 py-3 bg-white/5 border-y border-white/10 text-xs font-bold text-white/40 uppercase tracking-widest mb-2 sticky top-0 z-10 backdrop-blur-xl">
+            <div className={`hidden md:grid gap-4 px-6 py-3 bg-white/5 border-y border-white/10 text-xs font-bold text-white/40 uppercase tracking-widest mb-2 sticky top-0 z-10 backdrop-blur-xl ${config.showFeeColumn === false ? 'grid-cols-11' : 'grid-cols-12'}`}>
                 <div className="col-span-1">#</div>
-                <div className="col-span-4">Identity</div>
+                <div className={config.showFeeColumn === false ? 'col-span-5' : 'col-span-4'}>Identity</div>
                 <div className="col-span-2 text-right">Metric</div>
-                <div className="col-span-1 text-center">Fee</div>
+                {config.showFeeColumn !== false && <div className="col-span-1 text-center">Fee</div>}
                 <div className="col-span-2">Provider</div>
                 <div className="col-span-2 text-right">Location</div>
             </div>
@@ -274,7 +275,7 @@ export default function GenericNodeExplorer<T>({ config }: { config: NodeExplore
                             return (
                                 <div
                                     key={config.getKey(node)}
-                                    className="group relative grid grid-cols-1 md:grid-cols-12 gap-4 px-6 py-4 items-center rounded-xl transition-all border"
+                                    className={`group relative grid grid-cols-1 gap-4 px-6 py-4 items-center rounded-xl transition-all border ${config.showFeeColumn === false ? 'md:grid-cols-11' : 'md:grid-cols-12'}`}
                                     style={isOVH ? { ...accentBgStyle, ...accentBorderStyle } : { backgroundColor: 'rgba(0,0,0,0.2)', borderColor: 'rgba(255,255,255,0.05)' }}
                                 >
                                     {isOVH && (
@@ -286,7 +287,7 @@ export default function GenericNodeExplorer<T>({ config }: { config: NodeExplore
 
                                     <div className="col-span-1 font-mono text-white/30 text-sm">{index + 1}</div>
 
-                                    <div className="col-span-4 flex items-center space-x-3 overflow-hidden">
+                                    <div className={`${config.showFeeColumn === false ? 'col-span-5' : 'col-span-4'} flex items-center space-x-3 overflow-hidden`}>
                                         <div
                                             className="p-2 rounded-lg flex-shrink-0"
                                             style={isOVH ? accentBgStyle : { backgroundColor: 'rgba(255,255,255,0.05)' }}
@@ -308,15 +309,17 @@ export default function GenericNodeExplorer<T>({ config }: { config: NodeExplore
                                         <p className="text-xs text-white/30">{metric.sub}</p>
                                     </div>
 
-                                    <div className="col-span-1 text-center">
-                                        <span className={`text-xs px-2 py-1 rounded-md ${
-                                            commissionVal >= 100 ? 'bg-red-500/20 text-red-400'
-                                            : commissionVal === 0 ? 'bg-green-500/20 text-green-400'
-                                            : 'bg-white/10 text-white/60'
-                                        }`}>
-                                            {commission}
-                                        </span>
-                                    </div>
+                                    {config.showFeeColumn !== false && (
+                                        <div className="col-span-1 text-center">
+                                            <span className={`text-xs px-2 py-1 rounded-md ${
+                                                commissionVal >= 100 ? 'bg-red-500/20 text-red-400'
+                                                : commissionVal === 0 ? 'bg-green-500/20 text-green-400'
+                                                : 'bg-white/10 text-white/60'
+                                            }`}>
+                                                {commission}
+                                            </span>
+                                        </div>
+                                    )}
 
                                     <div className="col-span-2 min-w-0">
                                         <p className="text-sm truncate" style={isOVH ? accentStyle : { color: 'rgba(255,255,255,0.7)' }}>

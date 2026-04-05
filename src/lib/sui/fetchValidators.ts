@@ -65,6 +65,7 @@ async function getSuiIP(multiaddr: string): Promise<string | null> {
 }
 
 export async function fetchSuiValidators(): Promise<SuiValidator[]> {
+    dnsCache.clear(); // reset per-run to avoid stale DNS resolutions in long-lived processes
     logger.info('[Sui] Fetching latest system state from RPC...');
 
     const response = await fetch(SUI_RPC_ENDPOINT, {
