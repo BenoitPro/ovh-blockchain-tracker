@@ -109,9 +109,13 @@ export async function categorizeByProvider<T>(
             globalGeoDistribution[countryInfo.countryCode] =
                 (globalGeoDistribution[countryInfo.countryCode] ?? 0) + 1;
         }
-    }
 
-    for (const asnInfo of asnResults.values()) {
+        const asnInfo = asnResults.get(ip);
+        if (!asnInfo) {
+            distribution.others++;
+            continue;
+        }
+
         let matched = false;
         for (const [provider, providerInfo] of Object.entries(PROVIDER_ASN_MAP)) {
             if (providerInfo.asns.includes(asnInfo.asn)) {
