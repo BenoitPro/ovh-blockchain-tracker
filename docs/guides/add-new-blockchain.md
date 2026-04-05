@@ -90,21 +90,44 @@ export function extractNewChainIP(rawIp: string): string | null {
 
 ### `filterOVH.ts`
 
-Pattern identique à avalanche. Importer `identifyProvider` depuis `shared/providers`.
+> **Important :** Ne jamais copier-coller la logique MaxMind. Importer depuis `@/lib/shared/filterOVH`.  
+> Les fonctions `filterOVHNodesByASN` et `categorizeByProvider` gèrent tout — tu fournis seulement `extractIP`.
 
 ```typescript
+import { NewChainNode, NewChainOVHNode, NewChainIPInfo } from '@/types/newchain';
 import { identifyProvider } from '@/lib/shared/providers';
-import { OVH_ASN_LIST, PROVIDER_ASN_MAP } from '@/lib/config/constants';
-import { initMaxMind, getASNFromMaxMind, getCountryFromMaxMind, isOVHIP, batchGetASN } from '@/lib/asn/maxmind';
+import {
+    filterOVHNodesByASN,
+    categorizeByProvider,
+    ProviderCategorizationResult,
+} from '@/lib/shared/filterOVH';
+import { extractNewChainIP } from './fetchNodes';
 
 export async function filterOVHNewChainNodes(nodes: NewChainNode[]): Promise<NewChainOVHNode[]> {
-  await initMaxMind();
-  // même pattern que filterOVHAvalancheNodes
+    const results = await filterOVHNodesByASN(nodes, extractNewChainIP, 'NewChain');
+
+    return results.map(({ node, enrichment }) => ({
+        ...node,
+        ipInfo: {
+            ip: enrichment.ip,
+            asn: enrichment.asn,
+            org: enrichment.org,
+            country: enrichment.country,
+            country_name: enrichment.country_name,
+            city: 'Unknown',       // GeoLite2-ASN does not provide city/coordinates
+            latitude: 0,
+            longitude: 0,
+        } satisfies NewChainIPInfo,
+        provider: identifyProvider(enrichment.asn, enrichment.org),
+    }));
 }
 
-export async function categorizeNewChainNodesByProvider(nodes: NewChainNode[]) {
-  await initMaxMind();
-  // même pattern que categorizeAvalancheNodesByProvider
+export type { ProviderCategorizationResult as NewChainProviderCategorizationResult };
+
+export async function categorizeNewChainNodesByProvider(
+    nodes: NewChainNode[],
+): Promise<ProviderCategorizationResult> {
+    return categorizeByProvider(nodes, extractNewChainIP, 'NewChain');
 }
 ```
 
