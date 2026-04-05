@@ -48,19 +48,75 @@ async function fetchMarinadeValidatorInfo(): Promise<Map<string, { name: string;
     return map;
 }
 
+const BASE58_ALPHABET = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
+const VALIDATOR_INFO_CONFIG_KEY = 'Va1idator1nfo111111111111111111111111111111';
+const CONFIG_PROGRAM_ID = 'Config1111111111111111111111111111111111111';
+
+function base58Encode(bytes: Buffer): string {
+    let leadingZeros = 0;
+    for (const byte of bytes) {
+        if (byte === 0) leadingZeros++;
+        else break;
+    }
+    const digits = [0];
+    for (let i = 0; i < bytes.length; i++) {
+        let carry = bytes[i];
+        for (let j = 0; j < digits.length; j++) {
+            carry += digits[j] << 8;
+            digits[j] = carry % 58;
+            carry = Math.floor(carry / 58);
+        }
+        while (carry > 0) {
+            digits.push(carry % 58);
+            carry = Math.floor(carry / 58);
+        }
+    }
+    return '1'.repeat(leadingZeros) + digits.reverse().map(d => BASE58_ALPHABET[d]).join('');
+}
+
 /**
  * Fetch on-chain validator info from the Config program (getProgramAccounts).
- * NOTE: disabled — response payload is 50-200 MB. Kept as a stub with timeout
- * so the pattern is available if a filtered RPC is used in the future.
  */
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
 async function fetchOnchainValidatorInfo(): Promise<Map<string, { name: string; image: string }>> {
     const map = new Map<string, { name: string; image: string }>();
     try {
-        // Intentionally not called — payload too large. Timeout guard in place if re-enabled.
-        void AbortSignal.timeout(10_000);
+        const body = JSON.stringify({ jsonrpc: '2.0', id: 1, method: 'getProgramAccounts', params: [CONFIG_PROGRAM_ID, { encoding: 'base64' }] });
+        const response = await fetch(SOLANA_RPC_ENDPOINT, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body,
+            cache: 'no-store',
+            signal: AbortSignal.timeout(10_000),
+        });
+        if (!response.ok) throw new Error(`Config RPC error: ${response.status}`);
+        const data = await response.json();
+        if (data.error) throw new Error(data.error.message);
+
+        const accounts: Array<{ pubkey: string; account: { data: [string, string] } }> = data.result || [];
+
+        for (const item of accounts) {
+            try {
+                const raw = Buffer.from(item.account.data[0], 'base64');
+                if (raw.length < 75 || raw[0] !== 2) continue;
+                if (base58Encode(raw.slice(1, 33)) !== VALIDATOR_INFO_CONFIG_KEY) continue;
+                const identity = base58Encode(raw.slice(34, 66));
+                const text = raw.slice(75).toString('utf-8');
+                const jsonStart = text.indexOf('{');
+                const jsonEnd = text.lastIndexOf('}');
+                if (jsonStart < 0 || jsonEnd < jsonStart) continue;
+                const info = JSON.parse(text.slice(jsonStart, jsonEnd + 1));
+                const name = (info.name || '').trim();
+                const image = (info.iconUrl || '').trim();
+                if (name || image) {
+                    map.set(identity, { name, image });
+                }
+            } catch {
+                // skip malformed accounts
+            }
+        }
+        logger.info(`[Solana] On-chain validator info: ${map.size} entries fetched`);
     } catch (e) {
-        logger.warn('[Solana] fetchOnchainValidatorInfo error:', e);
+        logger.warn('[Solana] Failed to fetch on-chain validator info:', e);
     }
     return map;
 }
@@ -73,11 +129,23 @@ async function fetchValidatorList(forceRefresh: boolean = false) {
 
     const map = new Map<string, { name: string; image: string }>();
 
-    // Primary source: Marinade (best coverage: 53/100 top validators, includes Alchemy, Jupiter, Galaxy…)
-    const marinadeMap = await fetchMarinadeValidatorInfo();
+    // Run primary sources in parallel
+    const [marinadeMap, onchainMap] = await Promise.all([
+        fetchMarinadeValidatorInfo(),
+        fetchOnchainValidatorInfo(),
+    ]);
+
+    // Priority 1: Marinade
     marinadeMap.forEach((info, identity) => map.set(identity, info));
 
-    // Secondary: StakeWiz (on-chain Config program removed — getProgramAccounts response is 50-200 MB)
+    // Priority 2: On-chain Config program (adds validators not in Marinade)
+    onchainMap.forEach((info, identity) => {
+        if (!map.has(identity) && (info.name || info.image)) {
+            map.set(identity, info);
+        }
+    });
+
+    // Secondary: StakeWiz
     try {
         const response = await fetch('https://api.stakewiz.com/validators', {
             headers: { 'Content-Type': 'application/json' },

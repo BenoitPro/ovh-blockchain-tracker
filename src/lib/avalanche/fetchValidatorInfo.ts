@@ -38,6 +38,8 @@ async function fetchPChainValidators(): Promise<Map<string, AvalancheValidatorMe
         for (const v of validators) {
             if (!v.nodeID) continue;
             const addresses: string[] = v.rewardOwner?.addresses ?? [];
+            // P-Chain returns delegationFee already in percent (e.g. "2.0000" = 2%, "100.0000" = 100%).
+            // No conversion needed. Note: stakeAmount is null from P-Chain; Glacier is the source for stake.
             map.set(v.nodeID, {
                 stakeAmount: v.stakeAmount ?? undefined,
                 delegationFee: v.delegationFee !== undefined

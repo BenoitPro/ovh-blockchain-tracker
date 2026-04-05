@@ -65,10 +65,11 @@ export async function fetchEnrichedAvalancheNodes(): Promise<AvalancheOVHNode[]>
         });
 
         // Sort by stake descending (biggest validators first), fallback to uptime
+        // BigInt required: large validators stake > 9M AVAX = 9×10^15 nAVAX > Number.MAX_SAFE_INTEGER
         enriched.sort((a, b) => {
-            const stakeA = parseInt(a.stakeAmount || '0');
-            const stakeB = parseInt(b.stakeAmount || '0');
-            if (stakeB !== stakeA) return stakeB - stakeA;
+            const stakeA = BigInt(a.stakeAmount || '0');
+            const stakeB = BigInt(b.stakeAmount || '0');
+            if (stakeB !== stakeA) return stakeB > stakeA ? 1 : -1;
             return (b.observedUptime ?? 0) - (a.observedUptime ?? 0);
         });
 

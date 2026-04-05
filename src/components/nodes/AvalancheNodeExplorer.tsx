@@ -20,6 +20,8 @@ const AVAX_CONFIG: NodeExplorerConfig<AvalancheOVHNode> = {
     getImage: undefined,
 
     // Primary metric: stake in AVAX (nAVAX ÷ 1e9)
+    // Note: getPrimaryMetric is used for relative ordering only (not displayed raw),
+    // so parseInt precision loss only affects ranking of validators > ~9M AVAX.
     getPrimaryMetric: (n) => parseInt(n.stakeAmount || '0'),
     formatPrimaryMetric: (n) => {
         const nAvax = parseInt(n.stakeAmount || '0');
@@ -57,10 +59,23 @@ const AVAX_CONFIG: NodeExplorerConfig<AvalancheOVHNode> = {
     ],
     sortNodes: (nodes, sortBy) => {
         const n = [...nodes];
-        if (sortBy === 'stake_desc') n.sort((a, b) => parseInt(b.stakeAmount || '0') - parseInt(a.stakeAmount || '0'));
-        else if (sortBy === 'stake_asc') n.sort((a, b) => parseInt(a.stakeAmount || '0') - parseInt(b.stakeAmount || '0'));
-        else if (sortBy === 'uptime_desc') n.sort((a, b) => (b.observedUptime ?? 0) - (a.observedUptime ?? 0));
-        else if (sortBy === 'provider_asc') n.sort((a, b) => (a.provider || '').localeCompare(b.provider || ''));
+        if (sortBy === 'stake_desc') {
+            n.sort((a, b) => {
+                const sa = BigInt(a.stakeAmount || '0');
+                const sb = BigInt(b.stakeAmount || '0');
+                return sb > sa ? 1 : sb < sa ? -1 : 0;
+            });
+        } else if (sortBy === 'stake_asc') {
+            n.sort((a, b) => {
+                const sa = BigInt(a.stakeAmount || '0');
+                const sb = BigInt(b.stakeAmount || '0');
+                return sa > sb ? 1 : sa < sb ? -1 : 0;
+            });
+        } else if (sortBy === 'uptime_desc') {
+            n.sort((a, b) => (b.observedUptime ?? 0) - (a.observedUptime ?? 0));
+        } else if (sortBy === 'provider_asc') {
+            n.sort((a, b) => (a.provider || '').localeCompare(b.provider || ''));
+        }
         return n;
     },
     getOVHNodes: (nodes) => nodes.filter(n => (n.provider || '').toLowerCase().includes('ovh')),
