@@ -3,6 +3,7 @@
 import Header from '@/components/dashboard/Header';
 import ParticlesBackground from '@/components/ParticlesBackground';
 import VerifiedResidentsGrid from '@/components/dashboard/VerifiedResidentsGrid';
+import UseCasesHero from '@/components/dashboard/UseCasesHero';
 
 const TRON_RED = '#FF060A';
 
@@ -15,6 +16,10 @@ export default function TronUseCasesPage() {
 
             <div className="relative z-10 flex flex-col min-h-screen p-4 lg:p-8 xl:p-10 max-w-[1200px] mx-auto">
                 <Header network="Tron" subtitle="Real-Time Infrastructure Monitoring" />
+
+                <div className="mt-8">
+                    <UseCasesHero chainId="tron" />
+                </div>
 
                 <div className="mt-16 space-y-24">
                     {/* Main Partnership Description */}
