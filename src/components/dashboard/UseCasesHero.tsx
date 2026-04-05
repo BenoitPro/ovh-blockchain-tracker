@@ -51,9 +51,10 @@ export default function UseCasesHero({ chainId }: Props) {
     const config = USE_CASES_CONFIG[chainId];
 
     useEffect(() => {
-        if (!config) { setLoading(false); return; }
+        const cfg = USE_CASES_CONFIG[chainId];
+        if (!cfg) { setLoading(false); return; }
 
-        fetch(config.apiRoute)
+        fetch(cfg.apiRoute)
             .then((r) => r.json())
             .then((d) => {
                 const breakdown: ProviderBreakdownEntry[] = d?.data?.providerBreakdown ?? [];
@@ -65,7 +66,7 @@ export default function UseCasesHero({ chainId }: Props) {
             })
             .catch(() => {})
             .finally(() => setLoading(false));
-    }, [config]);
+    }, [chainId]);
 
     if (!config) return null;
 
@@ -78,7 +79,7 @@ export default function UseCasesHero({ chainId }: Props) {
             {showRank && (
                 <StatTile
                     label={`${chain.name} Provider Rank`}
-                    value={`#${RANK_LABELS[ovhRank!] ?? ovhRank}`}
+                    value={`#${RANK_LABELS[ovhRank] ?? ovhRank}`}
                     sub="by node count"
                     accent={accent}
                     highlight
