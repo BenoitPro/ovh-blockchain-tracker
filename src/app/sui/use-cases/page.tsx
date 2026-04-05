@@ -3,6 +3,7 @@
 import Header from '@/components/dashboard/Header';
 import ParticlesBackground from '@/components/ParticlesBackground';
 import VerifiedResidentsGrid from '@/components/dashboard/VerifiedResidentsGrid';
+import UseCasesHero from '@/components/dashboard/UseCasesHero';
 
 export default function SuiUseCasesPage() {
     const bgStyle = {
@@ -15,6 +16,10 @@ export default function SuiUseCasesPage() {
 
             <div className="relative z-10 flex flex-col min-h-screen p-4 lg:p-8 xl:p-10 max-w-[1200px] mx-auto">
                 <Header network="Sui" subtitle="Real-Time Infrastructure Monitoring" />
+
+                <div className="mt-8 px-4">
+                    <UseCasesHero chainId="sui" />
+                </div>
 
                 <div className="mt-16 space-y-24">
                     {/* Main Partnership Description */}
