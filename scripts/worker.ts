@@ -23,8 +23,10 @@ import { fetchEnrichedNodes } from '../src/lib/solana/getAllNodes';
 import { filterOVHNodes, categorizeNodesByProvider } from '../src/lib/solana/filterOVH';
 import { calculateMetrics } from '../src/lib/solana/calculateMetrics';
 import { writeChainCache } from '../src/lib/cache/chain-storage';
-import { initMaxMind } from '../src/lib/asn/maxmind';
+import { initMaxMind, getASNFromMaxMind } from '../src/lib/asn/maxmind';
 import { MetricsRepository } from '../src/lib/db/metrics-repository';
+import { identifyProvider } from '../src/lib/shared/providers';
+import { ProspectEntry } from '../src/types/dashboard';
 
 // NO LIMIT - Fetch ALL nodes to get accurate market share
 const NODE_LIMIT = undefined; // undefined = fetch all nodes
@@ -79,9 +81,33 @@ async function runWorker() {
         console.log('📈 [Worker] Calculating market share metrics...');
         const metrics = calculateMetrics(allNodes, ovhNodes, providerCategorization);
 
+        // Step 4b: Compute Solana prospects (named non-OVH validators, sorted by stake)
+        console.log('🎯 [Worker] Computing Solana prospects...');
+        const topProspects: ProspectEntry[] = allNodes
+            .filter((n) => n.name && n.ip)
+            .map((n) => {
+                const asnInfo = getASNFromMaxMind(n.ip!);
+                const provider = asnInfo
+                    ? identifyProvider(asnInfo.asn, asnInfo.org)
+                    : 'Unknown';
+                return {
+                    name: n.name!,
+                    currentProvider: provider,
+                    stake: n.activatedStake ?? 0,
+                    stakeUnit: 'SOL' as const,
+                };
+            })
+            .filter((p) => p.currentProvider !== 'OVHcloud')
+            .sort((a, b) => b.stake - a.stake)
+            .slice(0, 50);
+
+        console.log(`✅ [Worker] Found ${topProspects.length} Solana prospects`);
+
         // Step 5: Save to cache
         console.log('💾 [Worker] Saving to cache...');
         await writeChainCache('solana', metrics, allNodes.length);
+        await writeChainCache('solana-prospects', { topProspects }, topProspects.length);
+        console.log(`💾 [Worker] Saved ${topProspects.length} prospects to cache`);
 
         // Step 6: Save to database (historical metrics)
         console.log('📊 [Worker] Saving to historical database...');
