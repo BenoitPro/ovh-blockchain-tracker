@@ -20,6 +20,7 @@ export function calculateAvalancheMetrics(
     allNodes: AvalancheNode[],
     ovhNodes: AvalancheOVHNode[],
     providerCategorization: AvalancheProviderCategorizationResult,
+    totalValidators = 0,
 ): AvalancheDashboardMetrics {
     const totalNodes = allNodes.length;
     const ovhNodeCount = ovhNodes.length;
@@ -118,6 +119,7 @@ export function calculateAvalancheMetrics(
 
     return {
         totalNodes,
+        totalValidators,
         ovhNodes: ovhNodeCount,
         marketShare,
         geoDistribution,

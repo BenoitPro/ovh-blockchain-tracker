@@ -2,21 +2,12 @@
 
 import { useState, useEffect } from 'react';
 import { PieChart, Pie, Cell, ResponsiveContainer, Legend, Tooltip } from 'recharts';
+import { useNetworkTheme } from '@/components/NetworkThemeProvider';
+import { CHAINS, ChainId } from '@/lib/chains';
 
 interface DonutChartProps {
     providerDistribution: Record<string, number>;
 }
-
-const COLORS: Record<string, string> = {
-    'OVHcloud': '#00F0FF',     // Cyan - Brand
-    'AWS': '#A855F7',          // Purple
-    'Google Cloud': '#4285F4', // Blue
-    'Hetzner': '#EC4899',      // Pink
-    'DigitalOcean': '#0080FF', // Sky Blue
-    'Vultr': '#3182CE',        // Deep Blue
-    'Equinix': '#6366F1',      // Indigo
-    'Others': '#94A3B8',       // Slate
-};
 
 const LABEL_MAP: Record<string, string> = {
     'ovh': 'OVHcloud',
@@ -31,6 +22,19 @@ const LABEL_MAP: Record<string, string> = {
 
 export default function DonutChart({ providerDistribution = {} }: DonutChartProps) {
     const [isMobile, setIsMobile] = useState(false);
+    const { theme } = useNetworkTheme();
+    const accentColor = CHAINS[theme as ChainId]?.accent ?? '#00F0FF';
+
+    const COLORS: Record<string, string> = {
+        'OVHcloud': accentColor,
+        'AWS': '#A855F7',          // Purple
+        'Google Cloud': '#4285F4', // Blue
+        'Hetzner': '#EC4899',      // Pink
+        'DigitalOcean': '#0080FF', // Sky Blue
+        'Vultr': '#3182CE',        // Deep Blue
+        'Equinix': '#6366F1',      // Indigo
+        'Others': '#94A3B8',       // Slate
+    };
 
     useEffect(() => {
         const checkMobile = () => setIsMobile(window.innerWidth < 640);
@@ -78,10 +82,10 @@ export default function DonutChart({ providerDistribution = {} }: DonutChartProp
                         <Tooltip
                             contentStyle={{
                                 backgroundColor: 'rgba(0, 14, 30, 0.95)',
-                                border: '1px solid rgba(0, 240, 255, 0.4)',
+                                border: `1px solid ${accentColor}66`,
                                 borderRadius: '12px',
                                 color: '#fff',
-                                boxShadow: '0 0 18px rgba(0, 240, 255, 0.35), 0 0 40px rgba(0, 240, 255, 0.15)',
+                                boxShadow: `0 0 18px ${accentColor}59, 0 0 40px ${accentColor}26`,
                             }}
                             labelStyle={{
                                 color: '#fff',
@@ -108,7 +112,7 @@ export default function DonutChart({ providerDistribution = {} }: DonutChartProp
 
                 {/* Center label */}
                 <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-center pointer-events-none">
-                    <p className="text-4xl font-bold text-[#00F0FF]">{total}</p>
+                    <p className="text-4xl font-bold" style={{ color: 'var(--chain-accent)' }}>{total}</p>
                     <p className="text-sm text-gray-400 mt-1">Total Nodes</p>
                 </div>
             </div>

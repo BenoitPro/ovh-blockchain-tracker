@@ -99,20 +99,25 @@ export default function MethodologyModal() {
                                 ) : network === 'avalanche' ? (
                                     <>
                                         <p>
-                                            Avalanche Primary Network peers are discovered via the <strong className="text-white">info.peers</strong> JSON-RPC method.
+                                            Avalanche validator data is assembled from two complementary sources, each with a specific role.
                                         </p>
                                         <ol className="list-decimal list-outside ml-4 space-y-2">
                                             <li>
-                                                <strong className="text-white">Multi-node crawl:</strong> We query 5 independent public RPC endpoints (AvaLabs, PublicNode, Ankr, BLAST, 1RPC) in parallel via <code className="text-xs bg-white/10 px-1 rounded">info.peers</code>. Results are deduplicated by <code className="text-xs bg-white/10 px-1 rounded">nodeID</code>, maximising network coverage.
+                                                <strong className="text-white">Canonical count — P-Chain:</strong> We call <code className="text-xs bg-white/10 px-1 rounded">platform.getCurrentValidators</code> on the Avalanche P-Chain to get the authoritative number of active stakers (~1 400). This is the ground truth for network size, but it returns <em>no IP addresses</em>.
                                             </li>
                                             <li>
-                                                <strong className="text-white">Coverage:</strong> Each node sees its directly connected peers; combining 5 diverse endpoints captures 90–100 % of the ~1,700 active Primary Network validators.
+                                                <strong className="text-white">IP discovery — multi-node crawl:</strong> We query 5 independent public RPC endpoints (AvaLabs, PublicNode, Ankr, BLAST, 1RPC) in parallel via <code className="text-xs bg-white/10 px-1 rounded">info.peers</code>. Results are deduplicated by <code className="text-xs bg-white/10 px-1 rounded">nodeID</code>. This yields roughly 50 % of validators — the rest do not expose a public IP through peer gossip (NAT, restricted connectivity, no public RPC).
                                             </li>
-                                            <li><strong className="text-white">ASN Resolution:</strong> Peer public IPs are mapped to cloud provider ASNs via MaxMind GeoLite2.</li>
-                                            <li><strong className="text-white">Uptime:</strong> <code className="text-xs bg-white/10 px-1 rounded">observedUptime</code> measures the fraction of time the peer has been reachable.</li>
+                                            <li>
+                                                <strong className="text-white">ASN resolution:</strong> Public IPs from step 2 are mapped to cloud provider ASNs via MaxMind GeoLite2 (offline, &lt;1 ms/IP).
+                                            </li>
+                                            <li>
+                                                <strong className="text-white">Parti pris assumé:</strong> OVH market share is calculated against IP-resolvable validators only. If non-visible validators are distributed similarly across providers, the share is representative. If they skew toward home/non-cloud infrastructure, it may be slightly overstated.
+                                            </li>
+                                            <li><strong className="text-white">Uptime:</strong> <code className="text-xs bg-white/10 px-1 rounded">observedUptime</code> measures the fraction of time the peer has been reachable from the queried node.</li>
                                         </ol>
                                         <p className="pt-4 border-t border-white/10 text-xs text-slate-500 font-mono italic">
-                                            Dataset: Multi-node peer crawl · ~90–100% coverage · Refreshed every 2 hours.
+                                            Dataset: P-Chain canonical count + 5-node IP crawl · ~50% IP coverage · Refreshed every 2 hours.
                                         </p>
                                     </>
                                 ) : network === 'sui' ? (

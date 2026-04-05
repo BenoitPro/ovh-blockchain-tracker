@@ -3,7 +3,6 @@
 import Link from 'next/link';
 import ParticlesBackground from '@/components/ParticlesBackground';
 import AnimatedTagline from '@/components/dashboard/AnimatedTagline';
-import BlockchainCubes from '@/components/BlockchainCubes';
 
 const ACCENT = '#E84142';
 
@@ -187,7 +186,6 @@ export default function AvalancheUseCasesPage() {
                 backgroundAttachment: 'fixed'
             }}
         >
-            <BlockchainCubes opacity={0.07} count={10} />
             <ParticlesBackground />
 
             <div className="relative z-10">

@@ -117,8 +117,8 @@ export default function TrendChart() {
             const dataPoint = payload[0].payload as TrendDataPoint;
             return (
                 <div
-                    className="bg-gray-900/95 backdrop-blur-sm border border-cyan-500/40 rounded-lg p-4"
-                    style={{ boxShadow: '0 0 18px rgba(0, 240, 255, 0.35), 0 0 40px rgba(0, 240, 255, 0.15)' }}
+                    className="bg-gray-900/95 backdrop-blur-sm rounded-lg p-4"
+                    style={{ borderWidth: '1px', borderStyle: 'solid', borderColor: 'color-mix(in srgb, var(--chain-accent) 40%, transparent)', boxShadow: '0 0 18px color-mix(in srgb, var(--chain-accent) 35%, transparent), 0 0 40px color-mix(in srgb, var(--chain-accent) 15%, transparent)' }}
                 >
                     <p className="text-gray-400 text-sm mb-2">
                         {new Date(dataPoint.timestamp).toLocaleDateString('en-US', {
@@ -156,13 +156,15 @@ export default function TrendChart() {
             <div className="flex bg-black/40 border border-white/10 rounded-xl p-1">
                 <button
                     onClick={() => setDisplayMode('marketShare')}
-                    className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${displayMode === 'marketShare' ? 'bg-[#00F0FF]/20 text-[#00F0FF]' : 'text-gray-500 hover:text-gray-300'}`}
+                    className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${displayMode === 'marketShare' ? 'text-white' : 'text-gray-500 hover:text-gray-300'}`}
+                    style={displayMode === 'marketShare' ? { backgroundColor: 'color-mix(in srgb, var(--chain-accent) 20%, transparent)', color: 'var(--chain-accent)' } : undefined}
                 >
                     Market Share (%)
                 </button>
                 <button
                     onClick={() => setDisplayMode('absolute')}
-                    className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${displayMode === 'absolute' ? 'bg-[#00F0FF]/20 text-[#00F0FF]' : 'text-gray-500 hover:text-gray-300'}`}
+                    className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${displayMode === 'absolute' ? 'text-white' : 'text-gray-500 hover:text-gray-300'}`}
+                    style={displayMode === 'absolute' ? { backgroundColor: 'color-mix(in srgb, var(--chain-accent) 20%, transparent)', color: 'var(--chain-accent)' } : undefined}
                 >
                     Node Count
                 </button>

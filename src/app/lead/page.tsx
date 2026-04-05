@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useRef, useEffect, useCallback, ChangeEvent, FormEvent } from 'react';
+import ParticlesBackground from '@/components/ParticlesBackground';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -865,8 +866,9 @@ export default function LeadPage() {
   const subTextClass = 'text-white/30';
 
   return (
-    <div className="min-h-screen py-8 px-4 sm:py-10">
-      <div className="max-w-xl mx-auto">
+    <div className="relative min-h-screen py-8 px-4 sm:py-10">
+      <ParticlesBackground />
+      <div className="relative z-10 max-w-xl mx-auto">
 
         {/* ── Header ──────────────────────────────────────────────────── */}
         <div className="mb-8 flex items-start justify-between gap-4">

@@ -8,23 +8,8 @@ import {
     batchGetASN,
 } from '@/lib/asn/maxmind';
 import { OVH_ASN_LIST, PROVIDER_ASN_MAP } from '@/lib/config/constants';
+import { identifyProvider } from '@/lib/shared/providers';
 
-// Provider identification logic (shared with other chains)
-function identifyProvider(asn: string, orgName: string): string {
-    for (const [, info] of Object.entries(PROVIDER_ASN_MAP)) {
-        if (info.asns.includes(asn)) return info.label;
-    }
-    const o = orgName.toLowerCase();
-    if (o.includes('amazon') || o.includes('aws')) return 'AWS';
-    if (o.includes('google')) return 'Google Cloud';
-    if (o.includes('hetzner')) return 'Hetzner';
-    if (o.includes('digitalocean') || o.includes('digital ocean')) return 'DigitalOcean';
-    if (o.includes('ovh')) return 'OVHcloud';
-    if (o.includes('alibaba')) return 'Alibaba Cloud';
-    if (o.includes('oracle')) return 'Oracle Cloud';
-    if (o.includes('microsoft') || o.includes('azure')) return 'Azure';
-    return orgName || 'Unknown Provider';
-}
 
 export async function filterOVHSuiNodes(validators: SuiValidator[]): Promise<SuiOVHNode[]> {
     await initMaxMind();

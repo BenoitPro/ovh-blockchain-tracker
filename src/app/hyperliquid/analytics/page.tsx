@@ -1,10 +1,13 @@
 'use client';
 
 import Header from '@/components/dashboard/Header';
+import ParticlesBackground from '@/components/ParticlesBackground';
 
 export default function HyperliquidAnalytics() {
     return (
-        <main className="min-h-screen p-4 lg:p-8 xl:p-10 mb-20 max-w-[1600px] mx-auto">
+        <div className="relative min-h-screen">
+            <ParticlesBackground />
+        <main className="relative z-10 p-4 lg:p-8 xl:p-10 mb-20 max-w-[1600px] mx-auto">
             <Header network="Hyperliquid" subtitle="Network Analytics" />
             <div className="mt-8">
                 <div className="bg-[#00E5BE]/5 border border-[#00E5BE]/20 rounded-2xl p-8 backdrop-blur-xl">
@@ -15,5 +18,6 @@ export default function HyperliquidAnalytics() {
                 </div>
             </div>
         </main>
+        </div>
     );
 }

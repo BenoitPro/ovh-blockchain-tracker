@@ -2,8 +2,8 @@ import { NextResponse } from 'next/server';
 import { fetchSolanaNodes } from '@/lib/solana/fetchNodes';
 import { filterOVHNodes, categorizeNodesByProvider } from '@/lib/solana/filterOVH';
 import { calculateMetrics } from '@/lib/solana/calculateMetrics';
-import { readCache, isCacheFresh } from '@/lib/cache/storage';
-import { APIResponse } from '@/types';
+import { readChainCache, isChainCacheFresh } from '@/lib/cache/chain-storage';
+import { APIResponse, DashboardMetrics } from '@/types';
 import { logger } from '@/lib/utils';
 
 export async function GET() {
@@ -11,9 +11,9 @@ export async function GET() {
         logger.info('[API] Reading cached data...');
 
         // Step 1: Try to read from cache
-        const cache = await readCache();
+        const cache = await readChainCache<DashboardMetrics>('solana');
 
-        if (cache && isCacheFresh(cache)) {
+        if (cache && isChainCacheFresh(cache, 'solana')) {
             logger.info('[API] Returning fresh cached data');
             const response: APIResponse = {
                 success: true,
@@ -61,7 +61,7 @@ export async function GET() {
         logger.error('[API] Error:', error);
 
         // Try to return stale cache as last resort
-        const cache = await readCache();
+        const cache = await readChainCache<DashboardMetrics>('solana');
         if (cache) {
             logger.info('[API] Returning stale cache due to error');
             return NextResponse.json({

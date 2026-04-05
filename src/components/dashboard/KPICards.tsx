@@ -11,27 +11,47 @@ interface KPICardsProps {
     marketShare: number;
     vertical?: boolean;
     align?: 'left' | 'center' | 'right';
+    /** Canonical validator count (Avalanche only — from platform.getCurrentValidators) */
+    totalValidators?: number;
 }
 
-export default function KPICards({ 
-    totalNodes, 
-    ovhNodes, 
-    marketShare, 
+export default function KPICards({
+    totalNodes,
+    ovhNodes,
+    marketShare,
     vertical = false,
-    align = 'center'
+    align = 'center',
+    totalValidators,
 }: KPICardsProps) {
     const [activeTooltip, setActiveTooltip] = useState<number | null>(null);
     const { theme } = useNetworkTheme();
     const currentChainName = CHAINS[theme as ChainId]?.name || 'Network';
 
+    const hasCanonicalCount = !!totalValidators && totalValidators > 0;
+    const ipCoveragePct = hasCanonicalCount
+        ? Math.round((totalNodes / totalValidators!) * 100)
+        : null;
+
+    const totalNodesValue = hasCanonicalCount
+        ? `${totalNodes.toLocaleString()} / ~${totalValidators!.toLocaleString()}`
+        : totalNodes.toLocaleString();
+
+    const totalNodesTooltip = hasCanonicalCount
+        ? `We discovered ${totalNodes.toLocaleString()} validators with a resolvable public IP address out of ~${totalValidators!.toLocaleString()} active stakers on the Avalanche Primary Network (source: platform.getCurrentValidators, corroborated by Messari & Avascan reports).\n\nAbout half of validators do not expose their IP through peer gossip — they may be behind NAT, restrict inbound connections, or simply not run a public RPC. Only IP-visible validators can be geolocated via MaxMind ASN lookup.\n\nThe OVH market share shown is calculated against IP-resolvable validators (~${ipCoveragePct}% of the total). If non-visible validators are distributed similarly across providers, the share is representative.`
+        : `Total number of discovered nodes across the entire ${currentChainName} network during the last crawl.`;
+
+    const totalNodesTitle = hasCanonicalCount
+        ? `Validators with IP / Total`
+        : `Total ${currentChainName} Nodes`;
+
     const metrics = [
         {
-            title: `Total ${currentChainName} Nodes`,
-            value: totalNodes.toLocaleString(),
+            title: totalNodesTitle,
+            value: totalNodesValue,
             icon: ServerIcon,
             color: 'var(--chain-accent)',
-            tooltipTitle: `Total ${currentChainName} Nodes`,
-            tooltipContent: `Total number of discovered nodes across the entire ${currentChainName} network during the last crawl.`
+            tooltipTitle: hasCanonicalCount ? `Coverage: ~${ipCoveragePct}% IP-resolvable` : `Total ${currentChainName} Nodes`,
+            tooltipContent: totalNodesTooltip,
         },
         {
             title: 'Active OVHcloud Nodes',
@@ -111,9 +131,11 @@ export default function KPICards({
                                     <InformationCircleIcon className="w-4 h-4" />
                                     {item.tooltipTitle}
                                 </h4>
-                                <p className="text-xs text-slate-300 leading-relaxed">
-                                    {item.tooltipContent}
-                                </p>
+                                <div className="text-xs text-slate-300 leading-relaxed space-y-2">
+                                    {item.tooltipContent.split('\n\n').map((para, i) => (
+                                        <p key={i}>{para}</p>
+                                    ))}
+                                </div>
                             </motion.div>
                         )}
                     </AnimatePresence>

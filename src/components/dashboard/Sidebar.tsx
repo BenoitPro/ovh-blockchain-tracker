@@ -264,7 +264,7 @@ export default function Sidebar() {
                         onClick={handleLogout}
                         className={`w-full text-center text-[9px] uppercase tracking-[0.15em] transition-colors duration-200 py-1 text-white/20 hover:text-[var(--chain-accent)]`}
                       >
-                        Déconnexion
+                        Log out
                       </button>
                     ) : (
                       <Link

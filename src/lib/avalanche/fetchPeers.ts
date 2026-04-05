@@ -22,6 +22,9 @@ import { logger } from '@/lib/utils';
  * ──────────────────────────────────────────────────────────────────────────────
  */
 
+/** P-Chain endpoint to query the canonical validator set */
+const PCHAIN_ENDPOINT = 'https://api.avax.network/ext/bc/P';
+
 /**
  * Public Avalanche RPC endpoints that expose `info.peers`.
  * Chosen for geographic & operator diversity (AvaLabs, Ankr, BLAST, PublicNode, 1RPC).
@@ -151,4 +154,49 @@ export async function fetchAvalanchePeers(): Promise<AvalancheNode[]> {
     logger.info(`[Avalanche] Total unique peers after deduplication: ${nodes.length}`);
 
     return nodes;
+}
+
+/**
+ * Fetch the canonical validator count from the P-Chain via `platform.getCurrentValidators`.
+ *
+ * This is the authoritative source for the total number of active validators — it reflects
+ * the staking set as recorded on-chain, independent of peer connectivity.  It does NOT
+ * include IP addresses; use `fetchAvalanchePeers` for IP-resolvable nodes.
+ *
+ * Returns 0 on error so the caller can degrade gracefully.
+ */
+export async function fetchAvalancheValidatorCount(): Promise<number> {
+    try {
+        const response = await fetch(PCHAIN_ENDPOINT, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                jsonrpc: '2.0',
+                id: 1,
+                method: 'platform.getCurrentValidators',
+                params: {},
+            }),
+            cache: 'no-store',
+            signal: AbortSignal.timeout(20_000),
+        });
+
+        if (!response.ok) {
+            logger.warn(`[Avalanche/P-Chain] HTTP ${response.status}`);
+            return 0;
+        }
+
+        const json = await response.json();
+
+        if (json.error) {
+            logger.warn(`[Avalanche/P-Chain] RPC error: ${json.error.message}`);
+            return 0;
+        }
+
+        const validators: unknown[] = json.result?.validators ?? [];
+        logger.info(`[Avalanche/P-Chain] Canonical validator count: ${validators.length}`);
+        return validators.length;
+    } catch (err) {
+        logger.warn(`[Avalanche/P-Chain] Failed to fetch validator count: ${err instanceof Error ? err.message : err}`);
+        return 0;
+    }
 }

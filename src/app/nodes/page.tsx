@@ -1,6 +1,6 @@
 import ParticlesBackground from '@/components/ParticlesBackground';
 import NodeExplorer from '@/components/nodes/NodeExplorer';
-import { readCache } from '@/lib/cache/storage';
+import { readChainCache } from '@/lib/cache/chain-storage';
 
 // Force dynamic to get fresh metrics but from cache
 export const dynamic = 'force-dynamic';
@@ -10,7 +10,7 @@ export default async function NodesPage() {
     
     // Get stats from already cached metrics (very fast, no RPC call)
     try {
-        const cache = await readCache();
+        const cache = await readChainCache('solana');
         if (cache?.data) {
             totalNodes = cache.nodeCount || 0;
         }

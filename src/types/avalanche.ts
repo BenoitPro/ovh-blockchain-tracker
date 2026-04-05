@@ -42,7 +42,13 @@ export interface AvalancheOVHNode extends AvalancheNode {
  * Extends generic metrics with the `avgOVHUptime` field.
  */
 export interface AvalancheDashboardMetrics {
+    /** Peers with a resolvable public IP (subset of the full validator set) */
     totalNodes: number;
+    /**
+     * Canonical validator count from platform.getCurrentValidators (P-Chain).
+     * 0 if the P-Chain query failed. Use this for displaying the "true" network size.
+     */
+    totalValidators: number;
     ovhNodes: number;
     marketShare: number;
     geoDistribution: Record<string, number>;

@@ -36,9 +36,16 @@ export default function EthereumPage() {
 
     useEffect(() => { fetchData(); }, []);
 
+    const dashBg = {
+        backgroundImage: "url('https://unpkg.com/three-globe/example/img/night-sky.png')",
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+        backgroundAttachment: 'fixed' as const,
+    };
+
     if (loading) {
         return (
-            <div className="min-h-screen relative">
+            <div className="min-h-screen relative" style={dashBg}>
                 <BlockchainCubes opacity={0.28} count={12} />
                 <ParticlesBackground />
                 <div className="relative z-10 flex items-center justify-center min-h-screen">
@@ -52,11 +59,11 @@ export default function EthereumPage() {
 
     if (error || !metrics) {
         return (
-            <>
+            <div className="min-h-screen relative" style={dashBg}>
                 <BlockchainCubes opacity={0.28} count={12} />
                 <ParticlesBackground />
                 <ErrorState message={error || 'No data available'} onRetry={fetchData} />
-            </>
+            </div>
         );
     }
 
@@ -64,7 +71,7 @@ export default function EthereumPage() {
     const ovhShare = metrics.totalNodes > 0 ? (ovhCount / metrics.totalNodes) * 100 : 0;
 
     return (
-        <div className="min-h-screen relative overflow-x-hidden overflow-y-auto">
+        <div className="min-h-screen relative overflow-x-hidden overflow-y-auto" style={dashBg}>
             {/* Animated Blockchain Cubes Background (Subtle for Eth) */}
             <BlockchainCubes opacity={0.28} count={12} />
 
@@ -76,7 +83,7 @@ export default function EthereumPage() {
 
                     <AnimatedTagline
                         title={
-                            <>Distribution of Ethereum Nodes on <span style={{ color: '#627EEA' }}>OVHcloud</span></>
+                            <>Distribution of Ethereum Nodes on <span style={{ color: 'var(--chain-accent)' }}>OVHcloud</span></>
                         }
                         subtitle="Empowering the decentralized network"
                     />

@@ -3,6 +3,7 @@
 import { useState, FormEvent, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Image from 'next/image';
+import ParticlesBackground from '@/components/ParticlesBackground';
 
 function LoginForm() {
   const router = useRouter();
@@ -30,12 +31,12 @@ function LoginForm() {
     if (res.ok) {
       router.push(from);
     } else {
-      setError('Identifiant ou mot de passe incorrect.');
+      setError('Incorrect username or password.');
     }
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-black/90 px-4">
+    <div className="min-h-screen flex items-center justify-center px-4">
       <div
         className="w-full max-w-sm rounded-2xl p-8 border border-white/10"
         style={{
@@ -57,13 +58,13 @@ function LoginForm() {
         </div>
 
         <h1 className="text-white/80 text-sm font-bold uppercase tracking-widest text-center mb-6">
-          Accès interne
+          Internal Access
         </h1>
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <input
             type="text"
-            placeholder="Identifiant"
+            placeholder="Username"
             value={username}
             onChange={(e) => setUsername(e.target.value)}
             required
@@ -71,7 +72,7 @@ function LoginForm() {
           />
           <input
             type="password"
-            placeholder="Mot de passe"
+            placeholder="Password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             required
@@ -88,7 +89,7 @@ function LoginForm() {
             className="w-full py-3 rounded-xl text-sm font-bold uppercase tracking-widest text-black transition-all duration-200 disabled:opacity-50"
             style={{ background: loading ? '#00F0FF80' : '#00F0FF' }}
           >
-            {loading ? 'Connexion...' : 'Se connecter'}
+            {loading ? 'Signing in...' : 'Sign in'}
           </button>
         </form>
       </div>
@@ -98,8 +99,13 @@ function LoginForm() {
 
 export default function LoginPage() {
   return (
-    <Suspense>
-      <LoginForm />
-    </Suspense>
+    <div className="relative min-h-screen">
+      <ParticlesBackground />
+      <div className="relative z-10">
+        <Suspense>
+          <LoginForm />
+        </Suspense>
+      </div>
+    </div>
   );
 }

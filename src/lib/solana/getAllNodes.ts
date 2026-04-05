@@ -1,55 +1,178 @@
 import { EnrichedNode } from '@/types';
 import { fetchSolanaNodes, extractIP } from './fetchNodes';
 import { batchGetASN, initMaxMind, batchGetCountry } from '@/lib/asn/maxmind';
-import { identifyProvider } from './filterOVH';
+import { identifyProvider } from '@/lib/shared/providers';
 import { logger } from '@/lib/utils';
 import { SOLANA_RPC_ENDPOINT } from '@/lib/config/constants';
 
-// Cache for validator names
-let validatorMapCache: Map<string, { name: string; image: string; }> | null = null;
+// Singleton persisted across HMR reloads — same pattern as maxmind.ts and database.ts
+const globalForSolana = globalThis as unknown as {
+    validatorMapCache: Map<string, { name: string; image: string }> | undefined;
+};
+
+const BASE58_ALPHABET = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
+const VALIDATOR_INFO_CONFIG_KEY = 'Va1idator1nfo111111111111111111111111111111';
+const CONFIG_PROGRAM_ID = 'Config1111111111111111111111111111111111111';
+
+function base58Encode(bytes: Buffer): string {
+    let leadingZeros = 0;
+    for (const byte of bytes) {
+        if (byte === 0) leadingZeros++;
+        else break;
+    }
+    const digits = [0];
+    for (let i = 0; i < bytes.length; i++) {
+        let carry = bytes[i];
+        for (let j = 0; j < digits.length; j++) {
+            carry += digits[j] << 8;
+            digits[j] = carry % 58;
+            carry = Math.floor(carry / 58);
+        }
+        while (carry > 0) {
+            digits.push(carry % 58);
+            carry = Math.floor(carry / 58);
+        }
+    }
+    return '1'.repeat(leadingZeros) + digits.reverse().map(d => BASE58_ALPHABET[d]).join('');
+}
+
+/**
+ * Fetch validator identities and names from Solana's on-chain Config program.
+ * This is the official Solana validator info registry — no API key, no rate limits.
+ * Binary format per account: [1 byte key_count=2] [32 bytes Va1idator1nfo key] [1 byte signer=0]
+ *   [32 bytes identity pubkey] [1 byte signer=1] [8 bytes JSON length u64] [JSON string]
+ */
+async function fetchOnchainValidatorInfo(): Promise<Map<string, { name: string; image: string }>> {
+    const map = new Map<string, { name: string; image: string }>();
+    try {
+        const response = await fetch(SOLANA_RPC_ENDPOINT, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                jsonrpc: '2.0',
+                id: 1,
+                method: 'getProgramAccounts',
+                params: [CONFIG_PROGRAM_ID, { encoding: 'base64' }]
+            }),
+            cache: 'no-store'
+        });
+        if (!response.ok) throw new Error(`Config RPC error: ${response.status}`);
+        const data = await response.json();
+        if (data.error) throw new Error(data.error.message);
+
+        const accounts: Array<{ pubkey: string; account: { data: [string, string] } }> = data.result || [];
+
+        for (const item of accounts) {
+            try {
+                const raw = Buffer.from(item.account.data[0], 'base64');
+                // Must have exactly 2 keys and be long enough for the full header
+                if (raw.length < 75 || raw[0] !== 2) continue;
+                // Key 1 must be the ValidatorInfo config key
+                if (base58Encode(raw.slice(1, 33)) !== VALIDATOR_INFO_CONFIG_KEY) continue;
+                // Key 2 (bytes 34-65) is the validator identity pubkey
+                const identity = base58Encode(raw.slice(34, 66));
+                // JSON starts at offset 75 (67-byte header + 8-byte u64 length prefix)
+                const text = raw.slice(75).toString('utf-8');
+                const jsonStart = text.indexOf('{');
+                const jsonEnd = text.lastIndexOf('}');
+                if (jsonStart < 0 || jsonEnd < jsonStart) continue;
+                const info = JSON.parse(text.slice(jsonStart, jsonEnd + 1));
+                const name = (info.name || '').trim();
+                const image = (info.iconUrl || '').trim();
+                if (name || image) {
+                    map.set(identity, { name, image });
+                }
+            } catch {
+                // skip malformed accounts
+            }
+        }
+        logger.info(`[Solana] On-chain validator info: ${map.size} entries fetched`);
+    } catch (e) {
+        logger.warn('[Solana] Failed to fetch on-chain validator info:', e);
+    }
+    return map;
+}
+
+/**
+ * Fetch validator names from Marinade Finance's public registry.
+ * Best coverage: 788 validators, 635 named, including major ones (Alchemy, Jupiter, Galaxy…).
+ * Free, no auth required, single page at limit=1000.
+ */
+async function fetchMarinadeValidatorInfo(): Promise<Map<string, { name: string; image: string }>> {
+    const map = new Map<string, { name: string; image: string }>();
+    try {
+        const response = await fetch('https://validators-api.marinade.finance/validators?limit=1000', {
+            headers: { 'User-Agent': 'Mozilla/5.0', 'Accept': 'application/json' },
+            cache: 'no-store'
+        });
+        if (!response.ok) throw new Error(`Marinade API error: ${response.status}`);
+        const data = await response.json();
+        const validators: any[] = data.validators || [];
+        for (const v of validators) {
+            const identity = v.identity;
+            if (!identity) continue;
+            const name = (v.info_name || '').trim();
+            const image = (v.info_icon_url || '').trim();
+            if (name || image) {
+                const info = { name, image };
+                map.set(identity, info);
+                // Also index by vote_account so vote-pubkey fallback lookup works
+                if (v.vote_account) map.set(v.vote_account, info);
+            }
+        }
+        logger.info(`[Solana] Marinade validator registry: ${validators.filter((v: any) => v.identity && ((v.info_name || '').trim() || (v.info_icon_url || '').trim())).length} validators (${map.size} index keys) fetched`);
+    } catch (e) {
+        logger.warn('[Solana] Failed to fetch Marinade validator info:', e);
+    }
+    return map;
+}
 
 async function fetchValidatorList(forceRefresh: boolean = false) {
-    if (validatorMapCache && !forceRefresh) return validatorMapCache;
+    if (globalForSolana.validatorMapCache && !forceRefresh) return globalForSolana.validatorMapCache;
 
+    const map = new Map<string, { name: string; image: string }>();
+
+    // Run primary sources in parallel
+    const [marinadeMap, onchainMap] = await Promise.all([
+        fetchMarinadeValidatorInfo(),
+        fetchOnchainValidatorInfo(),
+    ]);
+
+    // Priority 1: Marinade (best coverage: 53/100 top validators, includes Alchemy, Jupiter, Galaxy…)
+    marinadeMap.forEach((info, identity) => map.set(identity, info));
+
+    // Priority 2: On-chain Config program (adds validators not in Marinade)
+    onchainMap.forEach((info, identity) => {
+        if (!map.has(identity) && (info.name || info.image)) {
+            map.set(identity, info);
+        }
+    });
+
+    // Priority 3: StakeWiz as last resort (currently degraded for top validators)
     try {
-        // Fetch from stakewiz.com public API
         const response = await fetch('https://api.stakewiz.com/validators', {
             headers: { 'Content-Type': 'application/json' },
             cache: 'no-store'
         });
-
         if (response.ok) {
             const data = await response.json();
-            const map = new Map<string, { name: string; image: string; }>();
-
             data.forEach((v: any) => {
-                // FALLBACK: If name is blank, we try to get it from image filename as a last resort
-                // or just keep it as Unknown Validator if no logo either.
-                let name = (v.name || v.username || '').trim();
-                
-                // CRITICAL: We also map both identity AND vote_identity
-                const info = {
-                    name: name || 'Unknown Validator',
-                    image: v.image || ''
-                };
-                
-                if (v.identity) map.set(v.identity, info);
-                if (v.vote_identity) map.set(v.vote_identity, info);
+                const name = (v.name || v.username || '').trim();
+                const image = (v.image || '').trim();
+                if (v.identity && !map.has(v.identity) && (name || image)) {
+                    map.set(v.identity, { name, image });
+                }
             });
-
-            // Re-apply a SHIELD for the JUPITER key which often fails in API
-            if (!map.has('JupmVLmA8RoyTUbTMMuTtoPWHEiNQobxgTeGTrPNkzT')) {
-                map.set('JupmVLmA8RoyTUbTMMuTtoPWHEiNQobxgTeGTrPNkzT', { name: 'Jupiter', image: '' });
-            }
-
-            validatorMapCache = map;
-            return map;
         }
     } catch (e) {
-        logger.warn('Failed to fetch validator list, using basic map');
+        logger.warn('[Solana] StakeWiz fallback failed:', e);
     }
 
-    return validatorMapCache || new Map();
+    const namedCount = Array.from(map.values()).filter(v => v.name).length;
+    logger.info(`[Solana] Validator map: ${map.size} entries, ${namedCount} with names`);
+
+    globalForSolana.validatorMapCache = map;
+    return map;
 }
 
 /**
@@ -153,7 +276,7 @@ export async function fetchEnrichedNodes(forceRefresh: boolean = false): Promise
         // Sort by Stake (descending) by default
         enrichedNodes.sort((a, b) => (b.activatedStake || 0) - (a.activatedStake || 0));
 
-        logger.info(`[Explorer] Enriched ${enrichedNodes.length} nodes (Identified ${Array.from(validatorNames?.values() || []).filter(v => v.name !== 'Unknown Validator').length} validators)`);
+        logger.info(`[Explorer] Enriched ${enrichedNodes.length} nodes (Identified ${Array.from(validatorNames?.values() || []).filter(v => v.name).length} validators)`);
         return enrichedNodes;
     } catch (error) {
         logger.error('Error fetching enriched nodes:', error);

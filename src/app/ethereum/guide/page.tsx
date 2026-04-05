@@ -14,7 +14,6 @@ import {
     UserGroupIcon
 } from '@heroicons/react/24/outline';
 import ParticlesBackground from '@/components/ParticlesBackground';
-import BlockchainCubes from '@/components/BlockchainCubes';
 
 interface GuideItem {
     id: string;
@@ -72,10 +71,9 @@ export default function EthereumGuidePage() {
     };
 
     return (
-        <main className="relative min-h-screen overflow-hidden bg-[#f8faff]">
+        <main className="relative min-h-screen overflow-hidden bg-[#050510]">
             {/* Background elements */}
             <ParticlesBackground />
-            <BlockchainCubes opacity={0.4} />
 
             <div className="relative z-10 max-w-5xl mx-auto px-6 py-20 lg:py-28">
                 {/* Hero section */}
@@ -88,10 +86,10 @@ export default function EthereumGuidePage() {
                     <span className="inline-block px-4 py-1.5 rounded-full bg-[#627EEA]/10 text-[#627EEA] text-[10px] font-bold uppercase tracking-[0.2em] mb-6 border border-[#627EEA]/20">
                         Resources & Support
                     </span>
-                    <h1 className="text-5xl lg:text-7xl font-black text-[#1e293b] tracking-tight mb-8">
+                    <h1 className="text-5xl lg:text-7xl font-black text-white tracking-tight mb-8">
                         Ethereum Node <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#627EEA] to-[#818CF8]">Expert Guide</span>
                     </h1>
-                    <p className="text-xl text-slate-500 max-w-2xl mx-auto font-medium leading-relaxed mb-4">
+                    <p className="text-xl text-white/60 max-w-2xl mx-auto font-medium leading-relaxed mb-4">
                         Everything you need to deploy, optimize, and secure your Ethereum nodes on OVHcloud's global infrastructure.
                     </p>
                 </motion.div>
@@ -107,14 +105,14 @@ export default function EthereumGuidePage() {
                                 <div className="flex items-center gap-6">
                                     <div className={`p-4 rounded-2xl transition-all duration-300 ${
                                         expandedId === item.id || isLinkCard
-                                        ? 'bg-[#627EEA] text-white' 
-                                        : 'bg-slate-100 text-slate-500 group-hover:bg-[#627EEA]/10 group-hover:text-[#627EEA]'
+                                        ? 'bg-[#627EEA] text-white'
+                                        : 'bg-white/10 text-white/40 group-hover:bg-[#627EEA]/10 group-hover:text-[#627EEA]'
                                     }`}>
                                         <item.icon className="w-6 h-6" />
                                     </div>
                                     <div className="flex flex-col">
                                         <h3 className={`text-lg font-bold transition-colors duration-300 ${
-                                            expandedId === item.id || isLinkCard ? 'text-[#1e293b]' : 'text-slate-600 group-hover:text-[#1e293b]'
+                                            expandedId === item.id || isLinkCard ? 'text-white' : 'text-white/70 group-hover:text-white'
                                         }`}>
                                             {item.question}
                                         </h3>
@@ -129,7 +127,7 @@ export default function EthereumGuidePage() {
                                     {isLinkCard ? (
                                         <ArrowTopRightOnSquareIcon className="w-5 h-5 text-[#627EEA] opacity-50 group-hover:opacity-100" />
                                     ) : (
-                                        <ChevronDownIcon className={`w-6 h-6 ${expandedId === item.id ? 'text-[#627EEA]' : 'text-slate-400'}`} />
+                                        <ChevronDownIcon className={`w-6 h-6 ${expandedId === item.id ? 'text-[#627EEA]' : 'text-white/50'}`} />
                                     )}
                                 </div>
                             </div>
@@ -145,7 +143,7 @@ export default function EthereumGuidePage() {
                                     initial={{ opacity: 0, x: -20 }}
                                     animate={{ opacity: 1, x: 0 }}
                                     transition={{ delay: index * 0.1, duration: 0.5 }}
-                                    className="group relative rounded-3xl overflow-hidden transition-all duration-300 border bg-white shadow-sm hover:shadow-2xl hover:shadow-[#627EEA]/15 border-[#627EEA]/20 hover:border-[#627EEA]/50"
+                                    className="group relative rounded-3xl overflow-hidden transition-all duration-300 border bg-white/5 shadow-sm hover:shadow-2xl hover:shadow-[#627EEA]/15 border-[#627EEA]/20 hover:border-[#627EEA]/50"
                                 >
                                     <div className="absolute inset-0 bg-gradient-to-r from-[#627EEA]/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
                                     {cardContent}
@@ -160,9 +158,9 @@ export default function EthereumGuidePage() {
                                 animate={{ opacity: 1, x: 0 }}
                                 transition={{ delay: index * 0.1, duration: 0.5 }}
                                 className={`group rounded-3xl overflow-hidden transition-all duration-300 border ${
-                                    expandedId === item.id 
-                                    ? 'bg-white shadow-2xl shadow-[#627EEA]/10 border-[#627EEA]/30' 
-                                    : 'bg-white/60 backdrop-blur-md border-slate-200 hover:border-[#627EEA]/40 hover:bg-white shadow-sm hover:shadow-xl hover:shadow-[#627EEA]/5'
+                                    expandedId === item.id
+                                    ? 'bg-white/5 shadow-2xl shadow-[#627EEA]/10 border-[#627EEA]/30'
+                                    : 'bg-white/5 backdrop-blur-md border-[#627EEA]/15 hover:border-[#627EEA]/40 hover:bg-white/10 shadow-sm hover:shadow-xl hover:shadow-[#627EEA]/5'
                                 }`}
                             >
                                 <button
@@ -181,8 +179,8 @@ export default function EthereumGuidePage() {
                                             transition={{ duration: 0.3, ease: "easeInOut" }}
                                         >
                                             <div className="px-8 pb-8 pt-0 ml-20">
-                                                <div className="h-px w-full bg-slate-100 mb-6" />
-                                                <p className="text-slate-500 leading-loose text-lg font-medium mb-8 max-w-3xl">
+                                                <div className="h-px w-full bg-white/10 mb-6" />
+                                                <p className="text-white/60 leading-loose text-lg font-medium mb-8 max-w-3xl">
                                                     {item.answer}
                                                 </p>
                                                 
@@ -223,7 +221,7 @@ export default function EthereumGuidePage() {
                     transition={{ delay: 0.8 }}
                     className="mt-20 text-center"
                 >
-                    <p className="text-slate-400 font-medium mb-6">Need a custom solution for your node?</p>
+                    <p className="text-white/50 font-medium mb-6">Need a custom solution for your node?</p>
                     <a 
                         href="/about#contact-section"
                         className="inline-flex items-center gap-2 text-[#627EEA] font-bold hover:underline underline-offset-4"

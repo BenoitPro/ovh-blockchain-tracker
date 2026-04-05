@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 
 const COOKIE_NAME = 'ovh_session';
-const PRIVATE_PATHS = ['/nodes', '/ethereum/nodes', '/lead'];
+const PRIVATE_PATHS = ['/nodes', '/ethereum/nodes', '/sui/nodes', '/avalanche/nodes', '/lead'];
 
 async function verifySession(token: string): Promise<boolean> {
   const secret = process.env.AUTH_SECRET;
@@ -39,5 +39,5 @@ export async function middleware(req: NextRequest) {
 }
 
 export const config = {
-  matcher: ['/nodes/:path*', '/ethereum/nodes/:path*', '/lead/:path*'],
+  matcher: ['/nodes/:path*', '/ethereum/nodes/:path*', '/sui/nodes/:path*', '/avalanche/nodes/:path*', '/lead/:path*'],
 };

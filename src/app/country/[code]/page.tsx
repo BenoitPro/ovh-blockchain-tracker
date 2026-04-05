@@ -4,7 +4,6 @@ import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { ArrowLeftIcon, ServerIcon, MapPinIcon, ShieldCheckIcon } from '@heroicons/react/24/outline';
 import { CountryDetailResponse, CountryNode } from '@/types';
-import Image from 'next/image';
 import ParticlesBackground from '@/components/ParticlesBackground';
 
 function formatSOL(lamports: number): string {
@@ -144,7 +143,7 @@ export default function CountryDetailPage() {
                                             <div className="col-span-3 flex items-center gap-3">
                                                 <div className="w-8 h-8 rounded-full bg-white/5 border border-white/10 flex items-center justify-center overflow-hidden flex-shrink-0">
                                                     {node.image ? (
-                                                        <Image src={node.image} alt={node.name || ''} width={32} height={32} className="w-full h-full object-cover" />
+                                                        <img src={node.image} alt={node.name || ''} width={32} height={32} className="w-full h-full object-cover" />
                                                     ) : (
                                                         <ServerIcon className="w-4 h-4 text-white/30" />
                                                     )}

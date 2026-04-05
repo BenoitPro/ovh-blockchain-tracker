@@ -2,7 +2,6 @@
 
 import { Fragment, useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import BlockchainCubes from '@/components/BlockchainCubes';
 import ParticlesBackground from '@/components/ParticlesBackground';
 import MarketShareTracker from '@/components/benchmark/MarketShareTracker';
 import CommunitySentiment from '@/components/benchmark/CommunitySentiment';
@@ -382,7 +381,6 @@ export default function RoadmapPage() {
 
   return (
     <div className="relative min-h-screen">
-      <BlockchainCubes opacity={0.05} />
       <ParticlesBackground />
       <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
 

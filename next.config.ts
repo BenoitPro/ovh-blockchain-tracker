@@ -10,7 +10,7 @@ const nextConfig: NextConfig = {
       },
     ],
   },
-  serverExternalPackages: ['@libsql/client'],
+  serverExternalPackages: ['@libsql/client', 'maxmind'],
   async redirects() {
     return [
       { source: '/explorer', destination: '/nodes', permanent: true },

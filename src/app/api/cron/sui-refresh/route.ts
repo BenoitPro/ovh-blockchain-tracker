@@ -1,65 +1,33 @@
-import { NextResponse } from 'next/server';
 import { fetchSuiValidators } from '@/lib/sui/fetchValidators';
 import { filterOVHSuiNodes, categorizeSuiNodesByProvider } from '@/lib/sui/filterOVH';
 import { calculateSuiMetrics } from '@/lib/sui/calculateMetrics';
 import { writeChainCache } from '@/lib/cache/chain-storage';
-import { logger } from '@/lib/utils';
-import { CACHE_KEY_SUI } from '@/lib/config/constants';
+import { createCronHandler } from '@/lib/utils/cronHandler';
 
 /**
- * GET /api/cron/sui-refresh
- * Manual or CRON-driven trigger to refresh Sui metrics.
+ * Vercel Cron Job — Sui validator data refresh
+ * Schedule: every 2 hours (configured in vercel.json)
  */
-export async function GET() {
-    return handleRefresh();
-}
+export const maxDuration = 60;
+export const dynamic = 'force-dynamic';
 
-/**
- * POST /api/cron/sui-refresh
- * Some environments prefer POST for triggers.
- */
-export async function POST() {
-    return handleRefresh();
-}
+const handler = createCronHandler('Sui', async () => {
+    const allValidators = await fetchSuiValidators();
 
-async function handleRefresh() {
-    const startTime = Date.now();
-    logger.info('[Cron/Sui] Starting refresh cycle...');
+    const [ovhNodes, providerCategorization] = await Promise.all([
+        filterOVHSuiNodes(allValidators),
+        categorizeSuiNodesByProvider(allValidators),
+    ]);
 
-    try {
-        // 1. Fetch
-        const allValidators = await fetchSuiValidators();
-        
-        // 2. Filter & Categorize
-        const [ovhNodes, providerCategorization] = await Promise.all([
-            filterOVHSuiNodes(allValidators),
-            categorizeSuiNodesByProvider(allValidators)
-        ]);
+    const metrics = calculateSuiMetrics(allValidators, ovhNodes, providerCategorization);
+    await writeChainCache('sui', metrics, metrics.totalNodes);
 
-        // 3. Calculate
-        const metrics = calculateSuiMetrics(allValidators, ovhNodes, providerCategorization);
+    return {
+        totalNodes: metrics.totalNodes,
+        ovhNodes: metrics.ovhNodes,
+        ovhVotingPowerShare: metrics.ovhVotingPowerShare,
+    };
+});
 
-        // 4. Cache
-        await writeChainCache('sui', metrics, metrics.totalNodes);
-
-        const duration = ((Date.now() - startTime) / 1000).toFixed(2);
-        logger.info(`[Cron/Sui] Refresh completed successfully in ${duration}s`);
-
-        return NextResponse.json({
-            success: true,
-            message: `Sui metrics refreshed successfully in ${duration}s`,
-            stats: {
-                totalNodes: metrics.totalNodes,
-                ovhNodes: metrics.ovhNodes,
-                ovhVotingPowerShare: metrics.ovhVotingPowerShare
-            }
-        });
-
-    } catch (error) {
-        logger.error('[Cron/Sui] Refresh failed:', error);
-        return NextResponse.json({
-            success: false,
-            error: error instanceof Error ? error.message : 'Unknown error'
-        }, { status: 500 });
-    }
-}
+export const GET = handler;
+export const POST = handler;

@@ -9,29 +9,7 @@ import {
     batchGetASN,
 } from '@/lib/asn/maxmind';
 import { OVH_ASN_LIST, PROVIDER_ASN_MAP } from '@/lib/config/constants';
-
-// ── Provider identification (shared logic, same as Solana) ───────────────────
-
-function identifyProvider(asn: string, orgName: string): string {
-    for (const [, info] of Object.entries(PROVIDER_ASN_MAP)) {
-        if (info.asns.includes(asn)) return info.label;
-    }
-    const o = orgName.toLowerCase();
-    if (o.includes('amazon') || o.includes('aws')) return 'AWS';
-    if (o.includes('google')) return 'Google Cloud';
-    if (o.includes('hetzner')) return 'Hetzner';
-    if (o.includes('digitalocean') || o.includes('digital ocean')) return 'DigitalOcean';
-    if (o.includes('ovh')) return 'OVHcloud';
-    if (o.includes('alibaba')) return 'Alibaba Cloud';
-    if (o.includes('oracle')) return 'Oracle Cloud';
-    if (o.includes('microsoft') || o.includes('azure')) return 'Azure';
-    if (o.includes('latitude') || o.includes('maxihost')) return 'Latitude.sh';
-    if (o.includes('equinix') || o.includes('packet')) return 'Equinix';
-    if (o.includes('vultr') || o.includes('choopa')) return 'Vultr';
-    if (o.includes('contabo')) return 'Contabo';
-    if (o.includes('linode') || o.includes('akamai')) return 'Linode (Akamai)';
-    return orgName || 'Unknown Provider';
-}
+import { identifyProvider } from '@/lib/shared/providers';
 
 // ── OVH filter ────────────────────────────────────────────────────────────────
 

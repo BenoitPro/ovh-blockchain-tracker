@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import { MapPinIcon, ServerIcon, XMarkIcon, ArrowDownTrayIcon } from '@heroicons/react/24/outline';
 import { EnrichedNode } from '@/types';
-import Image from 'next/image';
 import NodeDetails from '../nodes/NodeDetails';
 
 interface ValidatorsListProps {
@@ -25,7 +24,8 @@ export default function ValidatorsList({ validators = [] }: ValidatorsListProps)
                     <h2 className="text-xl font-bold text-white">Top OVH Validators</h2>
                     <button
                         onClick={handleExportCSV}
-                        className="flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-medium text-[#00F0FF] border border-[#00F0FF]/30 bg-[#00F0FF]/10 hover:bg-[#00F0FF]/20 transition-colors"
+                        className="flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors"
+                        style={{ color: 'var(--chain-accent)', borderWidth: '1px', borderStyle: 'solid', borderColor: 'color-mix(in srgb, var(--chain-accent) 30%, transparent)', backgroundColor: 'color-mix(in srgb, var(--chain-accent) 10%, transparent)' }}
                     >
                         <ArrowDownTrayIcon className="w-4 h-4" />
                         Export CSV
@@ -47,8 +47,9 @@ export default function ValidatorsList({ validators = [] }: ValidatorsListProps)
                 </h2>
                 <button
                     onClick={handleExportCSV}
-                    className="flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-medium text-[#00F0FF] border border-[#00F0FF]/30 bg-[#00F0FF]/10 hover:bg-[#00F0FF]/20 transition-colors"
+                    className="flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors"
                     title="Download list as CSV"
+                    style={{ color: 'var(--chain-accent)', borderWidth: '1px', borderStyle: 'solid', borderColor: 'color-mix(in srgb, var(--chain-accent) 30%, transparent)', backgroundColor: 'color-mix(in srgb, var(--chain-accent) 10%, transparent)' }}
                 >
                     <ArrowDownTrayIcon className="w-4 h-4" />
                     Export CSV
@@ -60,28 +61,28 @@ export default function ValidatorsList({ validators = [] }: ValidatorsListProps)
                     <div
                         key={validator.pubkey}
                         onClick={() => setSelectedNode(validator)}
-                        className="group relative overflow-hidden rounded-xl bg-white/[0.03] border border-white/5 hover:border-[#00F0FF]/50 transition-all duration-300 hover:bg-white/[0.05] cursor-pointer"
+                        className="group relative overflow-hidden rounded-xl bg-white/[0.03] border border-white/5 transition-all duration-300 hover:bg-white/[0.05] cursor-pointer"
                     >
                         <div className="p-3 md:p-4">
                             <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-2 md:gap-4">
                                 {/* Left: Identity */}
                                 <div className="flex-1 min-w-0">
                                     <div className="flex items-center space-x-3">
-                                        <span className="flex-shrink-0 w-6 h-6 md:w-8 md:h-8 rounded-full bg-[#00F0FF]/10 border border-[#00F0FF]/30 flex items-center justify-center text-[#00F0FF] text-xs md:text-sm font-bold">
+                                        <span className="flex-shrink-0 w-6 h-6 md:w-8 md:h-8 rounded-full flex items-center justify-center text-xs md:text-sm font-bold" style={{ backgroundColor: 'color-mix(in srgb, var(--chain-accent) 10%, transparent)', borderWidth: '1px', borderStyle: 'solid', borderColor: 'color-mix(in srgb, var(--chain-accent) 30%, transparent)', color: 'var(--chain-accent)' }}>
                                             {index + 1}
                                         </span>
 
                                         {/* Validator Icon/Avatar */}
                                         <div className="flex-shrink-0 w-8 h-8 rounded-full bg-white/5 border border-white/10 flex items-center justify-center overflow-hidden">
                                             {validator.image ? (
-                                                <Image src={validator.image} alt={validator.name || ''} width={32} height={32} className="w-full h-full object-cover" />
+                                                <img src={validator.image} alt={validator.name || ''} width={32} height={32} className="w-full h-full object-cover" />
                                             ) : (
                                                 <ServerIcon className="w-4 h-4 text-white/30" />
                                             )}
                                         </div>
 
                                         <div className="min-w-0">
-                                            <p className="text-sm font-bold text-white truncate group-hover:text-[#00F0FF] transition-colors">
+                                            <p className="text-sm font-bold text-white truncate group-hover:text-white transition-colors">
                                                 {validator.name || 'Unknown Validator'}
                                             </p>
                                             <code className="text-xs text-gray-400 font-mono truncate block">
@@ -93,7 +94,7 @@ export default function ValidatorsList({ validators = [] }: ValidatorsListProps)
 
                                 {/* Right: Location */}
                                 <div className="flex items-center space-x-2 text-xs md:text-sm ml-8 md:ml-4">
-                                    <MapPinIcon className="w-3 h-3 md:w-4 md:h-4 text-[#00F0FF]" />
+                                    <MapPinIcon className="w-3 h-3 md:w-4 md:h-4" style={{ color: 'var(--chain-accent)' }} />
                                     <span className="text-gray-300 whitespace-nowrap hidden sm:inline">
                                         {validator.city || 'Unknown City'}, {validator.countryName || 'Unknown Country'}
                                     </span>
@@ -109,7 +110,7 @@ export default function ValidatorsList({ validators = [] }: ValidatorsListProps)
                         </div>
 
                         {/* Hover effect line */}
-                        <div className="absolute bottom-0 left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-[#00F0FF] to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                        <div className="absolute bottom-0 left-0 right-0 h-[2px] opacity-0 group-hover:opacity-100 transition-opacity duration-300" style={{ backgroundImage: 'linear-gradient(to right, transparent, var(--chain-accent), transparent)' }}></div>
                     </div>
                 ))}
             </div>

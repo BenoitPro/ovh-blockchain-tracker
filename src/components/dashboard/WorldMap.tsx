@@ -1,6 +1,23 @@
 'use client';
 
 import { useMemo, useState, useEffect, useRef } from 'react';
+
+// Module-level singleton — fetched once, shared across all WorldMap instances and page navigations
+let _cachedGeoJson: any | null = null;
+let _geoJsonFetchPromise: Promise<any> | null = null;
+
+function getGeoJson(): Promise<any> {
+    if (_cachedGeoJson) return Promise.resolve(_cachedGeoJson);
+    if (!_geoJsonFetchPromise) {
+        _geoJsonFetchPromise = fetch(
+            'https://raw.githubusercontent.com/vasturiano/react-globe.gl/master/example/datasets/ne_110m_admin_0_countries.geojson'
+        )
+            .then(res => res.json())
+            .then(data => { _cachedGeoJson = data; return data; })
+            .catch(() => { _geoJsonFetchPromise = null; return { features: [] }; });
+    }
+    return _geoJsonFetchPromise;
+}
 import dynamic from 'next/dynamic';
 import { useNetworkTheme } from '@/components/NetworkThemeProvider';
 import { CHAINS, ChainId } from '@/lib/chains';
@@ -11,7 +28,7 @@ const Globe = dynamic(() => import('react-globe.gl'), {
     ssr: false,
     loading: () => (
         <div className="absolute inset-0 flex items-center justify-center">
-            <div className="w-12 h-12 rounded-full border-4 border-[#00F0FF]/30 border-t-[#00F0FF] animate-spin"></div>
+            <div className="w-12 h-12 rounded-full border-4 animate-spin" style={{ borderColor: 'color-mix(in srgb, var(--chain-accent) 30%, transparent)', borderTopColor: 'var(--chain-accent)' }}></div>
         </div>
     )
 });
@@ -92,9 +109,7 @@ export default function WorldMap({
         : geoDistribution;
 
     useEffect(() => {
-        fetch('https://raw.githubusercontent.com/vasturiano/react-globe.gl/master/example/datasets/ne_110m_admin_0_countries.geojson')
-            .then(res => res.json())
-            .then(setCountriesGeoJson);
+        getGeoJson().then(setCountriesGeoJson);
     }, []);
 
     const rotationTimerRef = useRef<NodeJS.Timeout>(null);

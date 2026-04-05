@@ -22,7 +22,7 @@ require('dotenv').config({ path: '.env.local' });
 import { fetchEnrichedNodes } from '../src/lib/solana/getAllNodes';
 import { filterOVHNodes, categorizeNodesByProvider } from '../src/lib/solana/filterOVH';
 import { calculateMetrics } from '../src/lib/solana/calculateMetrics';
-import { writeCache } from '../src/lib/cache/storage';
+import { writeChainCache } from '../src/lib/cache/chain-storage';
 import { initMaxMind } from '../src/lib/asn/maxmind';
 import { MetricsRepository } from '../src/lib/db/metrics-repository';
 
@@ -81,7 +81,7 @@ async function runWorker() {
 
         // Step 5: Save to cache
         console.log('💾 [Worker] Saving to cache...');
-        await writeCache(metrics, allNodes.length);
+        await writeChainCache('solana', metrics, allNodes.length);
 
         // Step 6: Save to database (historical metrics)
         console.log('📊 [Worker] Saving to historical database...');

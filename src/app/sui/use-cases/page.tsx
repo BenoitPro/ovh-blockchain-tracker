@@ -2,21 +2,15 @@
 
 import Header from '@/components/dashboard/Header';
 import ParticlesBackground from '@/components/ParticlesBackground';
-import BlockchainCubes from '@/components/BlockchainCubes';
 import VerifiedResidentsGrid from '@/components/dashboard/VerifiedResidentsGrid';
 
 export default function SuiUseCasesPage() {
     const bgStyle = {
-        background: '#050510',
-        backgroundImage: "url('https://unpkg.com/three-globe/example/img/night-sky.png')",
-        backgroundSize: 'cover',
-        backgroundPosition: 'center',
-        backgroundAttachment: 'fixed' as const,
+        background: '#020c1b',
     };
 
     return (
         <div className="min-h-screen relative overflow-x-hidden overflow-y-auto sui-theme" style={bgStyle}>
-            <BlockchainCubes opacity={0.05} count={8} />
             <ParticlesBackground />
 
             <div className="relative z-10 flex flex-col min-h-screen p-4 lg:p-8 xl:p-10 max-w-[1200px] mx-auto">

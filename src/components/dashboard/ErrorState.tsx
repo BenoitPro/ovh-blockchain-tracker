@@ -9,7 +9,7 @@ export default function ErrorState({ message, onRetry }: ErrorStateProps) {
     const bgClass = 'bg-[#000E1E]';
     const textClass = 'text-white';
     const subTextClass = 'text-gray-400';
-    const btnClass = 'bg-[#00F0FF] hover:bg-[#00D4E6] text-[#000E1E]';
+    const btnClass = '';
 
     return (
         <div className={`min-h-screen flex items-center justify-center ${bgClass}`}>
@@ -29,6 +29,7 @@ export default function ErrorState({ message, onRetry }: ErrorStateProps) {
                     <button
                         onClick={onRetry}
                         className={`px-6 py-3 rounded-xl font-semibold transition-colors duration-200 ${btnClass}`}
+                        style={{ backgroundColor: 'var(--chain-accent)', color: '#000E1E' }}
                     >
                         Retry
                     </button>

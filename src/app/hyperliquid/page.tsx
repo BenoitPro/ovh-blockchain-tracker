@@ -3,6 +3,8 @@
 import Header from '@/components/dashboard/Header';
 import AnimatedTagline from '@/components/dashboard/AnimatedTagline';
 import ProviderComparison from '@/components/dashboard/ProviderComparison';
+import BlockchainCubes from '@/components/BlockchainCubes';
+import ParticlesBackground from '@/components/ParticlesBackground';
 
 // Placeholder data for Hyperliquid 
 // Based on actual stats from research (24 nodes, potentially centralized)
@@ -39,7 +41,10 @@ const HYPERLIQUID_DATA = [
 
 export default function HyperliquidDashboard() {
     return (
-        <main className="min-h-screen p-4 lg:p-8 xl:p-10 mb-20 max-w-[1600px] mx-auto">
+        <div className="relative min-h-screen overflow-x-hidden">
+            <BlockchainCubes opacity={0.05} count={8} />
+            <ParticlesBackground />
+        <main className="relative z-10 p-4 lg:p-8 xl:p-10 mb-20 max-w-[1600px] mx-auto">
             <Header network="Hyperliquid" subtitle="Hype Phase & Decentralization Tracking" />
             
             <div className="mt-8 mb-10">
@@ -82,5 +87,6 @@ export default function HyperliquidDashboard() {
             </div>
             
         </main>
+        </div>
     );
 }

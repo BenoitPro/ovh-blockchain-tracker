@@ -11,7 +11,7 @@
  */
 
 require('dotenv').config({ path: '.env.local' });
-import { fetchAvalanchePeers } from '../src/lib/avalanche/fetchPeers';
+import { fetchAvalanchePeers, fetchAvalancheValidatorCount } from '../src/lib/avalanche/fetchPeers';
 import { filterOVHAvalancheNodes, categorizeAvalancheNodesByProvider } from '../src/lib/avalanche/filterOVH';
 import { calculateAvalancheMetrics } from '../src/lib/avalanche/calculateMetrics';
 import { writeChainCache } from '../src/lib/cache/chain-storage';
@@ -29,10 +29,13 @@ async function runAvaxWorker() {
         await initMaxMind();
         console.log('✅ [AVAX Worker] MaxMind ready');
 
-        // 2. Fetch peers from api.avax.network
-        console.log('📡 [AVAX Worker] Fetching Avalanche peers...');
-        const allNodes = await fetchAvalanchePeers();
-        console.log(`✅ [AVAX Worker] Fetched ${allNodes.length} peers`);
+        // 2. Fetch peers (IP-resolvable) + canonical validator count in parallel
+        console.log('📡 [AVAX Worker] Fetching Avalanche peers + canonical validator count...');
+        const [allNodes, totalValidators] = await Promise.all([
+            fetchAvalanchePeers(),
+            fetchAvalancheValidatorCount(),
+        ]);
+        console.log(`✅ [AVAX Worker] Peers with IP: ${allNodes.length} | Canonical validators (P-Chain): ${totalValidators}`);
 
         // 3. Provider categorization
         console.log('🔍 [AVAX Worker] Categorizing by provider...');
@@ -45,7 +48,7 @@ async function runAvaxWorker() {
         console.log(`✅ [AVAX Worker] OVH: ${ovhNodes.length} / ${allNodes.length} peers (${pct}%)`);
 
         // 5. Metrics
-        const metrics = calculateAvalancheMetrics(allNodes, ovhNodes, providerCategorization);
+        const metrics = calculateAvalancheMetrics(allNodes, ovhNodes, providerCategorization, totalValidators);
 
         // 6. Cache (key: 'avalanche-metrics' — isolated from Solana)
         console.log('💾 [AVAX Worker] Writing to cache...');

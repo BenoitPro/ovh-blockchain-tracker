@@ -63,10 +63,9 @@ export default function AvalanchePage() {
 
     const bgStyle = {
         background: '#0a0404',
-        backgroundImage: `
-            radial-gradient(ellipse at 20% 30%, rgba(232,65,66,0.09) 0%, transparent 50%),
-            radial-gradient(ellipse at 80% 70%, rgba(180,30,30,0.07) 0%, transparent 50%)
-        `,
+        backgroundImage: "url('https://unpkg.com/three-globe/example/img/night-sky.png')",
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
         backgroundAttachment: 'fixed' as const,
     };
 
@@ -129,11 +128,20 @@ export default function AvalanchePage() {
                                 label="Uptime ≥ 80%"
                             />
                         )}
-                        {/* Sample size reminder */}
+                        {/* Coverage widget */}
                         <div className="flex flex-col items-center justify-center gap-1">
-                            <span className="text-2xl font-black text-white">{metrics.totalNodes}</span>
-                            <span className="text-[10px] uppercase tracking-widest text-white/40">Peers discovered</span>
-                            <span className="text-[9px] text-white/25 italic">5-node crawl · deduplicated</span>
+                            <div className="flex items-baseline gap-1.5">
+                                <span className="text-2xl font-black text-white">{metrics.totalNodes}</span>
+                                {metrics.totalValidators > 0 && (
+                                    <span className="text-sm font-mono text-white/30">/ {metrics.totalValidators}</span>
+                                )}
+                            </div>
+                            <span className="text-[10px] uppercase tracking-widest text-white/40">Validators with IP</span>
+                            {metrics.totalValidators > 0 && (
+                                <span className="text-[9px] text-white/25 italic">
+                                    ~{Math.round((metrics.totalNodes / metrics.totalValidators) * 100)}% IP coverage
+                                </span>
+                            )}
                         </div>
                     </div>
 

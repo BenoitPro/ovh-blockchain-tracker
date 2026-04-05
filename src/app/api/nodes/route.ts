@@ -6,10 +6,9 @@ import { logger } from '@/lib/utils';
 const globalForNodes = globalThis as unknown as {
     memoizedNodes: any[] | undefined;
     lastFetchTime: number;
+    inflightFetch: Promise<any[]> | undefined;
 };
 
-let memoizedNodes: any[] | undefined = globalForNodes.memoizedNodes;
-let lastFetchTime = globalForNodes.lastFetchTime || 0;
 const CACHE_TTL = 300 * 1000; // 5 minutes
 
 export async function GET(request: NextRequest) {
@@ -22,13 +21,25 @@ export async function GET(request: NextRequest) {
 
         // Refresh cache if stale OR requested via query param
         if (refresh || !globalForNodes.memoizedNodes || (Date.now() - (globalForNodes.lastFetchTime || 0) > CACHE_TTL)) {
-            logger.info('[API:Nodes] Fetching fresh nodes from RPC (Refresh forced or cached stale)');
-            globalForNodes.memoizedNodes = await fetchEnrichedNodes();
-            globalForNodes.lastFetchTime = Date.now();
-            memoizedNodes = globalForNodes.memoizedNodes;
+            // Deduplicate concurrent fetches: if one is already in-flight, reuse it
+            if (!globalForNodes.inflightFetch) {
+                logger.info('[API:Nodes] Fetching fresh nodes from RPC (Refresh forced or cached stale)');
+                globalForNodes.inflightFetch = fetchEnrichedNodes().then(nodes => {
+                    globalForNodes.memoizedNodes = nodes;
+                    globalForNodes.lastFetchTime = Date.now();
+                    globalForNodes.inflightFetch = undefined;
+                    return nodes;
+                }).catch(err => {
+                    globalForNodes.inflightFetch = undefined;
+                    throw err;
+                });
+            } else {
+                logger.info('[API:Nodes] Reusing in-flight fetch (concurrent request)');
+            }
+            await globalForNodes.inflightFetch;
         }
 
-        let filtered = memoizedNodes || [];
+        let filtered = globalForNodes.memoizedNodes || [];
 
         // Apply search if provided
         if (search) {

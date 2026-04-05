@@ -9,6 +9,7 @@ import {
     batchGetASN
 } from '@/lib/asn/maxmind';
 import { OVH_ASN_LIST, PROVIDER_ASN_MAP } from '@/lib/config/constants';
+import { identifyProvider } from '@/lib/shared/providers';
 
 // Simple in-memory cache for geolocation data
 const geoCache = new Map<string, IPInfo>();
@@ -234,38 +235,6 @@ export async function categorizeNodesByProvider(
 }
 
 
-/**
- * Identify the provider from ASN or Organiztion name
- * Maps raw ASN/Org to clean labels (e.g. "OVHcloud", "AWS", "Hetzner")
- */
-export function identifyProvider(asn: string, orgName: string): string {
-    // 1. Check strict ASN mapping
-    for (const [key, info] of Object.entries(PROVIDER_ASN_MAP)) {
-        if (info.asns.includes(asn)) {
-            return info.label;
-        }
-    }
-
-    // 2. Fallback to flexible string matching on Org Name
-    const lowerOrg = orgName.toLowerCase();
-
-    if (lowerOrg.includes('amazon') || lowerOrg.includes('aws')) return 'AWS';
-    if (lowerOrg.includes('google')) return 'Google Cloud';
-    if (lowerOrg.includes('hetzner')) return 'Hetzner';
-    if (lowerOrg.includes('digitalocean') || lowerOrg.includes('digital ocean')) return 'DigitalOcean';
-    if (lowerOrg.includes('ovh')) return 'OVHcloud';
-    if (lowerOrg.includes('alibaba')) return 'Alibaba Cloud';
-    if (lowerOrg.includes('oracle')) return 'Oracle Cloud';
-    if (lowerOrg.includes('microsoft') || lowerOrg.includes('azure')) return 'Azure';
-    if (lowerOrg.includes('latitude') || lowerOrg.includes('maxihost')) return 'Latitude.sh';
-    if (lowerOrg.includes('equinix') || lowerOrg.includes('packet')) return 'Equinix';
-    if (lowerOrg.includes('vultr') || lowerOrg.includes('choopa')) return 'Vultr';
-    if (lowerOrg.includes('contabo')) return 'Contabo';
-    if (lowerOrg.includes('linode') || lowerOrg.includes('akamai')) return 'Linode (Akamai)';
-
-    // 3. Fallback to original Org Name or Unknown
-    return orgName || 'Unknown Provider';
-}
 
 /**
  * Clear geolocation cache (useful for testing)

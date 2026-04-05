@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
-import { readCache } from '@/lib/cache/storage';
-import { CountryDetailResponse, CountryNode, EnrichedNode } from '@/types';
+import { readChainCache } from '@/lib/cache/chain-storage';
+import { CountryDetailResponse, CountryNode, EnrichedNode, DashboardMetrics } from '@/types';
 import { logger } from '@/lib/utils';
 
 // Maps 2-letter ISO codes to full country names
@@ -38,7 +38,7 @@ export async function GET(
     }
 
     try {
-        const cache = await readCache();
+        const cache = await readChainCache<DashboardMetrics>('solana');
 
         if (!cache || !cache.data) {
             return NextResponse.json(

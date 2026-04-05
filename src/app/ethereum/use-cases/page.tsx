@@ -1,9 +1,10 @@
 'use client';
 
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import ParticlesBackground from '@/components/ParticlesBackground';
-import BlockchainCubes from '@/components/BlockchainCubes';
 import VerifiedResidentsGrid from '@/components/dashboard/VerifiedResidentsGrid';
+import { EthSnapshotMetrics } from '@/types';
 
 const ACCENT = '#627EEA';
 
@@ -32,7 +33,7 @@ const cases = [
         person: 'Flavian Manea, CEO at BWare Labs',
         highlights: ['55+ EVM chains', 'AMD EPYC 4004', 'Anti-DDoS protection', 'High-capacity storage'],
         source: 'https://www.ovhcloud.com/en/case-studies/bware-labs/',
-        logo: '/images/logos/bware.png',
+        logo: '/images/logos/bwarelabs.png',
     },
     {
         company: 'Secretarium',
@@ -204,9 +205,22 @@ function UseCaseCard({ company, role, chains, description, quote, person, highli
 }
 
 export default function EthereumUseCasesPage() {
+    const [metrics, setMetrics] = useState<EthSnapshotMetrics | null>(null);
+
+    useEffect(() => {
+        fetch('/api/ethereum')
+            .then((r) => r.json())
+            .then((d) => { if (d.success) setMetrics(d.data); })
+            .catch(() => {});
+    }, []);
+
+    const ovhEntry = metrics?.providerBreakdown.find((p) => p.key === 'ovh');
+    const ovhShare = ovhEntry?.marketShare ?? null;
+    const ovhNodes = ovhEntry?.nodeCount ?? null;
+    const totalNodes = metrics?.totalNodes ?? null;
+
     return (
         <div className="min-h-screen relative overflow-hidden bg-[#050510]">
-            <BlockchainCubes opacity={0.03} />
             <ParticlesBackground />
 
             <div className="relative z-10">
@@ -226,35 +240,31 @@ export default function EthereumUseCasesPage() {
                         </p>
                     </div>
 
-                    {/* Stats banner */}
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-14">
+                    {/* Stats banner — live data */}
+                    <div className="grid grid-cols-3 gap-3 mb-14">
                         {[
-                            { label: 'Ethereum Share', value: '~10%' },
-                            { label: 'Global Ranking', value: '#2 Cloud' },
-                            { label: 'Datacenters', value: '46' },
-                            { label: 'Market Growth', value: '2×' },
-                        ].map(({ label, value }) => (
+                            {
+                                label: 'OVH Market Share',
+                                value: ovhShare !== null ? `${ovhShare.toFixed(1)}%` : '—',
+                                sub: 'of Ethereum nodes',
+                            },
+                            {
+                                label: 'OVH Nodes',
+                                value: ovhNodes !== null ? ovhNodes.toLocaleString() : '—',
+                                sub: 'execution-layer',
+                            },
+                            {
+                                label: 'Nodes Tracked',
+                                value: totalNodes !== null ? totalNodes.toLocaleString() : '—',
+                                sub: 'total crawled',
+                            },
+                        ].map(({ label, value, sub }) => (
                             <div key={label} className="rounded-xl p-4 border border-white/8 bg-black/30 text-center">
                                 <p className="text-[8px] uppercase tracking-[0.15em] text-white/30 font-bold mb-1">{label}</p>
                                 <p className="text-2xl font-black" style={{ color: ACCENT }}>{value}</p>
+                                <p className="text-[9px] text-white/20 mt-1">{sub}</p>
                             </div>
                         ))}
-                    </div>
-
-                    {/* Infrastructure offerings */}
-                    <div className="mb-14 p-6 rounded-2xl border border-white/8 bg-white/3 backdrop-blur-xl">
-                        <h2 className="text-xs font-black uppercase tracking-[0.2em] text-white/30 mb-4">Infrastructure Offerings</h2>
-                        <div className="flex flex-wrap gap-3">
-                            {['Standard RPC / ERPC', 'Complex Institutional Nodes', 'Bare Metal', 'Public Cloud', 'Hybrid Solutions'].map((item) => (
-                                <span
-                                    key={item}
-                                    className="text-[11px] font-bold px-3 py-1.5 rounded-full border text-white/60"
-                                    style={{ borderColor: `${ACCENT}30`, backgroundColor: `${ACCENT}08` }}
-                                >
-                                    {item}
-                                </span>
-                            ))}
-                        </div>
                     </div>
 
                     {/* Case Studies */}

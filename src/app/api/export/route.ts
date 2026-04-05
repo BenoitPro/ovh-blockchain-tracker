@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
-import { readCache } from '@/lib/cache/storage';
+import { readChainCache } from '@/lib/cache/chain-storage';
+import { DashboardMetrics } from '@/types';
 import { logger } from '@/lib/utils';
 
 /**
@@ -19,7 +20,7 @@ function maskIP(ip: string): string {
  */
 export async function GET() {
     try {
-        const cache = await readCache();
+        const cache = await readChainCache<DashboardMetrics>('solana');
 
         if (!cache || !cache.data) {
             return NextResponse.json({ error: 'No data available. Run the worker first.' }, { status: 503 });

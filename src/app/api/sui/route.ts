@@ -2,7 +2,6 @@ import { NextResponse } from 'next/server';
 import { readChainCache, isChainCacheFresh } from '@/lib/cache/chain-storage';
 import { SuiDashboardMetrics, SuiAPIResponse } from '@/types/sui';
 import { logger } from '@/lib/utils';
-import { CACHE_KEY_SUI } from '@/lib/config/constants';
 
 /**
  * GET /api/sui

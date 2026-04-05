@@ -146,7 +146,7 @@ export default function AvalancheAnalyticsPage() {
                             totalNodes={metrics.totalNodes}
                             ovhNodes={metrics.ovhNodes}
                             marketShare={metrics.marketShare}
-                           
+                            totalValidators={metrics.totalValidators}
                         />
                     </section>
 

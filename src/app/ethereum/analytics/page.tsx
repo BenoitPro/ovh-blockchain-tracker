@@ -10,7 +10,6 @@ import { EthSnapshotMetrics } from '@/types';
 import { useScrollReveal } from '@/hooks/useScrollReveal';
 import { GlobeEuropeAfricaIcon } from '@heroicons/react/24/outline';
 import ParticlesBackground from '@/components/ParticlesBackground';
-import BlockchainCubes from '@/components/BlockchainCubes';
 
 function formatTimestamp(ts: number): string {
     return new Date(ts * 1000).toLocaleString('en-US', {
@@ -27,11 +26,11 @@ function GeoDistribution({ geoDistribution }: { geoDistribution: Record<string, 
     const maxVal = top[0]?.[1] ?? 1;
 
     return (
-        <div className="relative overflow-hidden rounded-2xl bg-white/70 backdrop-blur-xl border border-[#627EEA]/15 p-8 shadow-sm">
+        <div className="relative overflow-hidden rounded-2xl bg-white/5 backdrop-blur-xl border border-[#627EEA]/15 p-8 shadow-sm">
             <div className="flex items-center justify-between mb-6">
                 <div>
-                    <h2 className="text-xl font-bold text-slate-800">Geographic Distribution</h2>
-                    <p className="text-sm text-slate-500 mt-1">Top 10 countries hosting Ethereum nodes</p>
+                    <h2 className="text-xl font-bold text-white">Geographic Distribution</h2>
+                    <p className="text-sm text-white/60 mt-1">Top 10 countries hosting Ethereum nodes</p>
                 </div>
                 <GlobeEuropeAfricaIcon className="w-6 h-6 text-[#627EEA]/60" />
             </div>
@@ -42,13 +41,13 @@ function GeoDistribution({ geoDistribution }: { geoDistribution: Record<string, 
                     return (
                         <div key={country} className="group">
                             <div className="flex items-center justify-between mb-1">
-                                <span className="text-sm text-slate-700 font-medium">{country}</span>
+                                <span className="text-sm text-white font-medium">{country}</span>
                                 <div className="flex items-center gap-3">
-                                    <span className="text-xs text-slate-400">{count.toLocaleString()} nodes</span>
+                                    <span className="text-xs text-white/50">{count.toLocaleString()} nodes</span>
                                     <span className="text-xs font-semibold text-[#627EEA] w-12 text-right">{pct.toFixed(1)}%</span>
                                 </div>
                             </div>
-                            <div className="h-1.5 bg-slate-200/80 rounded-full overflow-hidden">
+                            <div className="h-1.5 bg-white/10 rounded-full overflow-hidden">
                                 <div
                                     className="h-full rounded-full bg-gradient-to-r from-[#627EEA]/70 to-[#627EEA]/30 transition-all duration-500"
                                     style={{ width: `${barWidth}%` }}
@@ -91,7 +90,6 @@ export default function EthereumAnalyticsPage() {
     if (loading) {
         return (
             <div className="min-h-screen relative">
-                <BlockchainCubes opacity={0.03} />
                 <ParticlesBackground />
                 <div className="relative z-10 flex items-center justify-center min-h-screen">
                     <LoadingState />
@@ -105,7 +103,6 @@ export default function EthereumAnalyticsPage() {
     if (error || !metrics) {
         return (
             <>
-                <BlockchainCubes opacity={0.03} />
                 <ParticlesBackground />
                 <ErrorState message={error || 'No data available'} onRetry={fetchData} />
             </>
@@ -118,9 +115,6 @@ export default function EthereumAnalyticsPage() {
 
     return (
         <div className="min-h-screen relative overflow-x-hidden overflow-y-auto">
-            {/* Animated Blockchain Cubes Background (Subtle for Eth) */}
-            <BlockchainCubes opacity={0.03} />
-
             {/* Floating Starry Points Background */}
             <ParticlesBackground />
 
@@ -131,15 +125,15 @@ export default function EthereumAnalyticsPage() {
                     <div className="mb-8 fade-in-up">
                         <div className="flex items-start justify-between flex-wrap gap-4">
                             <div>
-                                <h1 className="text-4xl font-black text-slate-800 mb-2 tracking-tight">
+                                <h1 className="text-4xl font-black text-white mb-2 tracking-tight">
                                     Ethereum Analytics
                                 </h1>
-                                <p className="text-slate-500 text-sm">
+                                <p className="text-white/60 text-sm">
                                     Cloud provider distribution across the Ethereum execution-layer network.
                                 </p>
                             </div>
                             {metrics.timestamp && (
-                                <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-white/60 border border-slate-200 text-xs text-slate-400 self-start mt-1">
+                                <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-[#627EEA]/10 border border-[#627EEA]/20 text-xs text-[#627EEA]/80 self-start mt-1">
                                     <div className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
                                     Updated: {formatTimestamp(metrics.timestamp)}
                                 </div>
