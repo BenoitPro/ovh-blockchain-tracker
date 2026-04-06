@@ -1,28 +1,23 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from 'recharts';
-import { ComingSoonCard } from './ComingSoonCard';
 
-// Top 10 blockchains (L1 + L2) — estimated node counts per provider
-// Source: simulated data based on ASN detection methodology
-const CHAINS_DATA = [
-  { chain: 'Ethereum',  tier: 'L1', color: '#627EEA', OVH: 8240,  Hetzner: 12380, AWS: 15610, GCP: 5180,  'Latitude.sh': 2100, Vultr: 890,  Others: 24600 },
-  { chain: 'Solana',    tier: 'L1', color: '#9945FF', OVH: 147,   Hetzner: 213,   AWS: 189,   GCP: 64,    'Latitude.sh': 89,   Vultr: 34,   Others: 264   },
-  { chain: 'Polygon',   tier: 'L2', color: '#8247E5', OVH: 94,    Hetzner: 138,   AWS: 172,   GCP: 58,    'Latitude.sh': 41,   Vultr: 18,   Others: 279   },
-  { chain: 'Arbitrum',  tier: 'L2', color: '#28A0F0', OVH: 61,    Hetzner: 89,    AWS: 118,   GCP: 34,    'Latitude.sh': 27,   Vultr: 12,   Others: 159   },
-  { chain: 'Avalanche', tier: 'L1', color: '#E84142', OVH: 89,    Hetzner: 134,   AWS: 98,    GCP: 31,    'Latitude.sh': 45,   Vultr: 19,   Others: 240   },
-  { chain: 'Polkadot',  tier: 'L1', color: '#E6007A', OVH: 84,    Hetzner: 128,   AWS: 102,   GCP: 38,    'Latitude.sh': 31,   Vultr: 14,   Others: 300   },
-  { chain: 'Cosmos',    tier: 'L1', color: '#2E3148', OVH: 118,   Hetzner: 174,   AWS: 138,   GCP: 48,    'Latitude.sh': 56,   Vultr: 24,   Others: 442   },
-  { chain: 'Optimism',  tier: 'L2', color: '#FF0420', OVH: 48,    Hetzner: 72,    AWS: 94,    GCP: 28,    'Latitude.sh': 21,   Vultr: 9,    Others: 128   },
-  { chain: 'Base',      tier: 'L2', color: '#0052FF', OVH: 32,    Hetzner: 51,    AWS: 68,    GCP: 19,    'Latitude.sh': 15,   Vultr: 7,    Others: 108   },
-  { chain: 'Sui',       tier: 'L1', color: '#4DA2FF', OVH: 18,    Hetzner: 27,    AWS: 22,    GCP: 9,     'Latitude.sh': 8,    Vultr: 3,    Others: 35    },
-];
+interface MarketShareAPIResponse {
+    success: boolean;
+    chains: Array<{
+        id: string; name: string; color: string;
+        totalNodes: number;
+        providerBreakdown: Array<{ key: string; label: string; nodeCount: number; marketShare: number; color: string }>;
+        stale: boolean;
+    }>;
+    aggregate: {
+        totalNodes: number;
+        providerBreakdown: Array<{ key: string; label: string; nodeCount: number; marketShare: number; color: string }>;
+    };
+}
 
-const PROVIDERS = ['OVH', 'Hetzner', 'AWS', 'GCP', 'Latitude.sh', 'Vultr', 'Others'] as const;
-type Provider = typeof PROVIDERS[number];
-
-const PROVIDER_COLORS: Record<Provider, string> = {
+const PROVIDER_COLORS: Record<string, string> = {
   OVH:          '#00F0FF',
   Hetzner:      '#F97316',
   AWS:          '#FACC15',
@@ -32,51 +27,50 @@ const PROVIDER_COLORS: Record<Provider, string> = {
   Others:       '#6B7280',
 };
 
-// Compute aggregated totals across all chains
-function computeTotals() {
-  const totals: Record<Provider, number> = { OVH: 0, Hetzner: 0, AWS: 0, GCP: 0, 'Latitude.sh': 0, Vultr: 0, Others: 0 };
-  for (const chain of CHAINS_DATA) {
-    for (const p of PROVIDERS) {
-      totals[p] += chain[p] ?? 0;
-    }
-  }
-  return totals;
-}
-
 type ViewMode = 'aggregate' | 'per-chain';
 
 export default function MarketShareTracker() {
   const [view, setView] = useState<ViewMode>('aggregate');
+  const [apiData, setApiData] = useState<MarketShareAPIResponse | null>(null);
 
-  const totals = computeTotals();
-  const grandTotal = Object.values(totals).reduce((s, n) => s + n, 0);
-  const ovhTotal = totals['OVH'];
-  const ovhSharePct = ((ovhTotal / grandTotal) * 100).toFixed(1);
+  useEffect(() => {
+    fetch('/api/benchmark/market-share')
+      .then(r => r.json())
+      .then((data: MarketShareAPIResponse) => {
+        if (data.success) setApiData(data);
+      })
+      .catch(() => {}); // silent fail — component shows loading state
+  }, []);
 
-  // Aggregate bar data (sorted by total desc)
-  const aggregateData = PROVIDERS.map(p => ({
-    name: p,
-    nodes: totals[p],
-    share: ((totals[p] / grandTotal) * 100).toFixed(1),
-  })).sort((a, b) => b.nodes - a.nodes);
+  if (!apiData) {
+    return (
+      <div className="relative rounded-xl border border-white/10 bg-white/3 backdrop-blur-sm overflow-hidden p-5 h-48 flex items-center justify-center">
+        <span className="text-white/20 text-xs animate-pulse">Loading market share data...</span>
+      </div>
+    );
+  }
+
+  const aggregateData = apiData.aggregate.providerBreakdown;
+  const grandTotal = apiData.aggregate.totalNodes;
+  const ovhEntry = apiData.aggregate.providerBreakdown.find(e => e.key === 'ovh');
+  const ovhTotal = ovhEntry?.nodeCount ?? 0;
+  const ovhSharePct = grandTotal > 0 ? ((ovhTotal / grandTotal) * 100).toFixed(1) : '0.0';
 
   // Per-chain OVH % for the breakdown table
-  const perChainData = CHAINS_DATA.map(c => {
-    const chainTotal = PROVIDERS.reduce((s, p) => s + (c[p] ?? 0), 0);
+  const perChainData = (apiData.chains ?? []).map(chain => {
+    const ovhChainEntry = chain.providerBreakdown.find(e => e.key === 'ovh');
     return {
-      chain: c.chain,
-      color: c.color,
-      tier: c.tier,
-      ovhPct: ((c.OVH / chainTotal) * 100).toFixed(1),
-      ovhNodes: c.OVH,
+      chain: chain.name,
+      color: chain.color,
+      tier: 'L1' as const, // simplified — API doesn't distinguish L1/L2
+      ovhPct: ovhChainEntry?.marketShare.toFixed(1) ?? '0.0',
+      ovhNodes: ovhChainEntry?.nodeCount ?? 0,
+      stale: chain.stale,
     };
   }).sort((a, b) => parseFloat(b.ovhPct) - parseFloat(a.ovhPct));
 
   return (
-    <ComingSoonCard
-      title="Overall Market Share Tracker"
-      description="OVH aggregate share vs top providers across 10 major blockchains"
-    >
+    <div className="relative rounded-xl border border-white/10 bg-white/3 backdrop-blur-sm overflow-hidden">
       <div className="p-5">
         {/* Header */}
         <div className="flex items-start justify-between mb-4">
@@ -115,13 +109,13 @@ export default function MarketShareTracker() {
               <BarChart data={aggregateData} layout="vertical" margin={{ left: 8, right: 48, top: 0, bottom: 0 }}>
                 <XAxis
                   type="number"
-                  domain={[0, Math.max(...aggregateData.map(d => d.nodes)) * 1.1]}
+                  domain={[0, Math.max(...aggregateData.map(d => d.nodeCount)) * 1.1]}
                   tick={{ fontSize: 9, fill: 'rgba(255,255,255,0.3)' }}
                   tickFormatter={v => v >= 1000 ? `${(v / 1000).toFixed(0)}k` : String(v)}
                   axisLine={false} tickLine={false}
                 />
                 <YAxis
-                  type="category" dataKey="name"
+                  type="category" dataKey="label"
                   tick={{ fontSize: 10, fill: 'rgba(255,255,255,0.5)' }}
                   axisLine={false} tickLine={false} width={72}
                 />
@@ -133,9 +127,9 @@ export default function MarketShareTracker() {
                     return [`${n.toLocaleString()} nodes (${share}%)`, 'Total'];
                   }}
                 />
-                <Bar dataKey="nodes" radius={[0, 3, 3, 0]}>
+                <Bar dataKey="nodeCount" radius={[0, 3, 3, 0]}>
                   {aggregateData.map(entry => (
-                    <Cell key={entry.name} fill={PROVIDER_COLORS[entry.name as Provider]} opacity={entry.name === 'OVH' ? 1 : 0.6} />
+                    <Cell key={entry.key} fill={PROVIDER_COLORS[entry.label] ?? entry.color ?? '#6B7280'} opacity={entry.key === 'ovh' ? 1 : 0.6} />
                   ))}
                 </Bar>
               </BarChart>
@@ -144,9 +138,9 @@ export default function MarketShareTracker() {
             {/* Provider legend */}
             <div className="flex flex-wrap gap-x-3 gap-y-1 mt-3">
               {aggregateData.map(p => (
-                <span key={p.name} className="flex items-center gap-1 text-[9px] text-white/40">
-                  <span className="w-2 h-2 rounded-full" style={{ background: PROVIDER_COLORS[p.name as Provider] }} />
-                  {p.name} <span className="text-white/25">{p.share}%</span>
+                <span key={p.key} className="flex items-center gap-1 text-[9px] text-white/40">
+                  <span className="w-2 h-2 rounded-full" style={{ background: PROVIDER_COLORS[p.label] ?? p.color ?? '#6B7280' }} />
+                  {p.label} <span className="text-white/25">{p.marketShare.toFixed(1)}%</span>
                 </span>
               ))}
             </div>
@@ -191,9 +185,7 @@ export default function MarketShareTracker() {
             </table>
           </div>
         )}
-
-        <p className="text-[9px] text-white/20 mt-3 italic">* Simulated data — ASN-based detection across top 10 chains by market cap</p>
       </div>
-    </ComingSoonCard>
+    </div>
   );
 }
