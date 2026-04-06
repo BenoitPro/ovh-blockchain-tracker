@@ -10,10 +10,11 @@ const AVAX_CONFIG: NodeExplorerConfig<AvalancheOVHNode> = {
     showFeeColumn: false,
 
     getKey: (n) => n.nodeID,
-    getIdentifier: (n) => n.nodeID,
+    // Sub-identifier: show reward address (P-avax1...) when available — this is the entity identifier
+    getIdentifier: (n) => n.rewardAddress || n.nodeID,
     getName: (n) => {
         if (n.name) return n.name;
-        // Fallback: short nodeID (last 10 chars)
+        // Fallback: short nodeID (last 10 chars) — no public name registry exists for Avalanche
         const id = n.nodeID.replace('NodeID-', '');
         return id.length > 12 ? `…${id.slice(-10)}` : id;
     },

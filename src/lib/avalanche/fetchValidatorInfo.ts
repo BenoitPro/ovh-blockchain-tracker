@@ -2,19 +2,24 @@ import { logger } from '@/lib/utils';
 
 export interface AvalancheValidatorMeta {
     name?: string;
-    stakeAmount?: string;  // nAVAX as string
+    stakeAmount?: string;  // nAVAX as string (from P-Chain `weight` field)
     delegationFee?: number;
     rewardAddress?: string;
 }
 
 const PCHAIN_ENDPOINT = 'https://api.avax.network/ext/bc/P';
-const GLACIER_ENDPOINT = 'https://glacier-api.avax.network/v1/primaryNetwork/validators';
-const AVASCAN_ENDPOINT = 'https://avascan.info/api/v2/staking/validators';
+// Glacier correct path discovered via swagger: /v1/networks/{network}/validators
+const GLACIER_ENDPOINT = 'https://glacier-api.avax.network/v1/networks/mainnet/validators';
 
 /**
  * Source 1: P-Chain platform.getCurrentValidators
- * Returns stake amounts, delegation fees, and reward addresses.
- * No human names, but authoritative on-chain data.
+ *
+ * Field mapping (verified against live API 2026-04-06):
+ * - P-Chain uses `weight` for stake amount (NOT `stakeAmount`)
+ * - P-Chain uses `validationRewardOwner.addresses` (NOT `rewardOwner`)
+ * - `delegationFee` is already in percent: "2.0000" = 2%
+ *
+ * No human names available — reward address is the entity identifier.
  */
 async function fetchPChainValidators(): Promise<Map<string, AvalancheValidatorMeta>> {
     const map = new Map<string, AvalancheValidatorMeta>();
@@ -37,11 +42,10 @@ async function fetchPChainValidators(): Promise<Map<string, AvalancheValidatorMe
         const validators: any[] = json.result?.validators ?? [];
         for (const v of validators) {
             if (!v.nodeID) continue;
-            const addresses: string[] = v.rewardOwner?.addresses ?? [];
-            // P-Chain returns delegationFee already in percent (e.g. "2.0000" = 2%, "100.0000" = 100%).
-            // No conversion needed. Note: stakeAmount is null from P-Chain; Glacier is the source for stake.
+            // P-Chain uses `weight` for stake, not `stakeAmount`
+            const addresses: string[] = v.validationRewardOwner?.addresses ?? [];
             map.set(v.nodeID, {
-                stakeAmount: v.stakeAmount ?? undefined,
+                stakeAmount: v.weight ?? undefined,
                 delegationFee: v.delegationFee !== undefined
                     ? parseFloat(v.delegationFee)
                     : undefined,
@@ -57,7 +61,9 @@ async function fetchPChainValidators(): Promise<Map<string, AvalancheValidatorMe
 
 /**
  * Source 2: Glacier API (AvaLabs official, paginated)
- * Provides structured stake + fee data as a cross-check. No names.
+ * Correct endpoint: /v1/networks/mainnet/validators (discovered via swagger)
+ * Provides stake + fee data as cross-check. No names.
+ * Fails gracefully if endpoint is unavailable or requires auth.
  */
 async function fetchGlacierValidators(): Promise<Map<string, AvalancheValidatorMeta>> {
     const map = new Map<string, AvalancheValidatorMeta>();
@@ -84,7 +90,7 @@ async function fetchGlacierValidators(): Promise<Map<string, AvalancheValidatorM
                 if (!map.has(nodeId)) {
                     const rewards: string[] = v.rewardAddresses ?? [];
                     map.set(nodeId, {
-                        stakeAmount: v.amountStaked?.toString() ?? undefined,
+                        stakeAmount: v.amountStaked?.toString() ?? v.weight?.toString() ?? undefined,
                         delegationFee: v.delegationFee !== undefined
                             ? parseFloat(v.delegationFee)
                             : undefined,
@@ -100,75 +106,33 @@ async function fetchGlacierValidators(): Promise<Map<string, AvalancheValidatorM
 
         logger.info(`[Avalanche/Glacier] ${map.size} validators fetched`);
     } catch (e) {
-        logger.warn('[Avalanche/Glacier] Failed to fetch validators:', e);
+        logger.warn('[Avalanche/Glacier] Failed to fetch validators (non-blocking):', e);
     }
     return map;
 }
 
 /**
- * Source 3: Avascan API (community explorer — best name coverage)
- * Similar role to Marinade Finance for Solana.
- * If endpoint unavailable, returns empty map (graceful degradation).
- */
-async function fetchAvascanValidatorNames(): Promise<Map<string, string>> {
-    const map = new Map<string, string>(); // nodeID → name
-    try {
-        let offset = 0;
-        const limit = 100;
-        let hasMore = true;
-
-        while (hasMore) {
-            const url = `${AVASCAN_ENDPOINT}?limit=${limit}&offset=${offset}&type=validator`;
-            const response = await fetch(url, {
-                headers: { 'Accept': 'application/json', 'User-Agent': 'Mozilla/5.0' },
-                cache: 'no-store',
-                signal: AbortSignal.timeout(10_000),
-            });
-            if (!response.ok) throw new Error(`Avascan HTTP ${response.status}`);
-            const json = await response.json();
-
-            // Handle both { validators: [...] } and { results: [...] } shapes
-            const items: any[] = json.validators ?? json.results ?? json.data ?? [];
-            if (items.length === 0) { hasMore = false; break; }
-
-            for (const v of items) {
-                const nodeId: string = v.nodeID ?? v.nodeId ?? v.id ?? '';
-                const name: string = (v.name ?? v.validatorName ?? v.moniker ?? '').trim();
-                if (nodeId && name) map.set(nodeId, name);
-            }
-
-            hasMore = items.length === limit;
-            offset += limit;
-            if (offset > 5000) break; // Safety cap
-        }
-
-        logger.info(`[Avalanche/Avascan] ${map.size} named validators fetched`);
-    } catch (e) {
-        logger.warn('[Avalanche/Avascan] Name fetch failed (non-blocking):', e);
-    }
-    return map;
-}
-
-/**
- * Fetch and merge validator metadata from all sources.
- * Priority: P-Chain/Glacier for stake data, Avascan for names.
+ * Fetch and merge validator metadata from P-Chain and Glacier.
+ *
+ * Note on names: The Avalanche network does not have an on-chain name registry
+ * equivalent to Solana's Config program. Community explorer APIs (Avascan) block
+ * server-side requests (403). Entity identification uses the reward address
+ * (P-avax1...) as the primary identifier — it can be looked up on block explorers.
  *
  * @returns Map<nodeID, AvalancheValidatorMeta>
  */
 export async function fetchAvalancheValidatorInfo(): Promise<Map<string, AvalancheValidatorMeta>> {
-    const [pchainMap, glacierMap, avascanNames] = await Promise.all([
+    const [pchainMap, glacierMap] = await Promise.all([
         fetchPChainValidators(),
         fetchGlacierValidators(),
-        fetchAvascanValidatorNames(),
     ]);
 
-    // Merge: start with P-Chain data (canonical), layer Glacier, then add names from Avascan
+    // Merge: P-Chain is authoritative (canonical on-chain data)
     const merged = new Map<string, AvalancheValidatorMeta>();
 
-    // P-Chain is authoritative for on-chain data
     pchainMap.forEach((meta, nodeId) => merged.set(nodeId, { ...meta }));
 
-    // Glacier may fill gaps or provide the same data differently
+    // Glacier fills gaps (stake from a different source, reward addresses)
     glacierMap.forEach((meta, nodeId) => {
         const existing = merged.get(nodeId);
         if (!existing) {
@@ -182,19 +146,9 @@ export async function fetchAvalancheValidatorInfo(): Promise<Map<string, Avalanc
         }
     });
 
-    // Overlay names from Avascan
-    avascanNames.forEach((name, nodeId) => {
-        const existing = merged.get(nodeId);
-        if (existing) {
-            existing.name = name;
-        } else {
-            merged.set(nodeId, { name });
-        }
-    });
-
-    const namedCount = Array.from(merged.values()).filter(m => m.name).length;
     const withStake = Array.from(merged.values()).filter(m => m.stakeAmount).length;
-    logger.info(`[Avalanche/ValidatorInfo] ${merged.size} total | ${namedCount} named | ${withStake} with stake`);
+    const withAddress = Array.from(merged.values()).filter(m => m.rewardAddress).length;
+    logger.info(`[Avalanche/ValidatorInfo] ${merged.size} validators | ${withStake} with stake | ${withAddress} with reward address`);
 
     return merged;
 }
