@@ -49,7 +49,7 @@ export default function HighSpendProspecting() {
 
   // Derive flattened + ranked list
   const prospects: FlatProspect[] | null = apiData
-    ? apiData.chains.flatMap(chain =>
+    ? (apiData.chains ?? []).flatMap(chain =>
         chain.prospects.map((p, idx) => ({
           name: p.name,
           currentProvider: p.currentProvider,
