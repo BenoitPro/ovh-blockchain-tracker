@@ -1,31 +1,29 @@
 'use client';
 
-import { useState } from 'react';
-import { ComingSoonCard } from './ComingSoonCard';
+import { useState, useEffect } from 'react';
 
 type Priority = 'HIGH' | 'MEDIUM' | 'LOW';
 
-interface Validator {
-  rank: number;
-  name: string;
-  nodes: number;
-  currentProvider: string;
-  providerColor: string;
-  estArr: number;
-  chains: { name: string; color: string }[];
-  priority: Priority;
+interface ProspectAPIEntry {
+    name: string;
+    currentProvider: string;
+    stake: number;
+    stakeUnit: 'SOL' | 'SUI' | 'AVAX';
 }
 
-const VALIDATORS: Validator[] = [
-  { rank: 1, name: 'Chorus One',          nodes: 1240, currentProvider: 'AWS',              providerColor: '#FACC15', estArr: 186000, chains: [{ name: 'SOL', color: '#9945FF' }, { name: 'ETH', color: '#627EEA' }, { name: 'AVAX', color: '#E84142' }], priority: 'HIGH' },
-  { rank: 2, name: 'Figment Networks',    nodes: 890,  currentProvider: 'Hetzner',           providerColor: '#F97316', estArr: 133500, chains: [{ name: 'ETH', color: '#627EEA' }, { name: 'SOL', color: '#9945FF' }], priority: 'HIGH' },
-  { rank: 3, name: 'Everstake',           nodes: 780,  currentProvider: 'Google Cloud',      providerColor: '#3B82F6', estArr: 117000, chains: [{ name: 'ETH', color: '#627EEA' }, { name: 'AVAX', color: '#E84142' }, { name: 'SOL', color: '#9945FF' }], priority: 'HIGH' },
-  { rank: 4, name: 'P2P Validator',       nodes: 650,  currentProvider: 'Hetzner',           providerColor: '#F97316', estArr: 97500,  chains: [{ name: 'SOL', color: '#9945FF' }, { name: 'ETH', color: '#627EEA' }], priority: 'MEDIUM' },
-  { rank: 5, name: 'Staking Facilities',  nodes: 520,  currentProvider: 'Bare Metal (DE)',   providerColor: '#6B7280', estArr: 78000,  chains: [{ name: 'ETH', color: '#627EEA' }], priority: 'MEDIUM' },
-  { rank: 6, name: 'InfStones',           nodes: 480,  currentProvider: 'AWS',               providerColor: '#FACC15', estArr: 72000,  chains: [{ name: 'SOL', color: '#9945FF' }, { name: 'ETH', color: '#627EEA' }, { name: 'AVAX', color: '#E84142' }], priority: 'MEDIUM' },
-  { rank: 7, name: 'HashQuark',           nodes: 410,  currentProvider: 'Alibaba Cloud',     providerColor: '#F87171', estArr: 61500,  chains: [{ name: 'ETH', color: '#627EEA' }, { name: 'SOL', color: '#9945FF' }], priority: 'LOW' },
-  { rank: 8, name: 'Blockdaemon',         nodes: 380,  currentProvider: 'AWS',               providerColor: '#FACC15', estArr: 57000,  chains: [{ name: 'ETH', color: '#627EEA' }, { name: 'SOL', color: '#9945FF' }], priority: 'LOW' },
-];
+interface ProspectsAPIResponse {
+    success: boolean;
+    chains: Array<{ id: string; name: string; prospects: ProspectAPIEntry[] }>;
+}
+
+interface FlatProspect {
+    name: string;
+    currentProvider: string;
+    stake: number;
+    stakeUnit: 'SOL' | 'SUI' | 'AVAX';
+    chainName: string;
+    priority: Priority;
+}
 
 const PRIORITY_STYLES: Record<Priority, string> = {
   HIGH:   'bg-emerald-500/15 text-emerald-400 border-emerald-500/30',
@@ -33,25 +31,70 @@ const PRIORITY_STYLES: Record<Priority, string> = {
   LOW:    'bg-amber-500/15 text-amber-400 border-amber-500/30',
 };
 
-function fmtArr(n: number) {
-  return `~$${(n / 1000).toFixed(0)}k/yr`;
-}
-
 type Filter = 'ALL' | Priority;
 
 export default function HighSpendProspecting() {
   const [filter, setFilter] = useState<Filter>('ALL');
+  const [apiData, setApiData] = useState<ProspectsAPIResponse | null>(null);
+  const [fetchError, setFetchError] = useState<boolean>(false);
 
-  const filtered = filter === 'ALL' ? VALIDATORS : VALIDATORS.filter(v => v.priority === filter);
+  useEffect(() => {
+    fetch('/api/benchmark/prospects')
+      .then(r => r.json())
+      .then((data: ProspectsAPIResponse) => {
+        if (data.success) setApiData(data);
+      })
+      .catch(() => setFetchError(true));
+  }, []);
 
-  const totalArr = filtered.reduce((s, v) => s + v.estArr, 0);
-  const totalNodes = filtered.reduce((s, v) => s + v.nodes, 0);
+  // Derive flattened + ranked list
+  const prospects: FlatProspect[] | null = apiData
+    ? apiData.chains.flatMap(chain =>
+        chain.prospects.map((p, idx) => ({
+          name: p.name,
+          currentProvider: p.currentProvider,
+          stake: p.stake,
+          stakeUnit: p.stakeUnit,
+          chainName: chain.name,
+          priority: (idx < 3 ? 'HIGH' : idx < 8 ? 'MEDIUM' : 'LOW') as Priority,
+        }))
+      ).sort((a, b) => {
+        const order = { HIGH: 0, MEDIUM: 1, LOW: 2 };
+        return order[a.priority] - order[b.priority];
+      })
+    : null;
+
+  if (!prospects) {
+    return (
+      <div className="relative rounded-xl border border-white/10 bg-white/3 backdrop-blur-sm overflow-hidden p-5 h-48 flex items-center justify-center">
+        {fetchError
+          ? <span className="text-red-400/50 text-xs">Could not load prospect data.</span>
+          : <span className="text-white/20 text-xs animate-pulse">Loading prospects...</span>
+        }
+      </div>
+    );
+  }
+
+  if (prospects.length === 0) {
+    return (
+      <div className="relative rounded-xl border border-white/10 bg-white/3 backdrop-blur-sm overflow-hidden p-5 h-48 flex items-center justify-center">
+        <span className="text-white/20 text-xs text-center">No prospect data yet — run the Solana worker to populate.</span>
+      </div>
+    );
+  }
+
+  const filtered = filter === 'ALL' ? prospects : prospects.filter(v => v.priority === filter);
+
+  const totalStake = filtered.reduce((s, v) => s + v.stake, 0);
+
+  function fmtStake(v: FlatProspect) {
+    if (v.stakeUnit === 'SOL') return `${(v.stake / 1e9).toFixed(0)} SOL`;
+    if (v.stakeUnit === 'AVAX') return `${(v.stake / 1e9).toFixed(0)} AVAX`;
+    return `${(v.stake / 1e9).toFixed(0)} ${v.stakeUnit}`;
+  }
 
   return (
-    <ComingSoonCard
-      title="High-Spend Prospecting"
-      description="Top-tier validators (500+ nodes) not yet on OVH"
-    >
+    <div className="relative rounded-xl border border-white/10 bg-white/3 backdrop-blur-sm overflow-hidden">
       <div className="p-5">
         {/* Header */}
         <div className="flex items-start justify-between mb-4">
@@ -60,8 +103,8 @@ export default function HighSpendProspecting() {
             <p className="text-white/30 text-[10px] mt-0.5">Top global validators — OVH migration potential</p>
           </div>
           <div className="text-right">
-            <div className="text-lg font-black text-[#00F0FF]">${(totalArr / 1000).toFixed(0)}k</div>
-            <div className="text-[9px] text-white/30 uppercase tracking-widest">Potential ARR</div>
+            <div className="text-lg font-black text-[#00F0FF]">{filtered.length}</div>
+            <div className="text-[9px] text-white/30 uppercase tracking-widest">Prospects</div>
           </div>
         </div>
 
@@ -77,7 +120,7 @@ export default function HighSpendProspecting() {
                   : 'text-white/30 hover:text-white/60 border border-transparent'
               }`}
             >
-              {f === 'ALL' ? `All (${VALIDATORS.length})` : `${f} (${VALIDATORS.filter(v => v.priority === f).length})`}
+              {f === 'ALL' ? `All (${prospects.length})` : `${f} (${prospects.filter(v => v.priority === f).length})`}
             </button>
           ))}
         </div>
@@ -89,34 +132,28 @@ export default function HighSpendProspecting() {
               <tr className="border-b border-white/5">
                 <th className="px-3 py-2 text-left text-[9px] font-black uppercase tracking-widest text-white/30 w-6">#</th>
                 <th className="px-3 py-2 text-left text-[9px] font-black uppercase tracking-widest text-white/30">Validator</th>
-                <th className="px-3 py-2 text-right text-[9px] font-black uppercase tracking-widest text-white/30">Nodes</th>
                 <th className="px-3 py-2 text-left text-[9px] font-black uppercase tracking-widest text-white/30">Current provider</th>
-                <th className="px-3 py-2 text-left text-[9px] font-black uppercase tracking-widest text-white/30">Chains</th>
-                <th className="px-3 py-2 text-right text-[9px] font-black uppercase tracking-widest text-[#00F0FF]/50">Est. ARR</th>
+                <th className="px-3 py-2 text-left text-[9px] font-black uppercase tracking-widest text-white/30">Chain</th>
+                <th className="px-3 py-2 text-right text-[9px] font-black uppercase tracking-widest text-white/30">Stake</th>
                 <th className="px-3 py-2 text-center text-[9px] font-black uppercase tracking-widest text-white/30">Priority</th>
               </tr>
             </thead>
             <tbody>
-              {filtered.map(v => (
-                <tr key={v.rank} className="border-b border-white/5 hover:bg-white/2 transition-colors">
-                  <td className="px-3 py-2.5 text-white/20 font-mono text-[10px]">{v.rank}</td>
+              {filtered.map((v, idx) => (
+                <tr key={`${v.name}-${v.chainName}-${idx}`} className="border-b border-white/5 hover:bg-white/2 transition-colors">
+                  <td className="px-3 py-2.5 text-white/20 font-mono text-[10px]">{idx + 1}</td>
                   <td className="px-3 py-2.5 font-bold text-white/80">{v.name}</td>
-                  <td className="px-3 py-2.5 text-right text-white/60 font-mono">{v.nodes.toLocaleString()}</td>
                   <td className="px-3 py-2.5">
-                    <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-white/5" style={{ color: v.providerColor }}>
+                    <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-white/5 text-white/60">
                       {v.currentProvider}
                     </span>
                   </td>
                   <td className="px-3 py-2.5">
-                    <div className="flex gap-1">
-                      {v.chains.map(c => (
-                        <span key={c.name} className="text-[9px] font-black px-1.5 py-0.5 rounded" style={{ background: `${c.color}20`, color: c.color }}>
-                          {c.name}
-                        </span>
-                      ))}
-                    </div>
+                    <span className="text-[9px] font-black px-1.5 py-0.5 rounded bg-white/5 text-white/50">
+                      {v.chainName}
+                    </span>
                   </td>
-                  <td className="px-3 py-2.5 text-right font-black text-[#00F0FF] text-[11px]">{fmtArr(v.estArr)}</td>
+                  <td className="px-3 py-2.5 text-right text-white/60 font-mono text-[10px]">{fmtStake(v)}</td>
                   <td className="px-3 py-2.5 text-center">
                     <span className={`text-[9px] font-black px-2 py-0.5 rounded-full border ${PRIORITY_STYLES[v.priority]}`}>
                       {v.priority}
@@ -129,18 +166,16 @@ export default function HighSpendProspecting() {
                 <td colSpan={2} className="px-3 py-2 text-[9px] font-black uppercase tracking-widest text-white/30">
                   Total ({filtered.length} validators)
                 </td>
-                <td className="px-3 py-2 text-right font-black text-white/60">{totalNodes.toLocaleString()}</td>
                 <td colSpan={2} />
-                <td className="px-3 py-2 text-right font-black text-[#00F0FF]">${(totalArr / 1000).toFixed(0)}k/yr</td>
+                <td className="px-3 py-2 text-right font-black text-white/60 font-mono text-[10px]">
+                  {(totalStake / 1e9).toFixed(0)} (mixed)
+                </td>
                 <td />
               </tr>
             </tbody>
           </table>
         </div>
-        <p className="text-[9px] text-white/20 mt-2 italic">
-          * Est. ARR = nodes × ~$500/month (SCALE-A2 ref). Actual servers vary by chain and usage. Simulated data.
-        </p>
       </div>
-    </ComingSoonCard>
+    </div>
   );
 }
