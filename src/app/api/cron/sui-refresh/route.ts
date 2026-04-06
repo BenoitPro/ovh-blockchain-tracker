@@ -3,6 +3,9 @@ import { filterOVHSuiNodes, categorizeSuiNodesByProvider } from '@/lib/sui/filte
 import { calculateSuiMetrics } from '@/lib/sui/calculateMetrics';
 import { writeChainCache } from '@/lib/cache/chain-storage';
 import { createCronHandler } from '@/lib/utils/cronHandler';
+import { getASNFromMaxMind } from '@/lib/asn/maxmind';
+import { identifyProvider } from '@/lib/shared/providers';
+import { ProspectEntry } from '@/types/dashboard';
 
 /**
  * Vercel Cron Job — Sui validator data refresh
@@ -20,12 +23,35 @@ const handler = createCronHandler('Sui', async () => {
     ]);
 
     const metrics = calculateSuiMetrics(allValidators, ovhNodes, providerCategorization);
-    await writeChainCache('sui', metrics, metrics.totalNodes);
+
+    const ovhAddresses = new Set(ovhNodes.map((n) => n.suiAddress));
+    const topProspects: ProspectEntry[] = allValidators
+        .filter((v) => v.name && v.ip && !ovhAddresses.has(v.suiAddress))
+        .map((v) => {
+            const asnInfo = getASNFromMaxMind(v.ip!);
+            const provider = asnInfo
+                ? identifyProvider(asnInfo.asn, asnInfo.org)
+                : 'Unknown';
+            return {
+                name: v.name,
+                currentProvider: provider,
+                stake: parseInt(v.votingPower ?? '0'),
+                stakeUnit: 'SUI' as const,
+            };
+        })
+        .filter((p) => p.currentProvider !== 'OVHcloud')
+        .sort((a, b) => b.stake - a.stake)
+        .slice(0, 30);
+
+    const metricsWithProspects = { ...metrics, topProspects };
+
+    await writeChainCache('sui', metricsWithProspects, metricsWithProspects.totalNodes);
 
     return {
-        totalNodes: metrics.totalNodes,
-        ovhNodes: metrics.ovhNodes,
-        ovhVotingPowerShare: metrics.ovhVotingPowerShare,
+        totalNodes: metricsWithProspects.totalNodes,
+        ovhNodes: metricsWithProspects.ovhNodes,
+        ovhVotingPowerShare: metricsWithProspects.ovhVotingPowerShare,
+        prospects: topProspects.length,
     };
 });
 
