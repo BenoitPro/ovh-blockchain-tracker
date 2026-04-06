@@ -32,6 +32,7 @@ type ViewMode = 'aggregate' | 'per-chain';
 export default function MarketShareTracker() {
   const [view, setView] = useState<ViewMode>('aggregate');
   const [apiData, setApiData] = useState<MarketShareAPIResponse | null>(null);
+  const [fetchError, setFetchError] = useState<boolean>(false);
 
   useEffect(() => {
     fetch('/api/benchmark/market-share')
@@ -39,13 +40,16 @@ export default function MarketShareTracker() {
       .then((data: MarketShareAPIResponse) => {
         if (data.success) setApiData(data);
       })
-      .catch(() => {}); // silent fail — component shows loading state
+      .catch(() => setFetchError(true));
   }, []);
 
   if (!apiData) {
     return (
       <div className="relative rounded-xl border border-white/10 bg-white/3 backdrop-blur-sm overflow-hidden p-5 h-48 flex items-center justify-center">
-        <span className="text-white/20 text-xs animate-pulse">Loading market share data...</span>
+        {fetchError
+          ? <span className="text-red-400/50 text-xs">Could not load market share data.</span>
+          : <span className="text-white/20 text-xs animate-pulse">Loading market share data...</span>
+        }
       </div>
     );
   }
