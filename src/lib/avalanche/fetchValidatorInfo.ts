@@ -1,4 +1,5 @@
 import { logger } from '@/lib/utils';
+import { getKnownValidatorName } from './knownValidators';
 
 export interface AvalancheValidatorMeta {
     name?: string;
@@ -146,9 +147,20 @@ export async function fetchAvalancheValidatorInfo(): Promise<Map<string, Avalanc
         }
     });
 
+    // Overlay names from the local curated registry (knownValidators.ts)
+    // This is the primary source for human-readable organization names on Avalanche,
+    // since no public server-accessible API provides this data.
+    merged.forEach((meta, nodeId) => {
+        const knownName = getKnownValidatorName(nodeId);
+        if (knownName) meta.name = knownName;
+    });
+    // Also register any known validators not yet in the map (e.g. offline but known)
+    // — skip for now, only enrich peers we've already seen.
+
+    const namedCount = Array.from(merged.values()).filter(m => m.name).length;
     const withStake = Array.from(merged.values()).filter(m => m.stakeAmount).length;
     const withAddress = Array.from(merged.values()).filter(m => m.rewardAddress).length;
-    logger.info(`[Avalanche/ValidatorInfo] ${merged.size} validators | ${withStake} with stake | ${withAddress} with reward address`);
+    logger.info(`[Avalanche/ValidatorInfo] ${merged.size} validators | ${namedCount} named | ${withStake} with stake | ${withAddress} with reward address`);
 
     return merged;
 }
