@@ -147,7 +147,7 @@ export default function EthereumAnalyticsPage() {
                             totalNodes={metrics.totalNodes}
                             ovhNodes={ovhNodes}
                             marketShare={ovhMarketShare}
-                           
+                            decentralizationScore={metrics.decentralizationScore}
                         />
                     </section>
 

@@ -11,8 +11,9 @@ export const OVH_ASN_LIST = [
     'AS21351', // OVH Public Cloud
     'AS198203', // OVH Singapore
     'AS50082',  // OVH Australia
-    'AS32790',  // OVH USA
-    'AS14061',  // OVH Canada (sometimes DO shares this but mostly OVH CA)
+    'AS32790',  // OVH USA / Canada
+    // NOTE: AS14061 intentionally excluded — registered to DigitalOcean (RIPE-confirmed).
+    // OVH Canada operates under AS16276 and AS32790. See docs/data-methodology.md.
 ];
 
 // Provider ASN mapping

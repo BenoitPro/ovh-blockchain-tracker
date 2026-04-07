@@ -7,11 +7,12 @@
  * We leverage the same table without any migration: each blockchain gets its own key.
  *
  * Pre-defined keys (add one line here whenever a new chain is integrated):
- *   'solana-metrics'    → Solana dashboard (legacy key, unchanged)
- *   'avalanche-metrics' → Avalanche dashboard
- *   'sui-metrics'       → Sui (Phase 1, future)
- *   'tron-metrics'      → Tron dashboard
- *   'celestia-metrics'  → Celestia (Phase 2, future)
+ *   'solana-metrics'       → Solana dashboard (legacy key, unchanged)
+ *   'avalanche-metrics'    → Avalanche dashboard
+ *   'sui-metrics'          → Sui (Phase 1, future)
+ *   'tron-metrics'         → Tron dashboard
+ *   'hyperliquid-metrics'  → Hyperliquid dashboard
+ *   'celestia-metrics'     → Celestia (Phase 2, future)
  *
  * This pattern is intentionally ADDITIVE — adding a new chain never touches existing cache entries,
  * never changes the schema, and never risks breaking running dashboards.
@@ -26,6 +27,7 @@ export const CACHE_KEYS = {
     avalanche: 'avalanche-metrics',
     sui: 'sui-metrics',
     tron: 'tron-metrics',
+    hyperliquid: 'hyperliquid-metrics',
     // celestia: 'celestia-metrics',
     'solana-prospects': 'solana-prospects-data',
 } as const;
@@ -38,6 +40,7 @@ export const CACHE_TTL: Record<ChainId, number> = {
     avalanche: 2 * 60 * 60 * 1000, // 2 hours
     sui: 2 * 60 * 60 * 1000,       // 2 hours (validators change only at epoch ~24h)
     tron: 2 * 60 * 60 * 1000,      // 2 hours
+    hyperliquid: 6 * 60 * 60 * 1000, // 6 hours (validator set very stable, ~30 validators)
     'solana-prospects': 6 * 60 * 60 * 1000, // 6 hours
 };
 

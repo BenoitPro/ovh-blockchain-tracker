@@ -41,6 +41,7 @@ export default function AvalanchePage() {
     const [metrics, setMetrics] = useState<AvalancheDashboardMetrics | null>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
+    const [cachedAt, setCachedAt] = useState<number | null>(null);
 
     useScrollReveal(!loading && !!metrics);
 
@@ -52,6 +53,7 @@ export default function AvalanchePage() {
             const data = await response.json();
             if (!data.success) throw new Error(data.error || 'Failed to fetch data');
             setMetrics(data.data);
+            if (data.timestamp) setCachedAt(data.timestamp);
         } catch (err) {
             setError(err instanceof Error ? err.message : 'Unknown error occurred');
         } finally {
@@ -113,6 +115,14 @@ export default function AvalanchePage() {
                         }
                         subtitle="Tracking validators on the fastest smart contracts platform"
                     />
+
+                    {cachedAt && (
+                        <p className="text-xs text-gray-500 text-right -mt-2 mb-4">
+                            Last updated: {new Date(cachedAt).toLocaleString('en-US', {
+                                month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit', timeZone: 'UTC', timeZoneName: 'short'
+                            })}
+                        </p>
+                    )}
 
                     {/* ── Avalanche-specific uptime KPIs ──────────────────────── */}
                     <div className="fade-in-up flex justify-center gap-10 mb-6 pt-2">

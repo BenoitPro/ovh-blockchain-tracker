@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import Footer from '@/components/dashboard/Footer';
+import KPICards from '@/components/dashboard/KPICards';
 import LoadingState from '@/components/dashboard/LoadingState';
 import ErrorState from '@/components/dashboard/ErrorState';
 import ParticlesBackground from '@/components/ParticlesBackground';
@@ -73,6 +74,16 @@ export default function AnalyticsPage() {
                         <h1 className="text-4xl font-black text-white mb-2 tracking-tight">Analytics & Market Trends</h1>
                         <p className="text-gray-400 text-sm">Detailed ecosystem distribution and historical performance metrics.</p>
                     </div>
+
+                    {/* KPI Cards */}
+                    <section className="mb-10 fade-in-up">
+                        <KPICards
+                            totalNodes={metrics.totalNodes}
+                            ovhNodes={metrics.ovhNodes}
+                            marketShare={metrics.marketShare}
+                            decentralizationScore={metrics.decentralizationScore}
+                        />
+                    </section>
 
                     {/* Provider Comparison Chart */}
                     <section className="mb-12 fade-in-up delay-100">

@@ -18,29 +18,26 @@
 import { calculateEthMetrics } from '@/lib/ethereum/calculateEthMetrics';
 import { getDatabase } from '@/lib/db/database';
 import { PROVIDER_ASN_MAP } from '@/lib/config/constants';
+import { identifyProvider } from '@/lib/shared/providers';
 import { logger } from '@/lib/utils/logger';
 
 const MIGALABS_BASE = 'https://www.migalabs.io/api/eth/v1/nodes/consensus/all';
 const MIN_NODES = 100;
 
 // ─── Provider name mapping ────────────────────────────────────────────────────
-// Maps MigaLabs ISP names → our internal provider keys.
-// Known values from API: "OVH SAS", "Hetzner Online GmbH", "Amazon", "Google LLC", etc.
-const PROVIDER_NAME_PATTERNS: Array<[RegExp, string]> = [
-    [/ovh/i, 'ovh'],
-    [/amazon|aws/i, 'aws'],
-    [/google/i, 'google'],
-    [/hetzner/i, 'hetzner'],
-    [/digitalocean/i, 'digitalocean'],
-    [/vultr/i, 'vultr'],
-    [/equinix/i, 'equinix'],
-];
+// Build a reverse lookup: human-readable label → internal key (e.g. "OVHcloud" → "ovh").
+const LABEL_TO_KEY: Record<string, string> = Object.fromEntries(
+    Object.entries(PROVIDER_ASN_MAP).map(([key, info]) => [info.label, key])
+);
 
+/**
+ * Maps a MigaLabs ISP name to an internal provider key (e.g. "ovh", "aws").
+ * Delegates to the shared identifyProvider() for consistent matching across all chains,
+ * then converts the returned label back to the short key used in distribution maps.
+ */
 function mapProviderName(name: string): string {
-    for (const [pattern, key] of PROVIDER_NAME_PATTERNS) {
-        if (pattern.test(name)) return key;
-    }
-    return 'others';
+    const label = identifyProvider('', name);
+    return LABEL_TO_KEY[label] ?? 'others';
 }
 
 // ─── HTTP with retry ──────────────────────────────────────────────────────────

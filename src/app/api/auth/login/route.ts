@@ -22,7 +22,7 @@ export async function POST(req: NextRequest) {
     secure: isProd,
     sameSite: 'lax',
     path: '/',
-    maxAge: 60 * 60 * 24 * 365, // 1 year (logout-only expiry)
+    maxAge: 60 * 60 * 24 * 14, // 14 days
   });
 
   // Readable UI cookie — used by Sidebar to show/hide logout button
@@ -31,7 +31,7 @@ export async function POST(req: NextRequest) {
     secure: isProd,
     sameSite: 'lax',
     path: '/',
-    maxAge: 60 * 60 * 24 * 365,
+    maxAge: 60 * 60 * 24 * 14, // 14 days
   });
 
   return res;

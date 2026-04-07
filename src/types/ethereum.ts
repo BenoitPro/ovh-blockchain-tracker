@@ -12,6 +12,7 @@ export interface EthSnapshotMetrics {
     providerDistribution: Record<string, number>;
     providerBreakdown: import('./dashboard').ProviderBreakdownEntry[];
     geoDistribution: Record<string, number>;
+    decentralizationScore?: import('./dashboard').DecentralizationScore;
 }
 
 export interface EthAPIResponse {

@@ -7,14 +7,12 @@
         "cdg1"
     ],
     "crons": [
-        {
-            "path": "/api/cron/refresh",
-            "schedule": "0 0 * * *"
-        },
-        {
-            "path": "/api/cron/eth-refresh",
-            "schedule": "0 1 * * *"
-        }
+        { "path": "/api/cron/refresh",      "schedule": "0 0 * * *" },
+        { "path": "/api/cron/eth-refresh",  "schedule": "0 1 * * *" },
+        { "path": "/api/cron/avax-refresh", "schedule": "0 2 * * *" },
+        { "path": "/api/cron/sui-refresh",  "schedule": "0 3 * * *" },
+        { "path": "/api/cron/tron-refresh", "schedule": "0 4 * * *" },
+        { "path": "/api/cron/hyperliquid-refresh", "schedule": "0 5 * * *" }
     ],
     "functions": {
         "src/app/api/cron/**/*.ts": {

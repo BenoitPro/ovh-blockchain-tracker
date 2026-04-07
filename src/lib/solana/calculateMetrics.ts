@@ -1,5 +1,6 @@
 import { SolanaNode, OVHNode, DashboardMetrics } from '@/types';
 import { buildProviderBreakdown } from '@/lib/shared/providerBreakdown';
+import { computeDecentralizationScore } from '@/lib/shared/decentralizationScore';
 
 import { ProviderCategorizationResult } from './filterOVH';
 
@@ -53,6 +54,10 @@ export function calculateMetrics(
         totalNodes
     );
 
+    // Use global geo distribution (all providers) for decentralization score
+    const geoForScore = globalGeoDistribution ?? geoDistribution;
+    const decentralizationScore = computeDecentralizationScore(providerBreakdown, geoForScore, totalNodes);
+
     return {
         totalNodes,
         ovhNodes: ovhNodeCount,
@@ -65,6 +70,7 @@ export function calculateMetrics(
         topValidators,
         ovhStake,
         totalStake,
+        decentralizationScore,
     };
 }
 

@@ -6,3 +6,4 @@ export * from './country';
 export * from './avalanche';
 export * from './sui';
 export * from './tron';
+export * from './hyperliquid';

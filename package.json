@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "NODE_OPTIONS='--max-old-space-size=8192' next dev",
+    "dev": "NODE_OPTIONS='--max-old-space-size=4096' next dev",
     "prebuild": "node scripts/download-maxmind.js",
     "build": "next build",
     "start": "next start",
@@ -12,6 +12,8 @@
     "test:coverage": "vitest run --coverage",
     "worker": "tsx scripts/worker.ts",
     "worker:avax": "tsx scripts/worker-avax.ts",
+    "worker:tron": "tsx scripts/worker-tron.ts",
+    "worker:sui": "tsx scripts/worker-sui.ts",
     "worker:dev": "tsx scripts/worker.ts"
   },
   "dependencies": {

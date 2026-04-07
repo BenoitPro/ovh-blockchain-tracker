@@ -1,5 +1,6 @@
 import { EthSnapshotMetrics } from '@/types';
 import { buildProviderBreakdown } from '@/lib/shared/providerBreakdown';
+import { computeDecentralizationScore } from '@/lib/shared/decentralizationScore';
 
 export { buildProviderBreakdown };
 
@@ -15,6 +16,7 @@ export function calculateEthMetrics(
     crawlDurationMin?: number
 ): EthSnapshotMetrics {
     const providerBreakdown = buildProviderBreakdown(distribution, othersBreakdown, totalNodes);
+    const decentralizationScore = computeDecentralizationScore(providerBreakdown, geoDistribution, totalNodes);
 
     return {
         totalNodes,
@@ -23,5 +25,6 @@ export function calculateEthMetrics(
         providerDistribution: distribution,
         providerBreakdown,
         geoDistribution,
+        decentralizationScore,
     };
 }

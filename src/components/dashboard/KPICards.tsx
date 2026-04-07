@@ -1,6 +1,7 @@
 import { useState } from 'react';
-import { ServerIcon, ChartPieIcon, InformationCircleIcon, XMarkIcon } from '@heroicons/react/24/outline';
+import { ServerIcon, ChartPieIcon, InformationCircleIcon, XMarkIcon, ShieldCheckIcon } from '@heroicons/react/24/outline';
 import { formatPercentage } from '@/lib/solana/calculateMetrics';
+import { DecentralizationScore, gradeColor, gradeLabel } from '@/lib/shared/decentralizationScore';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNetworkTheme } from '@/components/NetworkThemeProvider';
 import { CHAINS, ChainId } from '@/lib/chains';
@@ -9,6 +10,7 @@ interface KPICardsProps {
     totalNodes: number;
     ovhNodes: number;
     marketShare: number;
+    decentralizationScore?: DecentralizationScore;
     vertical?: boolean;
     align?: 'left' | 'center' | 'right';
     /** Canonical validator count (Avalanche only — from platform.getCurrentValidators) */
@@ -19,6 +21,7 @@ export default function KPICards({
     totalNodes,
     ovhNodes,
     marketShare,
+    decentralizationScore,
     vertical = false,
     align = 'center',
     totalValidators,
@@ -70,6 +73,18 @@ export default function KPICards({
             tooltipContent: `Percentage of total ${currentChainName} nodes hosted on OVHcloud infrastructure.`
         }
     ];
+
+    if (decentralizationScore) {
+        const grade = decentralizationScore.grade;
+        metrics.push({
+            title: 'Decentralization Score',
+            value: `${grade} · ${decentralizationScore.composite}/100`,
+            icon: ShieldCheckIcon,
+            color: gradeColor(grade),
+            tooltipTitle: 'Decentralization Score',
+            tooltipContent: `${gradeLabel(grade)}. Computed from provider concentration (HHI), Nakamoto infra coefficient, and geographic entropy.\n\n${decentralizationScore.nakamotoCoefficient} provider(s) needed to control >33% of nodes across ${decentralizationScore.countryCount} countries.`,
+        });
+    }
 
     const alignmentClasses = {
         left: 'items-start text-left',

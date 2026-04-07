@@ -27,7 +27,7 @@ export function createCronHandler(
         const env = getEnvConfig();
 
         const authHeader = request.headers.get('authorization');
-        if (env.cronSecret && authHeader !== `Bearer ${env.cronSecret}`) {
+        if (!env.cronSecret || authHeader !== `Bearer ${env.cronSecret}`) {
             logger.warn(`[Cron/${prefix}] Unauthorized access attempt`);
             return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
         }
