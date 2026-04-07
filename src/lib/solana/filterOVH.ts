@@ -178,6 +178,7 @@ export async function categorizeNodesByProvider(
         nodes,
         (node) => extractIP(node.gossip),
         'Solana',
+        (node) => (node as any).activatedStake ?? 0,
     );
 }
 

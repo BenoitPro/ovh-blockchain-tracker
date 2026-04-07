@@ -16,7 +16,15 @@ export function calculateEthMetrics(
     crawlDurationMin?: number
 ): EthSnapshotMetrics {
     const providerBreakdown = buildProviderBreakdown(distribution, othersBreakdown, totalNodes);
-    const decentralizationScore = computeDecentralizationScore(providerBreakdown, geoDistribution, totalNodes);
+    const decentralizationScore = computeDecentralizationScore(
+        providerBreakdown,
+        geoDistribution,
+        totalNodes,
+        {
+            rawDistribution: distribution,
+            rawOthersBreakdown: othersBreakdown,
+        },
+    );
 
     return {
         totalNodes,

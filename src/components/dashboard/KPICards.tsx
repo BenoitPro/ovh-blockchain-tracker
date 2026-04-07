@@ -76,13 +76,21 @@ export default function KPICards({
 
     if (decentralizationScore) {
         const grade = decentralizationScore.grade;
+        const sw = decentralizationScore.stakeWeighted;
+
+        const baseTooltip = `${gradeLabel(grade)}. Computed from provider concentration (HHI), Nakamoto infra coefficient, and geographic entropy.\n\n${decentralizationScore.nakamotoCoefficient} provider(s) needed to control >33% of nodes across ${decentralizationScore.countryCount} countries.`;
+
+        const stakeTooltip = sw
+            ? `\n\nNode-based:     ${grade} · ${decentralizationScore.composite}/100\nStake-weighted: ${sw.grade} · ${sw.composite}/100  (${gradeLabel(sw.grade)} — Nakamoto coeff. ${sw.nakamotoCoefficient})`
+            : '';
+
         metrics.push({
             title: 'Decentralization Score',
             value: `${grade} · ${decentralizationScore.composite}/100`,
             icon: ShieldCheckIcon,
             color: gradeColor(grade),
             tooltipTitle: 'Decentralization Score',
-            tooltipContent: `${gradeLabel(grade)}. Computed from provider concentration (HHI), Nakamoto infra coefficient, and geographic entropy.\n\n${decentralizationScore.nakamotoCoefficient} provider(s) needed to control >33% of nodes across ${decentralizationScore.countryCount} countries.`,
+            tooltipContent: baseTooltip + stakeTooltip,
         });
     }
 

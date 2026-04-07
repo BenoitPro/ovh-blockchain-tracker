@@ -7,7 +7,7 @@
  * official websites, staking guides, GitHub docs, block explorers.
  *
  * Last updated: 2026-04-07
- * Coverage: ~100 nodes (74 Ava Labs genesis + 26 institutional)
+ * Coverage: ~108 nodes (74 Ava Labs genesis + 34 institutional/OVH-hosted)
  *
  * To add a validator: append { "NodeID-XXX": "Company Name" } with a source comment.
  * Prompts for Grok research: search Twitter/X for "our avalanche nodeID" or "[company] avax validator"
@@ -141,6 +141,27 @@ export const KNOWN_AVALANCHE_VALIDATORS: Record<string, string> = {
 
     // CEX.IO — Source: validator.cex.io/avax (official validator page, non-custodial delegation)
     "NodeID-DLwFM6gfY5wWfHHMf5tC1NjttQqxZq7gr": "CEX.IO",
+
+    // Luganodes (node 2) — Source: Avascan label cross-referenced with luganodes.com
+    "NodeID-C6zVv1ab5JKn2j8DDCGWGai9jgWhmpLVA": "Luganodes",
+
+    // Bware Labs — Source: bwarelabs.com/blog (documented OVH customer running Avalanche infra)
+    "NodeID-J2EsHLX45KwRua6mLNV5LCouQkR42jGNo": "Bware Labs",
+
+    // Arverse — Source: Avascan label (UK validator, AWS infrastructure)
+    "NodeID-2pN3EtqAUKWvJedQvYfPSgKeonNmFn8bA": "Arverse",
+
+    // ── OVH-Hosted Validators (identified by ASN/IP, operator unknown) ───────────
+    // These run on OVHcloud infrastructure but have not publicly disclosed their identity.
+    // High-value outreach targets for OVH sales.
+
+    // "Ça suit son cours" — OVH Grenoble (France), ~1.6M AVAX delegated, largest OVH-hosted node
+    // Source: Avascan moniker + MaxMind ASN lookup
+    "NodeID-D3onstuMsGRctDjbksXU6BV3rrCbWHkB9": "Ça suit son cours",
+
+    // "Summer" — OVH Saint-Ouen (France)
+    // Source: Avascan moniker + MaxMind ASN lookup
+    "NodeID-8ja1C24FM5FyQgUGjsm4qwpD6shiu71KH": "Summer",
 
 };
 

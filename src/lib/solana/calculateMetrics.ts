@@ -14,7 +14,7 @@ export function calculateMetrics(
 ): DashboardMetrics {
     const totalNodes = allNodes.length;
     const ovhNodeCount = ovhNodes.length;
-    const { distribution, othersBreakdown, globalGeoDistribution } = providerCategorization;
+    const { distribution, othersBreakdown, globalGeoDistribution, valueDistribution, totalValue } = providerCategorization;
 
     // Calculate market share percentage
     const marketShare = totalNodes > 0 ? (ovhNodeCount / totalNodes) * 100 : 0;
@@ -56,7 +56,17 @@ export function calculateMetrics(
 
     // Use global geo distribution (all providers) for decentralization score
     const geoForScore = globalGeoDistribution ?? geoDistribution;
-    const decentralizationScore = computeDecentralizationScore(providerBreakdown, geoForScore, totalNodes);
+    const decentralizationScore = computeDecentralizationScore(
+        providerBreakdown,
+        geoForScore,
+        totalNodes,
+        {
+            rawDistribution: distribution as Record<string, number>,
+            rawOthersBreakdown: othersBreakdown ?? {},
+            stakeDistribution: valueDistribution,
+            totalStake: totalValue,
+        },
+    );
 
     return {
         totalNodes,
