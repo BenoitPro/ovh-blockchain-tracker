@@ -7,12 +7,13 @@
  * We leverage the same table without any migration: each blockchain gets its own key.
  *
  * Pre-defined keys (add one line here whenever a new chain is integrated):
- *   'solana-metrics'       → Solana dashboard (legacy key, unchanged)
- *   'avalanche-metrics'    → Avalanche dashboard
- *   'sui-metrics'          → Sui (Phase 1, future)
- *   'tron-metrics'         → Tron dashboard
- *   'hyperliquid-metrics'  → Hyperliquid dashboard
- *   'celestia-metrics'     → Celestia (Phase 2, future)
+ *   'solana-metrics'         → Solana dashboard (legacy key, unchanged)
+ *   'avalanche-metrics'      → Avalanche dashboard
+ *   'sui-metrics'            → Sui (Phase 1, future)
+ *   'tron-metrics'           → Tron dashboard
+ *   'hyperliquid-metrics'    → Hyperliquid dashboard
+ *   'celestia-metrics'       → Celestia (Phase 2, future)
+ *   'solana-prospects-data'  → Solana top non-OVH validator prospects (written by scripts/worker.ts)
  *
  * This pattern is intentionally ADDITIVE — adding a new chain never touches existing cache entries,
  * never changes the schema, and never risks breaking running dashboards.

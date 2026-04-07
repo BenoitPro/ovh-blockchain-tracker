@@ -35,7 +35,7 @@ const handler = createCronHandler('Sui', async () => {
             return {
                 name: v.name,
                 currentProvider: provider,
-                stake: parseInt(v.votingPower ?? '0'),
+                stake: Number(BigInt(v.votingPower ?? '0') / BigInt(1_000_000_000)), // already in SUI tokens
                 stakeUnit: 'SUI' as const,
             };
         })

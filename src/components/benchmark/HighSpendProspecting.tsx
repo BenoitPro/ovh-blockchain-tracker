@@ -43,6 +43,7 @@ export default function HighSpendProspecting() {
       .then(r => r.json())
       .then((data: ProspectsAPIResponse) => {
         if (data.success) setApiData(data);
+        else setFetchError(true);
       })
       .catch(() => setFetchError(true));
   }, []);
@@ -90,7 +91,8 @@ export default function HighSpendProspecting() {
   function fmtStake(v: FlatProspect) {
     if (v.stakeUnit === 'SOL') return `${(v.stake / 1e9).toFixed(0)} SOL`;
     if (v.stakeUnit === 'AVAX') return `${(v.stake / 1e9).toFixed(0)} AVAX`;
-    return `${(v.stake / 1e9).toFixed(0)} ${v.stakeUnit}`;
+    // SUI stake is already stored in SUI tokens (divided by 1e9 at write time)
+    return `${v.stake.toLocaleString()} ${v.stakeUnit}`;
   }
 
   return (

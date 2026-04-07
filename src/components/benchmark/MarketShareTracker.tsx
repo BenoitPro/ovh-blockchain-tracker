@@ -39,6 +39,7 @@ export default function MarketShareTracker() {
       .then(r => r.json())
       .then((data: MarketShareAPIResponse) => {
         if (data.success) setApiData(data);
+        else setFetchError(true);
       })
       .catch(() => setFetchError(true));
   }, []);
@@ -113,7 +114,7 @@ export default function MarketShareTracker() {
               <BarChart data={aggregateData} layout="vertical" margin={{ left: 8, right: 48, top: 0, bottom: 0 }}>
                 <XAxis
                   type="number"
-                  domain={[0, Math.max(...aggregateData.map(d => d.nodeCount)) * 1.1]}
+                  domain={[0, (aggregateData.length > 0 ? Math.max(...aggregateData.map(d => d.nodeCount)) : 1) * 1.1]}
                   tick={{ fontSize: 9, fill: 'rgba(255,255,255,0.3)' }}
                   tickFormatter={v => v >= 1000 ? `${(v / 1000).toFixed(0)}k` : String(v)}
                   axisLine={false} tickLine={false}
