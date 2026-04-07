@@ -139,6 +139,9 @@ export const KNOWN_AVALANCHE_VALIDATORS: Record<string, string> = {
     // Northstake — Source: medium.com/northstake AVAX delegation guide
     "NodeID-Nn7JvyqWEeEXbFGx63vwJRngQwaUnBF3R": "Northstake",
 
+    // CEX.IO — Source: validator.cex.io/avax (official validator page, non-custodial delegation)
+    "NodeID-DLwFM6gfY5wWfHHMf5tC1NjttQqxZq7gr": "CEX.IO",
+
 };
 
 /**
