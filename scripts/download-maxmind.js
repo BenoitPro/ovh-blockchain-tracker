@@ -45,9 +45,11 @@ const DATABASES = [
  */
 function checkLicenseKey() {
     if (!LICENSE_KEY) {
-        console.error('❌ Error: MAXMIND_LICENSE_KEY not found');
-        process.exit(1);
+        console.warn('⚠️  Warning: MAXMIND_LICENSE_KEY not found. Skipping database download.');
+        console.warn('💡 Tip: Set MAXMIND_LICENSE_KEY in your environment variables to enable ultra-fast IP lookups.');
+        return false;
     }
+    return true;
 }
 
 /**
@@ -115,7 +117,11 @@ async function main() {
     console.log('🚀 MaxMind Database Downloader');
     console.log('═'.repeat(60));
 
-    checkLicenseKey();
+    if (!checkLicenseKey()) {
+        console.warn('⚠️  Skipping download steps as no license key is available.');
+        return;
+    }
+    
     ensureDataDir();
 
     for (const db of DATABASES) {
