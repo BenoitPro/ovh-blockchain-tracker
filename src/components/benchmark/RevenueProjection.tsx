@@ -2,7 +2,6 @@
 
 import { useState, useMemo, useEffect } from 'react';
 import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, ReferenceLine } from 'recharts';
-import { ComingSoonCard } from './ComingSoonCard';
 
 // ─── Chain config ─────────────────────────────────────────────────────────────
 
@@ -222,10 +221,7 @@ export default function RevenueProjection() {
   ];
 
   return (
-    <ComingSoonCard
-      title="Revenue Projection"
-      description="Revenue impact simulator based on market share growth"
-    >
+    <div className="rounded-xl border border-white/10 bg-white/3 backdrop-blur-sm overflow-hidden">
       <div className="p-5">
         <div className="flex items-start justify-between mb-5">
           <div>
@@ -555,6 +551,6 @@ export default function RevenueProjection() {
 
         <p className="text-[9px] text-white/20 italic">* Données simulées. Estimation conservative hors RPC, storage et app nodes. Prix officiels OVH EUR — avril 2026.</p>
       </div>
-    </ComingSoonCard>
+    </div>
   );
 }
