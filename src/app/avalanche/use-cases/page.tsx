@@ -4,6 +4,7 @@ import Link from 'next/link';
 import ParticlesBackground from '@/components/ParticlesBackground';
 import AnimatedTagline from '@/components/dashboard/AnimatedTagline';
 import UseCasesHero from '@/components/dashboard/UseCasesHero';
+import OVHServerSpecs from '@/components/dashboard/OVHServerSpecs';
 
 const ACCENT = '#E84142';
 
@@ -199,6 +200,8 @@ export default function AvalancheUseCasesPage() {
                     />
 
                     <UseCasesHero chainId="avalanche" />
+
+                    <OVHServerSpecs chainId="avalanche" accent={ACCENT} />
 
                     <p className="text-[9px] text-center text-white/40 mb-12 uppercase tracking-[0.22em] font-medium max-w-3xl mx-auto leading-relaxed">
                         Enabling next-gen Avalanche architectures, from single API Endpoints to<br className="hidden sm:block" /> 

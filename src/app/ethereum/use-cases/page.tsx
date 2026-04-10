@@ -4,6 +4,7 @@ import Link from 'next/link';
 import ParticlesBackground from '@/components/ParticlesBackground';
 import VerifiedResidentsGrid from '@/components/dashboard/VerifiedResidentsGrid';
 import UseCasesHero from '@/components/dashboard/UseCasesHero';
+import OVHServerSpecs from '@/components/dashboard/OVHServerSpecs';
 
 const ACCENT = '#627EEA';
 
@@ -226,6 +227,8 @@ export default function EthereumUseCasesPage() {
                     </div>
 
                     <UseCasesHero chainId="ethereum" />
+
+                    <OVHServerSpecs chainId="ethereum" accent={ACCENT} />
 
                     {/* Case Studies */}
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-24">

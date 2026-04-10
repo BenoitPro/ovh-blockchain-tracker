@@ -12,6 +12,7 @@
  *   'sui-metrics'            → Sui (Phase 1, future)
  *   'tron-metrics'           → Tron dashboard
  *   'hyperliquid-metrics'    → Hyperliquid dashboard
+ *   'bnbchain-metrics'        → BNB Chain dashboard
  *   'celestia-metrics'       → Celestia (Phase 2, future)
  *   'solana-prospects-data'  → Solana top non-OVH validator prospects (written by scripts/worker.ts)
  *
@@ -29,6 +30,7 @@ export const CACHE_KEYS = {
     sui: 'sui-metrics',
     tron: 'tron-metrics',
     hyperliquid: 'hyperliquid-metrics',
+    bnbchain: 'bnbchain-metrics',
     // celestia: 'celestia-metrics',
     'solana-prospects': 'solana-prospects-data',
 } as const;
@@ -42,6 +44,7 @@ export const CACHE_TTL: Record<ChainId, number> = {
     sui: 2 * 60 * 60 * 1000,       // 2 hours (validators change only at epoch ~24h)
     tron: 2 * 60 * 60 * 1000,      // 2 hours
     hyperliquid: 6 * 60 * 60 * 1000, // 6 hours (validator set very stable, ~30 validators)
+    bnbchain: 2 * 60 * 60 * 1000,    // 2 hours
     'solana-prospects': 6 * 60 * 60 * 1000, // 6 hours
 };
 

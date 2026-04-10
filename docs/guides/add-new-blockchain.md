@@ -13,9 +13,10 @@ Ce guide documente le pattern à suivre pour intégrer une nouvelle blockchain d
 - [ ] 5. Créer la route API `/api/{chain}/route.ts`
 - [ ] 6. Créer la route cron `/api/cron/{chain}-refresh/route.ts`
 - [ ] 7. Créer les pages UI `src/app/{chain}/`
-- [ ] 8. Créer le worker script `scripts/worker-{chain}.ts`
-- [ ] 9. Mettre à jour `vercel.json` (cron schedule)
-- [ ] 10. Tester en local
+- [ ] 8. Ajouter les specs serveur dans `lib/config/use-cases-config.ts`
+- [ ] 9. Créer le worker script `scripts/worker-{chain}.ts`
+- [ ] 10. Mettre à jour `vercel.json` (cron schedule)
+- [ ] 11. Tester en local
 
 ---
 
@@ -254,7 +255,75 @@ Ajouter le lien dans `src/components/dashboard/Sidebar.tsx` ou `OthersDropdown.t
 
 ---
 
-## Étape 8 — Worker script (`scripts/worker-newchain.ts`)
+## Étape 8 — Specs serveur OVH (`lib/config/use-cases-config.ts`)
+
+Ajouter les spécifications matérielles et les équivalences serveur OVH pour la nouvelle chain dans `USE_CASES_CONFIG`. Ces données s'affichent dans la section "Infrastructure OVH recommandée" de la page use-cases.
+
+### Interface à étendre
+
+```typescript
+export interface ServerSpec {
+  nodeType: string;      // "Validator", "RPC node", "Archive node", "Full node"
+  cpu: string;           // ex: "32 cores"
+  ram: string;           // ex: "64 GB"
+  storage: string;       // ex: "2× 960 GB NVMe"
+  network: string;       // ex: "3 Gbps unmetered"
+  ovhServer: string;     // ex: "ADVANCE-2"
+  priceEur: number;      // prix mensuel OVH en EUR (pricelist avril 2026)
+  ovhServerUrl: string;  // lien direct vers la page produit OVH /en/
+}
+
+export interface UseCasesChainConfig {
+  apiRoute: string;
+  techHighlights: [TechHighlight, TechHighlight];
+  serverSpecs: ServerSpec[];  // ← nouveau champ
+}
+```
+
+### Exemple (Avalanche)
+
+```typescript
+avalanche: {
+  apiRoute: '/api/avalanche',
+  techHighlights: [...],
+  serverSpecs: [
+    {
+      nodeType: 'Validator',
+      cpu: '8 cores / 16 threads',
+      ram: '32 GB',
+      storage: '1 TB NVMe (local)',
+      network: '3 Gbps unmetered',
+      ovhServer: 'ADVANCE-2',
+      priceEur: 125,
+      ovhServerUrl: 'https://www.ovhcloud.com/en/bare-metal/advance/adv-2/',
+    },
+    {
+      nodeType: 'Archive node',
+      cpu: '8 cores / 16 threads',
+      ram: '32 GB',
+      storage: '4× 1.92 TB NVMe',
+      network: '3 Gbps unmetered',
+      ovhServer: 'ADVANCE-2 + stockage',
+      priceEur: 167,
+      ovhServerUrl: 'https://www.ovhcloud.com/en/bare-metal/advance/adv-2/',
+    },
+  ],
+},
+```
+
+### Sources
+
+Les specs matérielles se trouvent dans `docs/research/blockchain-hardware-specs.md` (tableau maître). Les prix OVH sont dans `docs/research/ovh-server-pricing.md` (données au 9 avril 2026).
+
+Les URLs OVH suivent ce pattern :
+- ADVANCE : `https://www.ovhcloud.com/en/bare-metal/advance/adv-{n}/`
+- SCALE : `https://www.ovhcloud.com/en/bare-metal/scale/scale-{n}/`
+
+> **Règle :** si la spec est une estimation (ex: Hyperliquid), mettre `ovhServerUrl: ''` — le bouton ne s'affiche pas.
+
+---
+
+## Étape 9 — Worker script (`scripts/worker-newchain.ts`)
 
 ```typescript
 #!/usr/bin/env tsx
@@ -286,7 +355,7 @@ Ajouter dans `package.json` :
 
 ---
 
-## Étape 9 — Vercel cron (`vercel.json`)
+## Étape 10 — Vercel cron (`vercel.json`)
 
 ```json
 {

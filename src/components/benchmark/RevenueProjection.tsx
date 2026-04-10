@@ -29,37 +29,37 @@ const LIVE_CHAINS: LiveChainConfig[] = [
     id: 'solana', label: 'Solana', color: '#9945FF',
     apiPath: '/api/solana', nodeField: 'ovhNodes',
     server: 'SCALE-A2', priceEur: 390, confidence: 85,
-    confidenceReason: 'IPs publiques + RPC direct. Limite : RPC nodes non comptés.',
+    confidenceReason: 'Public IPs + direct RPC. Limitation: RPC nodes not counted.',
   },
   {
     id: 'ethereum', label: 'Ethereum', color: '#627EEA',
     apiPath: '/api/ethereum', nodeField: 'ovhNodes',
     server: 'ADVANCE-2', priceEur: 125, confidence: 60,
-    confidenceReason: 'Crawl Migalabs (~50% coverage). Tous les validators ne publient pas leur IP.',
+    confidenceReason: 'Migalabs crawl (~50% coverage). Not all validators publish their IP.',
   },
   {
     id: 'avalanche', label: 'Avalanche', color: '#E84142',
     apiPath: '/api/avalanche', nodeField: 'ovhNodes',
     server: 'ADVANCE-2', priceEur: 125, confidence: 70,
-    confidenceReason: 'Peer discovery via RPC. Quelques nodes derrière NAT non détectables.',
+    confidenceReason: 'Peer discovery via RPC. Some nodes behind NAT are undetectable.',
   },
   {
     id: 'sui', label: 'Sui', color: '#4DA2FF',
     apiPath: '/api/sui', nodeField: 'ovhNodes',
     server: 'SCALE-A2', priceEur: 390, confidence: 85,
-    confidenceReason: 'RPC direct, tous les validators ont une IP publique.',
+    confidenceReason: 'Direct RPC, all validators have a public IP.',
   },
   {
     id: 'tron', label: 'Tron', color: '#FF060A',
     apiPath: '/api/tron', nodeField: 'ovhNodes',
     server: 'ADVANCE-3', priceEur: 212, confidence: 50,
-    confidenceReason: 'Peer discovery sur >8 000 nodes. Coverage partielle, beaucoup de nodes non publics.',
+    confidenceReason: 'Peer discovery across >8,000 nodes. Partial coverage, many non-public nodes.',
   },
   {
     id: 'hyperliquid', label: 'Hyperliquid', color: '#00E5BE',
     apiPath: '/api/hyperliquid', nodeField: 'ovhValidators',
     server: 'SCALE-A1', priceEur: 370, confidence: 30,
-    confidenceReason: "Name-matching uniquement (pas d'IP geolocation). Très faible fiabilité.",
+    confidenceReason: "Name-matching only (no IP geolocation). Very low reliability.",
   },
 ];
 
@@ -226,7 +226,7 @@ export default function RevenueProjection() {
         <div className="flex items-start justify-between mb-5">
           <div>
             <h3 className="text-sm font-black text-white">Revenue Projection</h3>
-            <p className="text-white/30 text-[10px] mt-0.5">Estimation conservative — validator nodes uniquement (hors RPC, storage, app)</p>
+            <p className="text-white/30 text-[10px] mt-0.5">Conservative estimate — validator nodes only (excl. RPC, storage, app)</p>
           </div>
         </div>
 
@@ -243,7 +243,7 @@ export default function RevenueProjection() {
             <div className="px-4 pb-4 border-t border-white/5">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-3">
                 <div>
-                  <p className="text-[9px] font-black uppercase tracking-widest text-white/25 mb-2">Chains intégrées</p>
+                  <p className="text-[9px] font-black uppercase tracking-widest text-white/25 mb-2">Integrated Chains</p>
                   <div className="flex flex-col gap-1.5">
                     {LIVE_CHAINS.map(c => (
                       <div key={c.id} className="flex items-center gap-2">
@@ -258,11 +258,11 @@ export default function RevenueProjection() {
                 <div>
                   <p className="text-[9px] font-black uppercase tracking-widest text-white/25 mb-2">Methodology</p>
                   <ul className="flex flex-col gap-1.5">
-                    <li className="text-[10px] text-white/40 leading-relaxed">• OVH nodes détectés via MaxMind ASN × prix serveur de référence par chain</li>
-                    <li className="text-[10px] text-white/40 leading-relaxed">• Serveur de référence = machine OVH recommandée pour ce type de node</li>
-                    <li className="text-[10px] text-white/40 leading-relaxed">• Hors : RPC nodes, stockage additionnel, app nodes, setups multi-serveurs</li>
-                    <li className="text-[10px] text-white/40 leading-relaxed">• Prix officiels OVH en EUR (pricelist avril 2026)</li>
-                    <li className="text-[10px] text-white/40 leading-relaxed">• Part de marché OVH actuelle : 16.2% (estimation Solana)</li>
+                    <li className="text-[10px] text-white/40 leading-relaxed">• OVH nodes detected via MaxMind ASN × reference server price per chain</li>
+                    <li className="text-[10px] text-white/40 leading-relaxed">• Reference server = recommended OVH machine for this node type</li>
+                    <li className="text-[10px] text-white/40 leading-relaxed">• Excl.: RPC nodes, additional storage, app nodes, multi-server setups</li>
+                    <li className="text-[10px] text-white/40 leading-relaxed">• Official OVH prices in EUR (pricelist April 2026)</li>
+                    <li className="text-[10px] text-white/40 leading-relaxed">• Current OVH market share: 16.2% (Solana estimate)</li>
                   </ul>
                 </div>
               </div>
@@ -273,7 +273,7 @@ export default function RevenueProjection() {
         {/* Block B: Chain breakdown table */}
         <div className="mb-5">
           <p className="text-[9px] font-black uppercase tracking-widest text-white/25 mb-3">
-            Revenu estimé par chain
+            Estimated Revenue by Chain
           </p>
           <div className="overflow-x-auto rounded-lg border border-white/5">
             <table className="w-full text-xs">
@@ -281,10 +281,10 @@ export default function RevenueProjection() {
                 <tr className="border-b border-white/5">
                   <th className="px-3 py-2 text-left   text-[9px] font-black uppercase tracking-widest text-white/30">Chain</th>
                   <th className="px-3 py-2 text-right  text-[9px] font-black uppercase tracking-widest text-white/30">OVH nodes</th>
-                  <th className="px-3 py-2 text-left   text-[9px] font-black uppercase tracking-widest text-white/30">Serveur réf.</th>
+                  <th className="px-3 py-2 text-left   text-[9px] font-black uppercase tracking-widest text-white/30">Ref. Server</th>
                   <th className="px-3 py-2 text-right  text-[9px] font-black uppercase tracking-widest text-white/30">MRR est.</th>
                   <th className="px-3 py-2 text-right  text-[9px] font-black uppercase tracking-widest text-white/30">ARR est.</th>
-                  <th className="px-3 py-2 text-center text-[9px] font-black uppercase tracking-widest text-white/30">Confiance</th>
+                  <th className="px-3 py-2 text-center text-[9px] font-black uppercase tracking-widest text-white/30">Confidence</th>
                 </tr>
               </thead>
               <tbody>
@@ -306,7 +306,7 @@ export default function RevenueProjection() {
                         {loading ? (
                           <span className="inline-block w-8 h-3 rounded bg-white/10 animate-pulse" />
                         ) : hasError ? (
-                          <span className="text-orange-400/60 text-[9px]">⚠ indispo</span>
+                          <span className="text-orange-400/60 text-[9px]">⚠ unavail.</span>
                         ) : (
                           <span className="text-white/50">{(count ?? 0).toLocaleString()}</span>
                         )}
@@ -375,13 +375,13 @@ export default function RevenueProjection() {
                 {/* Total row */}
                 <tr className="border-t border-white/10 bg-white/2">
                   <td colSpan={3} className="px-3 py-2 text-[9px] font-black uppercase tracking-widest text-white/30">
-                    Total détecté ({LIVE_CHAINS.length} chains)
+                    Total detected ({LIVE_CHAINS.length} chains)
                   </td>
                   <td className="px-3 py-2 text-right font-black text-[#00F0FF]">
                     {loading ? <span className="inline-block w-14 h-3 rounded bg-white/10 animate-pulse" /> : `${fmtEur(currentMrr)}/mo`}
                   </td>
                   <td className="px-3 py-2 text-right font-black text-[#00F0FF]">
-                    {loading ? <span className="inline-block w-16 h-3 rounded bg-white/10 animate-pulse" /> : `${fmtEur(currentArr)}/an`}
+                    {loading ? <span className="inline-block w-16 h-3 rounded bg-white/10 animate-pulse" /> : `${fmtEur(currentArr)}/yr`}
                   </td>
                   <td />
                 </tr>
@@ -389,7 +389,7 @@ export default function RevenueProjection() {
             </table>
           </div>
           <p className="text-[9px] text-white/20 mt-1.5 italic">
-            ↓ estimation conservative — hors RPC nodes, storage nodes, multi-server setups
+            ↓ conservative estimate — excl. RPC nodes, storage nodes, multi-server setups
           </p>
         </div>
 
@@ -397,20 +397,20 @@ export default function RevenueProjection() {
         {!loading && totalDetectedArr > 0 && (
           <div className="mb-5 rounded-xl border border-white/8 bg-white/2 p-4">
             <p className="text-[9px] font-black uppercase tracking-widest text-white/25 mb-3">
-              Revenu global estimé — {coveredCount} / {totalChainCount} chains intégrées
+              Estimated Global Revenue — {coveredCount} / {totalChainCount} integrated chains
             </p>
 
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 mb-4">
               <div className="rounded-xl p-3 border border-[#00F0FF]/20 bg-[#00F0FF]/5">
                 <div className="text-lg font-black text-[#00F0FF]">{fmtEur(totalDetectedArr)}</div>
-                <div className="text-[9px] text-white/30 mt-0.5">ARR détecté / an</div>
+                <div className="text-[9px] text-white/30 mt-0.5">Detected ARR / year</div>
               </div>
 
               <div className="rounded-xl p-3 border border-white/5">
                 <div className="text-lg font-black text-white">
                   {fmtEur(arrLow)} – {fmtEur(arrHigh)}
                 </div>
-                <div className="text-[9px] text-white/30 mt-0.5">Fourchette réaliste</div>
+                <div className="text-[9px] text-white/30 mt-0.5">Realistic range</div>
               </div>
 
               <div className="rounded-xl p-3 border border-white/5 col-span-2 sm:col-span-1">
@@ -428,7 +428,7 @@ export default function RevenueProjection() {
                     ))}
                   </div>
                 </div>
-                <div className="text-[9px] text-white/30 mt-0.5">Confiance pondérée</div>
+                <div className="text-[9px] text-white/30 mt-0.5">Weighted confidence</div>
               </div>
             </div>
 
@@ -436,15 +436,15 @@ export default function RevenueProjection() {
             <details className="group">
               <summary className="text-[9px] font-black uppercase tracking-widest text-white/25 cursor-pointer hover:text-white/40 transition-colors list-none flex items-center gap-1">
                 <span className="group-open:rotate-90 transition-transform inline-block">▶</span>
-                Sources d&apos;incertitude
+                Uncertainty sources
               </summary>
               <ul className="mt-2 flex flex-col gap-1.5 pl-3">
                 {[
-                  'Couverture ASN partielle — MaxMind ne détecte pas 100% des IPs OVH (sous-réseaux non enregistrés, reverse proxy)',
-                  'Hypothèse serveur de référence — certains nodes OVH utilisent un tier différent (±20%)',
-                  'Nodes non comptés — RPC nodes, storage nodes non inclus → sous-estimation probable',
-                  `${COMING_SOON_CHAINS.length} chains non intégrées (~45% du marché adressable estimé)`,
-                  'Hyperliquid — name-matching uniquement, chiffre très approximatif',
+                  'Partial ASN coverage — MaxMind does not detect 100% of OVH IPs (unregistered subnets, reverse proxies)',
+                  'Reference server assumption — some OVH nodes use a different tier (±20%)',
+                  'Uncounted nodes — RPC nodes, storage nodes not included → likely underestimate',
+                  `${COMING_SOON_CHAINS.length} chains not yet integrated (~45% of estimated addressable market)`,
+                  'Hyperliquid — name-matching only, very approximate figure',
                 ].map((s) => (
                   <li key={s} className="text-[9px] text-white/35 leading-relaxed">• {s}</li>
                 ))}
@@ -455,7 +455,7 @@ export default function RevenueProjection() {
 
         {/* Block D: Simulator */}
         <div className="mb-5">
-          <p className="text-[9px] font-black uppercase tracking-widest text-white/25 mb-4">Simulateur 12 mois</p>
+          <p className="text-[9px] font-black uppercase tracking-widest text-white/25 mb-4">12-Month Simulator</p>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 mb-5">
             <div>
@@ -471,14 +471,14 @@ export default function RevenueProjection() {
                 style={{ background: `linear-gradient(to right, #00F0FF ${((targetShare - 17) / 28) * 100}%, rgba(255,255,255,0.1) ${((targetShare - 17) / 28) * 100}%)` }}
               />
               <div className="flex justify-between mt-1">
-                <span className="text-[9px] text-white/25">actuel: 16.2%</span>
+                <span className="text-[9px] text-white/25">current: 16.2%</span>
                 <span className="text-[9px] text-white/25">max: 45%</span>
               </div>
             </div>
 
             <div>
               <div className="flex justify-between items-center mb-2">
-                <label className="text-[10px] font-bold text-white/50">Croissance annuelle du marché</label>
+                <label className="text-[10px] font-bold text-white/50">Annual market growth</label>
                 <span className="text-sm font-black text-[#00F0FF]">+{marketGrowth}%</span>
               </div>
               <input
@@ -497,10 +497,10 @@ export default function RevenueProjection() {
 
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-5">
             {[
-              { label: 'MRR actuel', value: fmtEur(currentMrr), sub: '/mois' },
-              { label: 'ARR actuel', value: fmtEur(currentArr), sub: '/an' },
-              { label: 'MRR projeté (12m)', value: fmtEur(projectedMrr), sub: `+${fmtEur(deltaMrr)}`, highlight: true },
-              { label: 'ARR projeté (12m)', value: fmtEur(projectedArr), sub: `+${deltaArrPct}% ↑`, highlight: true },
+              { label: 'Current MRR', value: fmtEur(currentMrr), sub: '/mo' },
+              { label: 'Current ARR', value: fmtEur(currentArr), sub: '/yr' },
+              { label: 'Projected MRR (12m)', value: fmtEur(projectedMrr), sub: `+${fmtEur(deltaMrr)}`, highlight: true },
+              { label: 'Projected ARR (12m)', value: fmtEur(projectedArr), sub: `+${deltaArrPct}% ↑`, highlight: true },
             ].map(item => (
               <div key={item.label} className={`rounded-xl p-3 border ${item.highlight ? 'border-[#00F0FF]/20 bg-[#00F0FF]/5' : 'border-white/5 bg-white/2'}`}>
                 <div className={`text-lg font-black ${item.highlight ? 'text-[#00F0FF]' : 'text-white'}`}>{item.value}</div>
@@ -533,7 +533,7 @@ export default function RevenueProjection() {
                 contentStyle={{ background: '#0a0a0f', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 8, fontSize: 11 }}
                 // @ts-expect-error recharts formatter type
                 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                formatter={(value: any, name: string) => value ? [`€${value}k/mo`, name === 'actual' ? 'Historique' : name === 'projected' ? 'Scénario projection' : 'Croissance marché seule'] : ['-']}
+                formatter={(value: any, name: string) => value ? [`€${value}k/mo`, name === 'actual' ? 'Historical' : name === 'projected' ? 'Projection scenario' : 'Market growth only'] : ['-']}
               />
               <ReferenceLine x="Mar'26*" stroke="rgba(255,255,255,0.15)" strokeDasharray="4 4" label={{ value: 'Now', fill: 'rgba(255,255,255,0.3)', fontSize: 9 }} />
               <Area type="monotone" dataKey="actual" stroke="#00F0FF" strokeWidth={2} fill="url(#gradActual)" connectNulls={false} dot={false} />
@@ -543,13 +543,13 @@ export default function RevenueProjection() {
           </ResponsiveContainer>
 
           <div className="flex gap-4 mt-2">
-            <span className="flex items-center gap-1.5 text-[9px] text-white/30"><span className="w-4 h-0.5 bg-[#00F0FF] inline-block" />Historique</span>
-            <span className="flex items-center gap-1.5 text-[9px] text-white/30"><span className="w-4 h-0.5 bg-[#00F0FF] inline-block opacity-60" />Scénario projection</span>
-            <span className="flex items-center gap-1.5 text-[9px] text-white/30"><span className="w-4 h-0.5 bg-gray-500 inline-block opacity-60" />Croissance marché seule</span>
+            <span className="flex items-center gap-1.5 text-[9px] text-white/30"><span className="w-4 h-0.5 bg-[#00F0FF] inline-block" />Historical</span>
+            <span className="flex items-center gap-1.5 text-[9px] text-white/30"><span className="w-4 h-0.5 bg-[#00F0FF] inline-block opacity-60" />Projection scenario</span>
+            <span className="flex items-center gap-1.5 text-[9px] text-white/30"><span className="w-4 h-0.5 bg-gray-500 inline-block opacity-60" />Market growth only</span>
           </div>
         </div>
 
-        <p className="text-[9px] text-white/20 italic">* Données simulées. Estimation conservative hors RPC, storage et app nodes. Prix officiels OVH EUR — avril 2026.</p>
+        <p className="text-[9px] text-white/20 italic">* Simulated data. Conservative estimate excl. RPC, storage and app nodes. Official OVH EUR prices — April 2026.</p>
       </div>
     </div>
   );

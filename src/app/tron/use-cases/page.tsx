@@ -4,6 +4,7 @@ import Header from '@/components/dashboard/Header';
 import ParticlesBackground from '@/components/ParticlesBackground';
 import VerifiedResidentsGrid from '@/components/dashboard/VerifiedResidentsGrid';
 import UseCasesHero from '@/components/dashboard/UseCasesHero';
+import OVHServerSpecs from '@/components/dashboard/OVHServerSpecs';
 
 const TRON_RED = '#FF060A';
 
@@ -19,6 +20,9 @@ export default function TronUseCasesPage() {
 
                 <div className="mt-8">
                     <UseCasesHero chainId="tron" />
+                    <div className="mt-16">
+                        <OVHServerSpecs chainId="tron" accent={TRON_RED} />
+                    </div>
                 </div>
 
                 <div className="mt-16 space-y-24">

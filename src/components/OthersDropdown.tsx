@@ -85,6 +85,23 @@ const OTHER_CHAINS: OtherChain[] = [
             </svg>
         ),
     },
+    {
+        id: 'bnbchain',
+        label: 'BNB Chain',
+        ticker: 'BNB',
+        href: '/bnbchain',
+        color: '#F3BA2F',
+        live: true,
+        icon: (
+            <svg width="13" height="13" viewBox="0 0 32 32" fill="currentColor" className="shrink-0">
+                <path d="M16 0L19.8 3.8L8.8 14.8L5 11L16 0Z" />
+                <path d="M22.2 6.2L26 10L8.8 27.2L5 23.4L22.2 6.2Z" />
+                <path d="M2.6 12.6L6.4 8.8L10.2 12.6L6.4 16.4L2.6 12.6Z" />
+                <path d="M21.8 12.6L25.6 8.8L29.4 12.6L25.6 16.4L21.8 12.6Z" />
+                <path d="M16 19.2L19.8 15.4L23.6 19.2L16 26.8L8.4 19.2L12.2 15.4L16 19.2Z" />
+            </svg>
+        ),
+    },
 ];
 
 export default function OthersDropdown() {

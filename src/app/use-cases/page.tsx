@@ -5,6 +5,7 @@ import ParticlesBackground from '@/components/ParticlesBackground';
 import AnimatedTagline from '@/components/dashboard/AnimatedTagline';
 import VerifiedResidentsGrid from '@/components/dashboard/VerifiedResidentsGrid';
 import UseCasesHero from '@/components/dashboard/UseCasesHero';
+import OVHServerSpecs from '@/components/dashboard/OVHServerSpecs';
 
 const ACCENT = '#00F0FF';
 
@@ -221,6 +222,8 @@ export default function UseCasesPage() {
                     />
 
                     <UseCasesHero chainId="solana" />
+
+                    <OVHServerSpecs chainId="solana" accent={ACCENT} />
 
                     {/* Qualitative Case Studies */}
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-24">

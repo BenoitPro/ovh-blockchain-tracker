@@ -112,7 +112,7 @@ export default function MethodologyModal() {
                                                 <strong className="text-white">ASN resolution:</strong> Public IPs from step 2 are mapped to cloud provider ASNs via MaxMind GeoLite2 (offline, &lt;1 ms/IP).
                                             </li>
                                             <li>
-                                                <strong className="text-white">Parti pris assumé:</strong> OVH market share is calculated against IP-resolvable validators only. If non-visible validators are distributed similarly across providers, the share is representative. If they skew toward home/non-cloud infrastructure, it may be slightly overstated.
+                                                <strong className="text-white">Assumed bias:</strong> OVH market share is calculated against IP-resolvable validators only. If non-visible validators are distributed similarly across providers, the share is representative. If they skew toward home/non-cloud infrastructure, it may be slightly overstated.
                                             </li>
                                             <li><strong className="text-white">Uptime:</strong> <code className="text-xs bg-white/10 px-1 rounded">observedUptime</code> measures the fraction of time the peer has been reachable from the queried node.</li>
                                         </ol>

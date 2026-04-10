@@ -4,6 +4,7 @@ import Header from '@/components/dashboard/Header';
 import ParticlesBackground from '@/components/ParticlesBackground';
 import VerifiedResidentsGrid from '@/components/dashboard/VerifiedResidentsGrid';
 import UseCasesHero from '@/components/dashboard/UseCasesHero';
+import OVHServerSpecs from '@/components/dashboard/OVHServerSpecs';
 
 export default function SuiUseCasesPage() {
     const bgStyle = {
@@ -19,6 +20,9 @@ export default function SuiUseCasesPage() {
 
                 <div className="mt-8 px-4">
                     <UseCasesHero chainId="sui" />
+                    <div className="mt-16">
+                        <OVHServerSpecs chainId="sui" accent="#4DA2FF" />
+                    </div>
                 </div>
 
                 <div className="mt-16 space-y-24">

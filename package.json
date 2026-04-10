@@ -12,6 +12,7 @@
     "test:coverage": "vitest run --coverage",
     "worker": "tsx scripts/worker.ts",
     "worker:avax": "tsx scripts/worker-avax.ts",
+    "worker:bnb": "tsx scripts/worker-bnb.ts",
     "worker:tron": "tsx scripts/worker-tron.ts",
     "worker:sui": "tsx scripts/worker-sui.ts",
     "worker:dev": "tsx scripts/worker.ts"
