@@ -8,3 +8,4 @@ export * from './sui';
 export * from './tron';
 export * from './hyperliquid';
 export * from './bnbchain';
+export * from './monad';
