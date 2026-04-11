@@ -2,32 +2,40 @@ import type { BNBChainOVHNode, BNBChainDashboardMetrics } from '@/types/bnbchain
 import type { ProviderCategorizationResult } from '@/lib/shared/filterOVH';
 import type { ProviderBreakdownEntry } from '@/types/dashboard';
 import { PROVIDER_COLORS, PROVIDER_LABELS } from '@/lib/config/constants';
+import { BSC_COVERAGE_META, BSC_RPC_PROVIDERS } from './fetchPeers';
 
 const MARKET_SHARE_THRESHOLD = 5; // providers below this % go into "Others"
 
 /**
- * Calculate all BNB Chain dashboard metrics from peer and categorization data.
+ * Calculate BNB Chain dashboard metrics.
  *
- * @param ovhNodes        OVH nodes filtered from admin_peers
- * @param totalNodes      Total peers discovered via admin_peers
- * @param totalValidators Total known validators (~45 from staking contract)
- * @param categorization  Provider categorization result from categorizeByProvider()
+ * Scope: professional RPC providers only (not full node discovery).
+ * See BSC_COVERAGE_META for transparency data shown in the UI.
+ *
+ * @param ovhNodes           OVH endpoints among resolved provider IPs
+ * @param totalEndpoints     Total unique IPs resolved across all providers
+ * @param totalValidators    On-chain validator count (~45, IPs not tracked)
+ * @param categorization     Provider categorization from categorizeByProvider()
+ * @param resolvedProviders  How many providers resolved successfully (for coverage display)
  */
 export function calculateBNBMetrics(
     ovhNodes: BNBChainOVHNode[],
-    totalNodes: number,
+    totalEndpoints: number,
     totalValidators: number,
     categorization: ProviderCategorizationResult,
+    resolvedProviders?: number,
 ): BNBChainDashboardMetrics {
     const { distribution, othersBreakdown, globalGeoDistribution } = categorization;
 
-    const ovhNodeCount = ovhNodes.length;
-    const ovhValidators = ovhNodes.filter(n => n.isValidator === true).length;
+    const ovhEndpoints = ovhNodes.length;
 
-    const marketShare = totalNodes > 0 ? (ovhNodeCount / totalNodes) * 100 : 0;
-    const validatorMarketShare = totalValidators > 0 ? (ovhValidators / totalValidators) * 100 : 0;
+    // Count distinct BSC provider names that have ≥1 OVH IP
+    const ovhProviderNames = new Set(ovhNodes.map(n => n.providerName ?? n.version ?? '').filter(Boolean));
+    const ovhProviders = ovhProviderNames.size;
 
-    // ── Geo distribution (OVH nodes only) ─────────────────────────────────────
+    const marketShare = totalEndpoints > 0 ? (ovhEndpoints / totalEndpoints) * 100 : 0;
+
+    // ── Geo distribution (OVH endpoints only) ─────────────────────────────────
     const geoDistribution: Record<string, number> = {};
     for (const node of ovhNodes) {
         const country = node.ipInfo.country;
@@ -36,18 +44,14 @@ export function calculateBNBMetrics(
         }
     }
 
-    // ── Top nodes ─────────────────────────────────────────────────────────────
-    const topNodes = ovhNodes.slice(0, 10);
-
     // ── Provider breakdown chart ──────────────────────────────────────────────
     const eligibleEntries: ProviderBreakdownEntry[] = [];
     let totalOthersCount = (distribution as Record<string, number>).others ?? 0;
     const newOthersBreakdown: Record<string, number> = { ...(othersBreakdown ?? {}) };
 
-    // 1. Known providers
     for (const [key, count] of Object.entries(distribution)) {
         if (key === 'others' || (count as number) === 0) continue;
-        const share = totalNodes > 0 ? ((count as number) / totalNodes) * 100 : 0;
+        const share = totalEndpoints > 0 ? ((count as number) / totalEndpoints) * 100 : 0;
         if (share > MARKET_SHARE_THRESHOLD) {
             eligibleEntries.push({
                 key,
@@ -62,10 +66,9 @@ export function calculateBNBMetrics(
         }
     }
 
-    // 2. Promote orgs from othersBreakdown that exceed the threshold
     if (othersBreakdown) {
         for (const [org, orgCount] of Object.entries(othersBreakdown)) {
-            const share = totalNodes > 0 ? ((orgCount as number) / totalNodes) * 100 : 0;
+            const share = totalEndpoints > 0 ? ((orgCount as number) / totalEndpoints) * 100 : 0;
             if (share > MARKET_SHARE_THRESHOLD) {
                 eligibleEntries.push({
                     key: org.toLowerCase().replace(/[^a-z0-9]/g, '_'),
@@ -80,18 +83,16 @@ export function calculateBNBMetrics(
         }
     }
 
-    // 3. Aggregate "Others"
     if (totalOthersCount > 0) {
-        const othersShare = totalNodes > 0 ? (totalOthersCount / totalNodes) * 100 : 0;
+        const othersShare = totalEndpoints > 0 ? (totalOthersCount / totalEndpoints) * 100 : 0;
         const topOthers = Object.entries(newOthersBreakdown)
             .sort((a, b) => b[1] - a[1])
             .slice(0, 5)
             .map(([label, nodeCount]) => ({
                 label,
                 nodeCount,
-                marketShare: totalNodes > 0 ? (nodeCount / totalNodes) * 100 : 0,
+                marketShare: totalEndpoints > 0 ? (nodeCount / totalEndpoints) * 100 : 0,
             }));
-
         const othersEntry: ProviderBreakdownEntry = {
             key: 'others',
             label: 'Others',
@@ -103,20 +104,22 @@ export function calculateBNBMetrics(
         eligibleEntries.push(othersEntry);
     }
 
-    const providerBreakdown = eligibleEntries.sort((a, b) => b.nodeCount - a.nodeCount);
-
     return {
-        totalNodes,
+        totalTrackedEndpoints: totalEndpoints,
+        totalTrackedProviders: resolvedProviders ?? BSC_RPC_PROVIDERS.length,
+        ovhEndpoints,
+        ovhProviders,
         totalValidators,
-        ovhNodes: ovhNodeCount,
-        ovhValidators,
         marketShare,
-        validatorMarketShare,
         geoDistribution,
-        globalGeoDistribution,
+        globalGeoDistribution: globalGeoDistribution ?? {},
         providerDistribution: distribution,
-        providerBreakdown,
-        othersBreakdown,
-        topNodes,
+        providerBreakdown: eligibleEntries.sort((a, b) => b.nodeCount - a.nodeCount),
+        othersBreakdown: newOthersBreakdown,
+        topNodes: ovhNodes.slice(0, 10),
+        coverage: {
+            ...BSC_COVERAGE_META,
+            trackedProviders: resolvedProviders ?? BSC_COVERAGE_META.trackedProviders,
+        },
     };
 }

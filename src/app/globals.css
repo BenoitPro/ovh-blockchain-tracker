@@ -178,6 +178,12 @@ html.tron-theme {
   --page-bg: #0a0000;
 }
 
+html.network-bnbchain {
+  --chain-accent: #F3BA2F;
+  --chain-bg-tint: rgba(243, 186, 47, 0.06);
+  --page-bg: #07060a;
+}
+
 /* Base styles */
 body {
   font-family: 'Source Sans Pro', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;

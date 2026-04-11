@@ -15,20 +15,21 @@ export const dynamic = 'force-dynamic';
 export const GET = createCronHandler('BNB', async () => {
     await initMaxMind();
 
-    const { nodes, validatorCount } = await fetchBNBPeers();
-    if (!nodes.length) throw new Error('No peers returned from BSC endpoints');
+    const { nodes, validatorCount, providerResolutions } = await fetchBNBPeers();
+    const resolvedProviders = providerResolutions.filter(r => r.ips.length > 0).length;
 
     const [categorization, ovhNodes] = await Promise.all([
         categorizeBNBByProvider(nodes),
         getOVHBNBNodes(nodes),
     ]);
 
-    const metrics = calculateBNBMetrics(ovhNodes, nodes.length, validatorCount, categorization);
+    const metrics = calculateBNBMetrics(ovhNodes, nodes.length, validatorCount, categorization, resolvedProviders);
     await writeChainCache('bnbchain', metrics, nodes.length);
 
     return {
-        totalPeers: nodes.length,
-        ovhNodes: ovhNodes.length,
+        resolvedProviders,
+        totalEndpoints: nodes.length,
+        ovhEndpoints: ovhNodes.length,
         marketShare: metrics.marketShare.toFixed(2) + '%',
     };
 });

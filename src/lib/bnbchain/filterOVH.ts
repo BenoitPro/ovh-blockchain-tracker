@@ -22,6 +22,8 @@ export async function getOVHBNBNodes(nodes: BNBChainNode[]): Promise<BNBChainOVH
       longitude: 0,
     },
     provider: identifyProvider(enrichment.asn, enrichment.org),
+    // `version` field holds the BSC provider name (e.g. "Ankr") — mapped to providerName
+    providerName: node.version,
   }));
 }
 

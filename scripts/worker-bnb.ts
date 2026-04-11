@@ -30,8 +30,9 @@ async function run() {
 
   // 2. Fetch peers
   logger.info('[Worker BNB] Fetching BNB Chain peers...');
-  const { nodes, validatorCount } = await fetchBNBPeers();
-  logger.info(`[Worker BNB] Peers fetched: ${nodes.length} | Validators: ${validatorCount}`);
+  const { nodes, validatorCount, providerResolutions } = await fetchBNBPeers();
+  const resolvedProviders = providerResolutions.filter(r => r.ips.length > 0).length;
+  logger.info(`[Worker BNB] Resolved ${resolvedProviders}/${providerResolutions.length} providers → ${nodes.length} unique IPs | Validators on-chain: ${validatorCount}`);
 
   // 3. Provider categorization + OVH filter in parallel
   logger.info('[Worker BNB] Categorizing by provider and finding OVH nodes...');
@@ -40,10 +41,10 @@ async function run() {
     categorizeBNBByProvider(nodes),
   ]);
   const pct = nodes.length > 0 ? ((ovhNodes.length / nodes.length) * 100).toFixed(2) : '0';
-  logger.info(`[Worker BNB] OVH: ${ovhNodes.length} / ${nodes.length} peers (${pct}%)`);
+  logger.info(`[Worker BNB] OVH: ${ovhNodes.length} / ${nodes.length} endpoints (${pct}%)`);
 
   // 4. Calculate metrics
-  const metrics = calculateBNBMetrics(ovhNodes, nodes.length, validatorCount, categorization);
+  const metrics = calculateBNBMetrics(ovhNodes, nodes.length, validatorCount, categorization, resolvedProviders);
 
   // 5. Write to cache (key: 'bnbchain-metrics')
   logger.info('[Worker BNB] Writing to cache...');

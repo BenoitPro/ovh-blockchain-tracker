@@ -145,6 +145,7 @@ export function calculateHyperliquidMetrics(
         ovhStake,
         providerBreakdown,
         ovhValidatorList: ovhValidators,
+        allValidators,
         // IP-based geo distribution is unavailable for Hyperliquid
         geoDistribution: {},
     };

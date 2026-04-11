@@ -115,6 +115,8 @@ export interface HyperliquidDashboardMetrics {
     providerBreakdown: import('./dashboard').ProviderBreakdownEntry[];
     /** Validators identified as OVH */
     ovhValidatorList: HyperliquidOVHValidator[];
+    /** Full list of all validators returned by the API (active + jailed). */
+    allValidators: HyperliquidValidator[];
     /**
      * NOTE: No IP-based geo distribution is available (API limitation).
      * This field is always an empty object.

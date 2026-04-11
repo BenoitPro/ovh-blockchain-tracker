@@ -141,144 +141,187 @@ function PipelineChart() {
 }
 
 /* ─── §3 — Reliability & Freshness ────────────────────────────────────── */
-function ReliabilityChart() {
-    const actors = ['Worker', 'Database', 'API', 'Dashboard'];
-    const actorColors = ['#9945FF', '#00F0FF', '#627EEA', '#4DA2FF'];
-
+function FlowArrow() {
     return (
-        <div className="max-w-2xl w-full mx-auto">
-            {/* Actor headers */}
-            <div className="grid grid-cols-4 gap-2 mb-4">
-                {actors.map((a, i) => (
-                    <div key={a} className="flex flex-col items-center gap-1.5">
-                        <div className="glass-card px-2 py-1.5 text-center w-full">
-                            <div className="text-[10px] font-bold uppercase tracking-wider" style={{ color: actorColors[i] }}>{a}</div>
+        <div className="flex justify-center items-center py-1">
+            <svg className="w-4 h-5 text-white/15" fill="none" viewBox="0 0 16 20" stroke="currentColor" strokeWidth={1.5}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M8 2v13M3 11l5 6 5-6" />
+            </svg>
+        </div>
+    );
+}
+
+function ReliabilityChart() {
+    return (
+        <div className="max-w-2xl w-full mx-auto space-y-6">
+
+            {/* Part 1 — Background process */}
+            <div>
+                <div className="text-[10px] font-bold uppercase tracking-[0.2em] text-white/25 mb-3">
+                    Background — runs automatically, independently of any visit
+                </div>
+                <div className="flex flex-col">
+                    <div className="glass-card p-4 flex items-center gap-4">
+                        <div className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0 bg-[#9945FF]/15 border border-[#9945FF]/30">
+                            <span className="text-sm">⏱</span>
                         </div>
-                        <div className="w-px flex-1 min-h-[4px]" style={{ background: `${actorColors[i]}30` }} />
+                        <div>
+                            <div className="text-white font-bold text-sm">Scheduled worker runs</div>
+                            <div className="text-white/40 text-[11px] mt-0.5">Every 1h (Solana) · Every 2h (Avalanche, Sui, Tron, Hyperliquid)</div>
+                        </div>
                     </div>
-                ))}
-            </div>
-
-            {/* Sequence steps */}
-            <div className="space-y-3 text-[11px]">
-                {/* Trigger */}
-                <div className="relative pl-4">
-                    <div className="flex items-center gap-2 text-white/30 italic mb-1 text-[10px]">
-                        <span>⏱</span> Scheduled trigger (every 1h for Solana, 2h for others)
+                    <FlowArrow />
+                    <div className="glass-card p-4 flex items-center gap-4">
+                        <div className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0 bg-[#00F0FF]/10 border border-[#00F0FF]/20">
+                            <span className="text-sm">🔄</span>
+                        </div>
+                        <div>
+                            <div className="text-white font-bold text-sm">Fetches + analyzes all nodes</div>
+                            <div className="text-white/40 text-[11px] mt-0.5">RPC call → IP extraction → MaxMind lookup → OVH filter → metrics</div>
+                        </div>
                     </div>
-                    {/* Worker self-loop */}
-                    <div className="flex items-center gap-2 ml-[12.5%]">
-                        <div className="h-px w-4" style={{ background: '#9945FF50' }} />
-                        <div className="glass-card px-2.5 py-1 text-[10px] text-white/50">RPC collection + MaxMind analysis</div>
-                    </div>
-                </div>
-
-                {/* Worker → DB */}
-                <div className="flex items-center gap-1">
-                    <div className="w-[12.5%]" />
-                    <div className="h-px flex-[1] border-t border-dashed" style={{ borderColor: '#9945FF40' }} />
-                    <div className="w-[12.5%]" />
-                    <div className="glass-card px-2.5 py-1 text-[10px] text-white/40 shrink-0">Save metrics + timestamp</div>
-                    <div className="flex-1" />
-                </div>
-
-                <div className="h-px bg-white/5 my-2" />
-                <div className="text-white/20 text-[10px] italic pl-4">User visits dashboard</div>
-
-                {/* UI → API */}
-                <div className="flex items-center gap-1">
-                    <div className="flex-1" />
-                    <div className="glass-card px-2.5 py-1 text-[10px] text-white/40 shrink-0">GET /api/solana</div>
-                    <div className="h-px flex-[1] border-t border-dashed" style={{ borderColor: '#4DA2FF40' }} />
-                    <div className="w-[12.5%]" />
-                </div>
-
-                {/* 3 alt scenarios */}
-                <div className="grid grid-cols-3 gap-2 mt-2">
-                    <div className="glass-card p-3 border border-green-500/20">
-                        <div className="text-green-400 text-[10px] font-bold mb-1">✅ Fresh cache (&lt; TTL)</div>
-                        <div className="text-white/30 text-[10px]">Immediate response · Data up to date</div>
-                    </div>
-                    <div className="glass-card p-3 border border-yellow-500/20">
-                        <div className="text-yellow-400 text-[10px] font-bold mb-1">⚠️ Stale cache (&gt; TTL)</div>
-                        <div className="text-white/30 text-[10px]">Data shown with discreet warning · Dashboard stays functional</div>
-                    </div>
-                    <div className="glass-card p-3 border border-white/10">
-                        <div className="text-white/50 text-[10px] font-bold mb-1">🔄 No cache</div>
-                        <div className="text-white/30 text-[10px]">Live computation · First startup only</div>
+                    <FlowArrow />
+                    <div className="glass-card p-4 flex items-center gap-4">
+                        <div className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0 bg-[#627EEA]/15 border border-[#627EEA]/30">
+                            <span className="text-sm">💾</span>
+                        </div>
+                        <div>
+                            <div className="text-white font-bold text-sm">Saves result to database</div>
+                            <div className="text-white/40 text-[11px] mt-0.5">Metrics stored with a timestamp · Ready to be served instantly</div>
+                        </div>
                     </div>
                 </div>
             </div>
 
-            <div className="mt-4 p-3 rounded-xl border border-white/5 bg-white/[0.02] text-[11px] text-white/30 leading-relaxed">
-                <span className="text-[#00F0FF] font-bold">Result: </span>
-                Response time under 100ms for all normal visits. Full resilience to temporary network outages.
+            <div className="h-px bg-white/5" />
+
+            {/* Part 2 — User visit */}
+            <div>
+                <div className="text-[10px] font-bold uppercase tracking-[0.2em] text-white/25 mb-3">
+                    When a user visits the dashboard
+                </div>
+                <div className="flex flex-col">
+                    <div className="glass-card p-4 flex items-center gap-4">
+                        <div className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0 bg-white/5 border border-white/10">
+                            <span className="text-sm">👤</span>
+                        </div>
+                        <div>
+                            <div className="text-white font-bold text-sm">Page opens in the browser</div>
+                            <div className="text-white/40 text-[11px] mt-0.5">The dashboard requests data from the API</div>
+                        </div>
+                    </div>
+                    <FlowArrow />
+                    <div className="glass-card p-4 flex items-center gap-4">
+                        <div className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0 bg-[#627EEA]/15 border border-[#627EEA]/30">
+                            <span className="text-sm">🗃️</span>
+                        </div>
+                        <div>
+                            <div className="text-white font-bold text-sm">API reads the pre-computed result</div>
+                            <div className="text-white/40 text-[11px] mt-0.5">No live computation — the answer is already in the database</div>
+                        </div>
+                    </div>
+                    <FlowArrow />
+                    {/* 3 outcomes */}
+                    <div className="grid grid-cols-3 gap-2">
+                        <div className="glass-card p-3 border border-green-500/20 flex flex-col gap-1.5">
+                            <div className="text-green-400 text-xs font-bold">✅ Data is fresh</div>
+                            <div className="text-white/35 text-[11px] leading-relaxed">Served immediately. Response under 100ms.</div>
+                        </div>
+                        <div className="glass-card p-3 border border-yellow-500/20 flex flex-col gap-1.5">
+                            <div className="text-yellow-400 text-xs font-bold">⚠️ Data is older than expected</div>
+                            <div className="text-white/35 text-[11px] leading-relaxed">Still displayed with a small warning. Dashboard stays usable.</div>
+                        </div>
+                        <div className="glass-card p-3 border border-white/10 flex flex-col gap-1.5">
+                            <div className="text-white/50 text-xs font-bold">🔄 No data yet</div>
+                            <div className="text-white/35 text-[11px] leading-relaxed">Computed live on first ever startup only. Rare.</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div className="p-3 rounded-xl border border-white/5 bg-white/[0.02] text-[11px] text-white/30 leading-relaxed">
+                <span className="text-[#00F0FF] font-bold">Why it matters: </span>
+                The dashboard never blocks a visit to recalculate data. Even if a worker is delayed or the blockchain RPC is temporarily unreachable, the last known metrics are always shown.
             </div>
         </div>
     );
 }
 
-/* ─── §4 — What the Manager Sees ──────────────────────────────────────── */
-const PUBLIC_PAGES = [
-    { name: 'Solana Dashboard', icon: '🟣', kpis: ['Nodes', 'Market share', 'Revenue', 'Map', 'Providers'] },
-    { name: 'Ethereum Dashboard', icon: '🔷', kpis: ['Nodes', 'Market share', 'Map', 'Providers'] },
-    { name: 'Avalanche Dashboard', icon: '🔴', kpis: ['Nodes', 'Market share', 'Uptime', 'Map'] },
-    { name: 'Sui Dashboard', icon: '🔵', kpis: ['Nodes', 'Market share', 'Voting power', 'Map'] },
-    { name: 'Analytics', icon: '📈', kpis: ['Historical trends', 'Multi-chain comparison'] },
-    { name: 'About / Contact', icon: '👥', kpis: ['Team', 'Methodology', 'Contact'] },
+/* ─── §4 — What This Dashboard Is For ─────────────────────────────────── */
+const USE_CASES = [
+    {
+        icon: '📣',
+        label: 'Marketing & Proof of Presence',
+        color: '#9945FF',
+        description: 'A shareable, public-facing tool that demonstrates OVHcloud\'s real footprint across major blockchain networks — with live, verifiable numbers. Useful in presentations, press, and partner conversations.',
+        features: ['Public dashboards per chain', 'Market share % updated automatically', 'Geographic distribution map', 'Provider benchmark (OVH vs AWS, Google…)'],
+    },
+    {
+        icon: '🎯',
+        label: 'Lead Capture at Events',
+        color: '#00F0FF',
+        description: 'During conferences and meetups, the dashboard serves as a conversation starter and a credibility proof. A built-in CRM (protected) lets the team log contacts directly on-site without any external tool.',
+        features: ['Internal lead form accessible from the sidebar', 'Stores: name, org, country, job title, notes', 'No external CRM dependency', 'Accessible from any device with login'],
+    },
+    {
+        icon: '📊',
+        label: 'Internal Market Monitoring',
+        color: '#627EEA',
+        description: 'Gives the Web3 sales team a real-time view of OVH\'s position on each network — market share evolution, estimated monthly revenue per chain, and historical trend tracking.',
+        features: ['Market share per blockchain over time', 'Estimated monthly revenue (Solana)', 'Historical trends (Analytics page)', 'Multi-chain comparison'],
+    },
+    {
+        icon: '🏹',
+        label: 'Hunting & Win-Back (Node Explorer)',
+        color: '#E84142',
+        description: 'The Node Explorer (protected) lists every validator and node on the network with their hosting provider. The team can identify high-value operators currently on a competitor and reach out directly.',
+        features: ['Full node list with ASN, provider, country', 'Filter by provider (AWS, Hetzner, etc.)', 'Prospect scoring (Solana: top non-OVH validators)', 'Direct outreach starting point'],
+    },
+    {
+        icon: '🚧',
+        label: 'Community Sentiment — Not Yet Covered',
+        color: '#a0a0a0',
+        description: 'Tracking how the blockchain community perceives OVHcloud as an infrastructure provider — forum sentiment, social mentions, validator feedback — is identified as a gap. Not implemented yet.',
+        features: ['Community forums & Discord monitoring', 'Validator satisfaction signals', 'Reputation tracking over time'],
+        wip: true,
+    },
 ];
 
-const PRIVATE_PAGES = [
-    { name: 'Node Lists', icon: '📋', kpis: ['IP', 'ASN', 'City', 'Stake', 'Uptime'] },
-    { name: 'CRM Leads', icon: '🎯', kpis: ['Lead management', 'Commercial pipeline'] },
-    { name: 'Benchmark', icon: '🗺️', kpis: ['Strategic roadmap', 'Opportunity scoring'] },
-    { name: 'Methodology', icon: '📘', kpis: ['This page'] },
-];
-
-function DashboardMapChart() {
+function UseCasesChart() {
     return (
-        <div className="max-w-2xl w-full mx-auto space-y-4">
-            {/* Public */}
-            <div>
-                <div className="text-[10px] font-bold uppercase tracking-[0.2em] text-white/30 mb-2">Public pages — no login required</div>
-                <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-                    {PUBLIC_PAGES.map((p) => (
-                        <div key={p.name} className="glass-card p-3">
-                            <div className="flex items-center gap-2 mb-2">
-                                <span className="text-base">{p.icon}</span>
-                                <span className="text-white font-bold text-[11px]">{p.name}</span>
-                            </div>
-                            <div className="flex flex-wrap gap-1">
-                                {p.kpis.map((k) => (
-                                    <span key={k} className="text-[9px] text-white/30 bg-white/5 px-1.5 py-0.5 rounded">{k}</span>
-                                ))}
-                            </div>
+        <div className="max-w-2xl w-full mx-auto space-y-3">
+            {USE_CASES.map((uc) => (
+                <div
+                    key={uc.label}
+                    className={`glass-card p-5 relative overflow-hidden ${uc.wip ? 'opacity-60' : ''}`}
+                    style={{ borderColor: `${uc.color}25` }}
+                >
+                    <div className="absolute top-0 right-0 w-32 h-32 blur-[50px] rounded-full pointer-events-none" style={{ backgroundColor: `${uc.color}10` }} />
+                    <div className="relative z-10">
+                        <div className="flex items-center gap-3 mb-2">
+                            <span className="text-xl">{uc.icon}</span>
+                            <span className="font-bold text-sm text-white">{uc.label}</span>
+                            {uc.wip && (
+                                <span className="ml-auto text-[9px] font-black uppercase tracking-widest px-2 py-0.5 rounded-full border border-white/20 text-white/30">
+                                    Not yet built
+                                </span>
+                            )}
                         </div>
-                    ))}
-                </div>
-            </div>
-
-            {/* Protected */}
-            <div>
-                <div className="flex items-center gap-2 mb-2">
-                    <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-[#00F0FF]/60">🔒 Protected — login required</span>
-                </div>
-                <div className="grid grid-cols-2 gap-2">
-                    {PRIVATE_PAGES.map((p) => (
-                        <div key={p.name} className="glass-card p-3 border border-[#00F0FF]/15">
-                            <div className="flex items-center gap-2 mb-2">
-                                <span className="text-base">{p.icon}</span>
-                                <span className="text-[#00F0FF] font-bold text-[11px]">{p.name}</span>
-                            </div>
-                            <div className="flex flex-wrap gap-1">
-                                {p.kpis.map((k) => (
-                                    <span key={k} className="text-[9px] text-[#00F0FF]/40 bg-[#00F0FF]/5 px-1.5 py-0.5 rounded">{k}</span>
-                                ))}
-                            </div>
+                        <p className="text-white/45 text-[12px] leading-relaxed mb-3">{uc.description}</p>
+                        <div className="flex flex-wrap gap-1.5">
+                            {uc.features.map((f) => (
+                                <span
+                                    key={f}
+                                    className="text-[10px] px-2 py-0.5 rounded-full"
+                                    style={{ background: `${uc.color}15`, color: uc.wip ? 'rgba(255,255,255,0.3)' : uc.color }}
+                                >
+                                    {f}
+                                </span>
+                            ))}
                         </div>
-                    ))}
+                    </div>
                 </div>
-            </div>
+            ))}
         </div>
     );
 }
@@ -414,9 +457,9 @@ export default function MethodologyPage() {
         },
         {
             number: '4',
-            title: 'What You See on the Dashboard',
-            subtitle: 'The dashboard is structured into one page per blockchain, accessible from the sidebar. Public pages show aggregated metrics; protected pages expose raw node data and internal tools.',
-            chart: <DashboardMapChart />,
+            title: 'What This Dashboard Is For',
+            subtitle: 'Four concrete use cases — and one identified gap. The dashboard was built to serve the Web3 sales team across the full commercial cycle: prove presence, capture leads, monitor performance, and identify win-back opportunities.',
+            chart: <UseCasesChart />,
         },
         {
             number: '5',

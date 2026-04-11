@@ -177,42 +177,28 @@ export default function BNBChainAnalyticsPage() {
                         </div>
                     </div>
 
-                    {/* Validator market share banner */}
-                    {metrics.ovhValidators > 0 && (
-                        <section className="mb-8 fade-in-up">
-                            <div
-                                className="rounded-2xl p-6 border flex flex-wrap gap-6 items-center"
-                                style={{
-                                    background: 'rgba(243, 186, 47, 0.05)',
-                                    borderColor: 'rgba(243, 186, 47, 0.2)',
-                                }}
-                            >
-                                <div>
-                                    <p className="text-xs text-gray-400 uppercase tracking-widest mb-1">
-                                        OVH Validators
-                                    </p>
-                                    <p className="text-3xl font-black" style={{ color: BNB_GOLD }}>
-                                        {metrics.ovhValidators}{' '}
-                                        <span className="text-lg text-white/40">/ {metrics.totalValidators}</span>
-                                    </p>
-                                </div>
-                                <div>
-                                    <p className="text-xs text-gray-400 uppercase tracking-widest mb-1">
-                                        Validator Share
-                                    </p>
-                                    <p className="text-3xl font-black" style={{ color: BNB_GOLD }}>
-                                        {metrics.validatorMarketShare.toFixed(1)}%
-                                    </p>
-                                </div>
-                            </div>
-                        </section>
-                    )}
+                    {/* Coverage scope banner */}
+                    <section className="mb-8 fade-in-up">
+                        <div
+                            className="rounded-2xl p-4 border flex flex-wrap gap-4 items-center text-xs text-gray-400"
+                            style={{
+                                background: 'rgba(243, 186, 47, 0.03)',
+                                borderColor: 'rgba(243, 186, 47, 0.12)',
+                            }}
+                        >
+                            <span style={{ color: `${BNB_GOLD}99` }}>Scope:</span>
+                            {metrics.coverage.trackedProviders} professional RPC providers tracked
+                            (~{metrics.coverage.estimatedTrafficCoverage}% of BSC public API traffic).
+                            Validators (~{metrics.totalValidators}) and private nodes
+                            (~{metrics.coverage.totalNetworkEstimate.toLocaleString()}+) are not trackable — no public peer discovery API on BSC.
+                        </div>
+                    </section>
 
                     {/* KPI Cards */}
                     <section className="mb-10 fade-in-up">
                         <KPICards
-                            totalNodes={metrics.totalNodes}
-                            ovhNodes={metrics.ovhNodes}
+                            totalNodes={metrics.totalTrackedEndpoints}
+                            ovhNodes={metrics.ovhEndpoints}
                             marketShare={metrics.marketShare}
                         />
                     </section>

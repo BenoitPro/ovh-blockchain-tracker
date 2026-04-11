@@ -4,8 +4,9 @@ import type { BNBChainOVHNode } from '@/types/bnbchain';
 import type { ProviderCategorizationResult } from '@/lib/shared/filterOVH';
 
 const baseNode: BNBChainOVHNode = {
-  id: 'abc',
+  id: 'Ankr:135.148.1.1',
   ip: '135.148.1.1',
+  version: 'Ankr',
   ipInfo: {
     ip: '135.148.1.1',
     asn: 'AS16276',
@@ -17,6 +18,7 @@ const baseNode: BNBChainOVHNode = {
     longitude: 0,
   },
   provider: 'OVHcloud',
+  providerName: 'Ankr',
 };
 
 const mockCategorization: ProviderCategorizationResult = {
@@ -31,24 +33,25 @@ describe('calculateBNBMetrics', () => {
     expect(metrics.marketShare).toBeCloseTo(1); // 1/100 = 1%
   });
 
-  it('sets totalNodes and totalValidators', () => {
+  it('sets totalTrackedEndpoints and totalValidators', () => {
     const metrics = calculateBNBMetrics([baseNode], 100, 45, mockCategorization);
-    expect(metrics.totalNodes).toBe(100);
+    expect(metrics.totalTrackedEndpoints).toBe(100);
     expect(metrics.totalValidators).toBe(45);
   });
 
-  it('counts ovhNodes correctly', () => {
+  it('counts ovhEndpoints correctly', () => {
     const metrics = calculateBNBMetrics([baseNode], 100, 45, mockCategorization);
-    expect(metrics.ovhNodes).toBe(1);
+    expect(metrics.ovhEndpoints).toBe(1);
   });
 
-  it('counts ovhValidators (only nodes with isValidator=true)', () => {
-    const validator: BNBChainOVHNode = { ...baseNode, isValidator: true };
-    const metrics = calculateBNBMetrics([baseNode, validator], 100, 45, mockCategorization);
-    expect(metrics.ovhValidators).toBe(1); // only 1 has isValidator=true
+  it('counts ovhProviders by distinct providerName', () => {
+    const node2: BNBChainOVHNode = { ...baseNode, id: 'Ankr:1.2.3.4', ip: '1.2.3.4', providerName: 'Ankr' };
+    const node3: BNBChainOVHNode = { ...baseNode, id: 'NodeReal:5.6.7.8', ip: '5.6.7.8', providerName: 'NodeReal' };
+    const metrics = calculateBNBMetrics([baseNode, node2, node3], 100, 45, mockCategorization);
+    expect(metrics.ovhProviders).toBe(2); // Ankr + NodeReal
   });
 
-  it('computes geoDistribution from OVH nodes', () => {
+  it('computes geoDistribution from OVH endpoints', () => {
     const metrics = calculateBNBMetrics([baseNode], 100, 45, mockCategorization);
     expect(metrics.geoDistribution).toEqual({ FR: 1 });
   });
@@ -58,8 +61,15 @@ describe('calculateBNBMetrics', () => {
     expect(metrics.globalGeoDistribution).toEqual({ FR: 2, US: 8 });
   });
 
-  it('returns 0 marketShare when totalNodes is 0', () => {
+  it('returns 0 marketShare when totalEndpoints is 0', () => {
     const metrics = calculateBNBMetrics([], 0, 45, mockCategorization);
     expect(metrics.marketShare).toBe(0);
+  });
+
+  it('includes coverage metadata', () => {
+    const metrics = calculateBNBMetrics([baseNode], 100, 45, mockCategorization);
+    expect(metrics.coverage).toBeDefined();
+    expect(metrics.coverage.methodology).toBe('professional-rpc-providers');
+    expect(metrics.coverage.estimatedTrafficCoverage).toBeGreaterThan(0);
   });
 });

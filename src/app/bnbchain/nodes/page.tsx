@@ -125,8 +125,8 @@ export default function BNBChainNodesPage() {
                     </h2>
                     <p className="text-white/50 mt-2">
                         {nodes.length > 0
-                            ? `${nodes.length} OVH-hosted node${nodes.length !== 1 ? 's' : ''} out of ${metrics.totalNodes.toLocaleString()} discovered peers.`
-                            : `No OVHcloud nodes detected among the ${metrics.totalNodes.toLocaleString()} discovered BNB Chain peers.`}
+                            ? `${nodes.length} OVH-hosted endpoint${nodes.length !== 1 ? 's' : ''} out of ${metrics.totalTrackedEndpoints.toLocaleString()} tracked RPC endpoints.`
+                            : `No OVHcloud endpoints detected among the ${metrics.totalTrackedEndpoints.toLocaleString()} tracked BSC RPC endpoints.`}
                     </p>
                 </div>
 
@@ -140,9 +140,9 @@ export default function BNBChainNodesPage() {
                         }}
                     >
                         <div className="text-2xl font-black" style={{ color: BNB_GOLD }}>
-                            {metrics.totalNodes.toLocaleString()}
+                            {metrics.totalTrackedEndpoints.toLocaleString()}
                         </div>
-                        <div className="text-xs text-gray-400 mt-0.5">Total Peers</div>
+                        <div className="text-xs text-gray-400 mt-0.5">Tracked Endpoints</div>
                     </div>
                     <div
                         className="px-5 py-3 rounded-xl border text-center"
@@ -152,9 +152,9 @@ export default function BNBChainNodesPage() {
                         }}
                     >
                         <div className="text-2xl font-black" style={{ color: BNB_GOLD }}>
-                            {metrics.ovhNodes}
+                            {metrics.ovhEndpoints}
                         </div>
-                        <div className="text-xs text-gray-400 mt-0.5">OVH Nodes</div>
+                        <div className="text-xs text-gray-400 mt-0.5">OVH Endpoints</div>
                     </div>
                     <div
                         className="px-5 py-3 rounded-xl border text-center"
@@ -168,20 +168,18 @@ export default function BNBChainNodesPage() {
                         </div>
                         <div className="text-xs text-gray-400 mt-0.5">Market Share</div>
                     </div>
-                    {metrics.ovhValidators > 0 && (
-                        <div
-                            className="px-5 py-3 rounded-xl border text-center"
-                            style={{
-                                background: 'rgba(243, 186, 47, 0.06)',
-                                borderColor: 'rgba(243, 186, 47, 0.2)',
-                            }}
-                        >
-                            <div className="text-2xl font-black" style={{ color: BNB_GOLD }}>
-                                {metrics.ovhValidators}
-                            </div>
-                            <div className="text-xs text-gray-400 mt-0.5">OVH Validators</div>
+                    <div
+                        className="px-5 py-3 rounded-xl border text-center"
+                        style={{
+                            background: 'rgba(243, 186, 47, 0.06)',
+                            borderColor: 'rgba(243, 186, 47, 0.2)',
+                        }}
+                    >
+                        <div className="text-2xl font-black" style={{ color: BNB_GOLD }}>
+                            {metrics.ovhProviders}
                         </div>
-                    )}
+                        <div className="text-xs text-gray-400 mt-0.5">OVH Providers</div>
+                    </div>
                 </div>
 
                 {nodes.length > 0 ? (

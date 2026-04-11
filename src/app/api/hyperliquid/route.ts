@@ -1,18 +1,17 @@
 import { NextResponse } from 'next/server';
 import { readChainCache, isChainCacheFresh } from '@/lib/cache/chain-storage';
+import { buildHyperliquidMetrics } from '@/lib/hyperliquid/buildMetrics';
 import { HyperliquidDashboardMetrics, HyperliquidAPIResponse } from '@/types/hyperliquid';
 import { logger } from '@/lib/utils';
 
 /**
  * GET /api/hyperliquid
  *
- * Returns Hyperliquid dashboard metrics (cached).
- * Falls back to stale cache if the entry is older than 6h but otherwise available.
- * Returns 503 only when no cache exists at all.
- *
- * Cache is populated by:
- *   - Vercel Cron: /api/cron/hyperliquid-refresh  [production]
- *   - Manual GET to /api/cron/hyperliquid-refresh  [dev/staging]
+ * Priority:
+ *   1. Fresh cache  → return immediately
+ *   2. Stale cache  → return with stale:true warning
+ *   3. No cache     → live-fetch from Hyperliquid API (no cache write; cron does that)
+ *   4. Live-fetch fails → 503
  */
 export async function GET() {
     try {
@@ -41,16 +40,18 @@ export async function GET() {
             return NextResponse.json(response);
         }
 
-        // No cache yet — cron has not run. Return 503 with helpful message.
-        logger.warn('[API/hyperliquid] No cache available. Run the cron job first.');
-        return NextResponse.json(
-            {
-                success: false,
-                error:
-                    'Hyperliquid data is not yet available. The background worker has not run yet. Please try again in a few minutes.',
-            },
-            { status: 503 },
-        );
+        // No cache at all — fetch live (first run / cron not yet triggered)
+        logger.info('[API/hyperliquid] No cache — falling back to live fetch');
+        const { metrics } = await buildHyperliquidMetrics();
+
+        const response: HyperliquidAPIResponse = {
+            success: true,
+            data: metrics,
+            cached: false,
+            timestamp: Date.now(),
+        };
+        return NextResponse.json(response);
+
     } catch (error) {
         logger.error('[API/hyperliquid] Unexpected error:', error);
         return NextResponse.json(
@@ -58,7 +59,7 @@ export async function GET() {
                 success: false,
                 error: error instanceof Error ? error.message : 'Unknown error',
             },
-            { status: 500 },
+            { status: 503 },
         );
     }
 }

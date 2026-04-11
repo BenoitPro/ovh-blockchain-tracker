@@ -58,13 +58,14 @@ function KPIPill({
 
 export default function BNBChainDashboard({ metrics, cachedAt, isStale }: BNBChainDashboardProps) {
     const {
-        totalNodes,
+        totalTrackedEndpoints,
+        totalTrackedProviders,
         totalValidators,
-        ovhNodes,
-        ovhValidators,
+        ovhEndpoints,
+        ovhProviders,
         marketShare,
-        validatorMarketShare,
         providerBreakdown,
+        coverage,
     } = metrics;
 
     const dominantProvider = providerBreakdown[0] ?? null;
@@ -87,7 +88,7 @@ export default function BNBChainDashboard({ metrics, cachedAt, isStale }: BNBCha
 
                 <div className="mt-8 mb-10">
                     <AnimatedTagline
-                        text={`TRACKING ${totalNodes} DISCOVERED PEERS • BNB CHAIN NETWORK OVERVIEW`}
+                        text={`TRACKING ${totalTrackedProviders} BSC RPC PROVIDERS • ${coverage.estimatedTrafficCoverage}% OF BSC API TRAFFIC`}
                     />
                 </div>
 
@@ -139,11 +140,16 @@ export default function BNBChainDashboard({ metrics, cachedAt, isStale }: BNBCha
                                 </h2>
 
                                 <p className="text-gray-400 text-sm leading-relaxed max-w-lg mb-6">
-                                    We discovered {totalNodes.toLocaleString()} BNB Chain peers via the{' '}
-                                    <code className="text-xs bg-white/5 px-1 py-0.5 rounded">admin_peers</code> RPC
-                                    endpoint. The network runs approximately {totalValidators} active validators
-                                    (elected stakers). Over {dominantProvider.marketShare.toFixed(0)}% of discovered
-                                    nodes are concentrated on {dominantProvider.label}.
+                                    Tracking <strong className="text-white">{totalTrackedProviders} professional BSC RPC providers</strong>{' '}
+                                    — representing ~{coverage.estimatedTrafficCoverage}% of BSC public API traffic by volume.
+                                    The network runs {totalValidators} active validators (PoSA).{' '}
+                                    {ovhEndpoints > 0
+                                        ? `${ovhProviders} provider${ovhProviders > 1 ? 's' : ''} detected on OVH infrastructure.`
+                                        : 'No OVH endpoints detected among tracked providers.'
+                                    }
+                                </p>
+                                <p className="text-gray-500 text-xs italic max-w-lg mb-6">
+                                    Scope: professional RPC providers only. Validators (~{totalValidators}) and private nodes (~{coverage.totalNetworkEstimate.toLocaleString()}+) not trackable — no public peer discovery API on BSC.
                                 </p>
 
                                 <a
@@ -174,38 +180,28 @@ export default function BNBChainDashboard({ metrics, cachedAt, isStale }: BNBCha
                             {/* KPI pills */}
                             <div className="flex flex-col gap-3 shrink-0 min-w-[180px]">
                                 <KPIPill
-                                    label="Peers Discovered"
-                                    value={totalNodes.toLocaleString()}
+                                    label="RPC Providers Tracked"
+                                    value={`${totalTrackedProviders}`}
                                     highlight
                                 />
                                 <KPIPill
-                                    label="OVH Nodes"
-                                    value={ovhNodes > 0 ? ovhNodes.toString() : '0'}
-                                    highlight={ovhNodes > 0}
+                                    label="Unique IPs Resolved"
+                                    value={totalTrackedEndpoints.toLocaleString()}
                                 />
                                 <KPIPill
-                                    label="OVH Market Share"
-                                    value={ovhNodes > 0 ? `${marketShare.toFixed(1)}%` : 'N/A'}
-                                    highlight={ovhNodes > 0}
+                                    label="OVH Providers"
+                                    value={ovhProviders > 0 ? `${ovhProviders}` : '0'}
+                                    highlight={ovhProviders > 0}
                                 />
-                                {totalValidators > 0 && (
-                                    <KPIPill
-                                        label="OVH Validators"
-                                        value={
-                                            ovhValidators > 0
-                                                ? `${ovhValidators} / ${totalValidators}`
-                                                : `0 / ${totalValidators}`
-                                        }
-                                        highlight={ovhValidators > 0}
-                                    />
-                                )}
-                                {ovhValidators > 0 && (
-                                    <KPIPill
-                                        label="Validator Share"
-                                        value={`${validatorMarketShare.toFixed(1)}%`}
-                                        highlight
-                                    />
-                                )}
+                                <KPIPill
+                                    label="OVH Share (tracked)"
+                                    value={ovhEndpoints > 0 ? `${marketShare.toFixed(1)}%` : 'N/A'}
+                                    highlight={ovhEndpoints > 0}
+                                />
+                                <KPIPill
+                                    label="Validators on-chain"
+                                    value={`~${totalValidators}`}
+                                />
                             </div>
                         </div>
 
