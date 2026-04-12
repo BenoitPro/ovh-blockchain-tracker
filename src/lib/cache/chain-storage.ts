@@ -13,6 +13,7 @@
  *   'tron-metrics'           → Tron dashboard
  *   'hyperliquid-metrics'    → Hyperliquid dashboard
  *   'bnbchain-metrics'        → BNB Chain dashboard
+ *   'monad-metrics'          → Monad dashboard (gmonads.com scrape, no ASN)
  *   'celestia-metrics'       → Celestia (Phase 2, future)
  *   'solana-prospects-data'  → Solana top non-OVH validator prospects (written by scripts/worker.ts)
  *
@@ -31,6 +32,7 @@ export const CACHE_KEYS = {
     tron: 'tron-metrics',
     hyperliquid: 'hyperliquid-metrics',
     bnbchain: 'bnbchain-metrics',
+    monad: 'monad-metrics',
     // celestia: 'celestia-metrics',
     'solana-prospects': 'solana-prospects-data',
 } as const;
@@ -45,6 +47,7 @@ export const CACHE_TTL: Record<ChainId, number> = {
     tron: 2 * 60 * 60 * 1000,      // 2 hours
     hyperliquid: 6 * 60 * 60 * 1000, // 6 hours (validator set very stable, ~30 validators)
     bnbchain: 2 * 60 * 60 * 1000,    // 2 hours
+    monad: 2 * 60 * 60 * 1000,       // 2 hours
     'solana-prospects': 6 * 60 * 60 * 1000, // 6 hours
 };
 

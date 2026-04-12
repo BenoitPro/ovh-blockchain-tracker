@@ -1,4 +1,4 @@
-export type ChainId = 'solana' | 'ethereum' | 'avalanche' | 'hyperliquid' | 'sui' | 'tron' | 'bnbchain';
+export type ChainId = 'solana' | 'ethereum' | 'avalanche' | 'hyperliquid' | 'sui' | 'tron' | 'bnbchain' | 'monad';
 
 export interface ChainConfig {
   id: ChainId;
@@ -65,5 +65,13 @@ export const CHAINS: Record<ChainId, ChainConfig> = {
     route: '/bnbchain',
     cssClass: 'network-bnbchain',
     bgTint: 'rgba(243,186,47,0.06)',
+  },
+  monad: {
+    id: 'monad',
+    name: 'Monad',
+    accent: '#836EF9',
+    route: '/monad',
+    cssClass: 'monad-theme',
+    bgTint: 'rgba(131,110,249,0.10)',
   },
 };
