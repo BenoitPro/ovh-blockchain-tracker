@@ -233,6 +233,11 @@ export default function HyperliquidDashboard({ metrics, cachedAt, isStale }: Hyp
                 {/* Provider breakdown chart */}
                 <div className="mt-12 max-w-4xl">
                     <ProviderComparison providerBreakdown={chartData} />
+                    <div className="mt-4 px-4 py-3 rounded-xl border border-white/5 bg-white/[0.02] text-xs text-gray-600 leading-relaxed">
+                        <span className="text-gray-500 font-semibold">Why does the chart show "Others"?</span>{' '}
+                        Provider detection relies on keyword matching in validator names and descriptions — none of the current validators self-identify their cloud provider. "Others" contains all 24 validators whose infrastructure cannot be inferred from on-chain metadata.
+                        The <span className="text-orange-400/80">AWS Tokyo</span> concentration stated above is confirmed by external research (Glassnode, March 2026) and Hyperliquid's public architecture documentation, not by this detection method.
+                    </div>
                 </div>
             </main>
         </div>
