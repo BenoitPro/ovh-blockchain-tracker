@@ -79,32 +79,27 @@ export default function CompetitorBenchmark() {
 
   // Fetch evolution data whenever activeChain changes
   useEffect(() => {
+    const controller = new AbortController();
     const load = async () => {
       setLoadingEvolution(true);
       const param = activeChain === 'all' ? '' : `?chain=${activeChain}`;
       try {
-        const r = await fetch(`/api/benchmark/evolution${param}`);
+        const r = await fetch(`/api/benchmark/evolution${param}`, { signal: controller.signal });
         const json = await r.json() as { success: boolean } & EvolutionData;
         if (json.success) setEvolutionData(json);
-      } catch {
-        /* silently degrade */
+      } catch (err) {
+        if ((err as Error).name !== 'AbortError') { /* silently degrade */ }
       } finally {
         setLoadingEvolution(false);
       }
     };
     void load();
+    return () => controller.abort();
   }, [activeChain]);
 
   // Derive display data from marketData
   const chains: ChainEntry[] = marketData?.chains ?? [];
   const chainTabs = [{ id: 'all', name: 'All', color: '#FFFFFF' }, ...chains.map(c => ({ id: c.id, name: c.name, color: c.color }))];
-
-  const activeBreakdown: ProviderBreakdownEntry[] =
-    activeChain === 'all'
-      ? (marketData?.aggregate.providerBreakdown ?? [])
-      : (chains.find(c => c.id === activeChain)?.providerBreakdown ?? []);
-
-  const normalizedProviders = normalizeProviders(activeBreakdown, 6);
 
   // Bar chart data — one bar per chain (or one bar for the active chain)
   const barRows = activeChain === 'all' ? chains : chains.filter(c => c.id === activeChain);
@@ -117,15 +112,17 @@ export default function CompetitorBenchmark() {
     return point;
   });
 
-  // All provider labels visible in bar chart
+  // All provider labels visible in bar chart — derived from actual barData keys
   const barProviderLabels = Array.from(
-    new Set(normalizedProviders.map(p => p.label))
+    new Set(barData.flatMap(row => Object.keys(row).filter(k => k !== 'name')))
   );
 
-  // Provider color map (from normalizedProviders)
+  // Provider color map — populated from all per-chain normalized breakdowns
   const providerColorMap: Record<string, string> = {};
-  for (const p of normalizedProviders) {
-    providerColorMap[p.label] = p.color;
+  for (const chain of barRows) {
+    for (const p of normalizeProviders(chain.providerBreakdown, 6)) {
+      providerColorMap[p.label] = p.color;
+    }
   }
 
   // Table rows
@@ -219,8 +216,8 @@ export default function CompetitorBenchmark() {
               <ResponsiveContainer width="100%" height={160}>
                 <AreaChart data={evolutionMonthly} margin={{ left: 0, right: 16, top: 4, bottom: 0 }}>
                   <defs>
-                    {evolutionProviders.map((label, i) => (
-                      <linearGradient key={label} id={`grad-${i}`} x1="0" y1="0" x2="0" y2="1">
+                    {evolutionProviders.map((label) => (
+                      <linearGradient key={label} id={`benchmark-grad-${label.replace(/\s+/g, '-').toLowerCase()}`} x1="0" y1="0" x2="0" y2="1">
                         <stop offset="5%" stopColor={providerColorMap[label] ?? '#6B7280'} stopOpacity={0.3} />
                         <stop offset="95%" stopColor={providerColorMap[label] ?? '#6B7280'} stopOpacity={0} />
                       </linearGradient>
@@ -234,14 +231,14 @@ export default function CompetitorBenchmark() {
                     // @ts-expect-error recharts formatter type
                     formatter={(value: unknown, name: string) => [fmt(Number(value ?? 0)), name]}
                   />
-                  {evolutionProviders.map((label, i) => (
+                  {evolutionProviders.map((label) => (
                     <Area
                       key={label}
                       type="monotone"
                       dataKey={label}
                       stroke={providerColorMap[label] ?? '#6B7280'}
                       strokeWidth={label === 'OVHcloud' ? 2 : 1.5}
-                      fill={`url(#grad-${i})`}
+                      fill={`url(#benchmark-grad-${label.replace(/\s+/g, '-').toLowerCase()})`}
                       opacity={label === 'OVHcloud' ? 1 : 0.7}
                     />
                   ))}
