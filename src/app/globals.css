@@ -184,6 +184,12 @@ html.network-bnbchain {
   --page-bg: #07060a;
 }
 
+html.monad-theme {
+  --chain-accent: #836EF9;
+  --chain-bg-tint: rgba(131, 110, 249, 0.10);
+  --page-bg: #06040f;
+}
+
 /* Base styles */
 body {
   font-family: 'Source Sans Pro', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;

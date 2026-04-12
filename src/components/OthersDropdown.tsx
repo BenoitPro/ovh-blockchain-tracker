@@ -102,6 +102,19 @@ const OTHER_CHAINS: OtherChain[] = [
             </svg>
         ),
     },
+    {
+        id: 'monad',
+        label: 'Monad',
+        ticker: 'MON',
+        href: '/monad',
+        color: '#836EF9',
+        live: true,
+        icon: (
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor" className="shrink-0">
+                <path d="M3 20V4l4.5 7.5L12 4l4.5 7.5L21 4v16l-4.5-7.5L12 20l-4.5-7.5L3 20z" />
+            </svg>
+        ),
+    },
 ];
 
 export default function OthersDropdown() {
