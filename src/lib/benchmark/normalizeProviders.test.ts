@@ -47,4 +47,11 @@ describe('normalizeProviders', () => {
   it('returns empty array for empty input', () => {
     expect(normalizeProviders([], 6)).toEqual([]);
   });
+
+  it('does not add Others when breakdown.length equals topN exactly', () => {
+    const breakdown = Array.from({ length: 6 }, (_, i) => makeEntry(`p${i}`, 100 - i * 10));
+    const result = normalizeProviders(breakdown, 6);
+    expect(result).toHaveLength(6);
+    expect(result.find(p => p.key === 'others')).toBeUndefined();
+  });
 });

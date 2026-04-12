@@ -8,6 +8,7 @@ export function normalizeProviders(
   breakdown: ProviderBreakdownEntry[],
   topN = 6,
 ): ProviderBreakdownEntry[] {
+  if (topN < 1) topN = 1;
   if (breakdown.length === 0) return [];
 
   const sorted = [...breakdown].sort((a, b) => b.nodeCount - a.nodeCount);
