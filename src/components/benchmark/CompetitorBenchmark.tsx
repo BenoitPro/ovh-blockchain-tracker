@@ -1,207 +1,302 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import {
   BarChart, Bar, XAxis, YAxis, Tooltip, Legend, ResponsiveContainer,
   AreaChart, Area, CartesianGrid,
 } from 'recharts';
-import { ComingSoonCard } from './ComingSoonCard';
+import { normalizeProviders } from '@/lib/benchmark/normalizeProviders';
+import type { ProviderBreakdownEntry } from '@/types/dashboard';
 
-const PROVIDER_COLORS: Record<string, string> = {
-  OVH: '#00F0FF',
-  Hetzner: '#F97316',
-  AWS: '#FACC15',
-  GCP: '#3B82F6',
-};
+// ─── Types ────────────────────────────────────────────────────────────────────
 
-const TABLE_DATA = [
-  { chain: 'Solana',      color: '#9945FF', OVH: 147,   Hetzner: 213,    AWS: 189,    GCP: 64,   deltaOVH: 12  },
-  { chain: 'Ethereum',    color: '#627EEA', OVH: 8240,  Hetzner: 12380,  AWS: 15610,  GCP: 5180, deltaOVH: 95  },
-  { chain: 'Avalanche',   color: '#E84142', OVH: 89,    Hetzner: 134,    AWS: 98,     GCP: 31,   deltaOVH: 4   },
-  { chain: 'Sui',         color: '#4DA2FF', OVH: 18,    Hetzner: 27,     AWS: 22,     GCP: 9,    deltaOVH: -1  },
-  { chain: 'Hyperliquid', color: '#00FF87', OVH: 3,     Hetzner: 5,      AWS: 4,      GCP: 2,    deltaOVH: 0   },
-];
+interface ChainEntry {
+  id: string;
+  name: string;
+  color: string;
+  totalNodes: number;
+  providerBreakdown: ProviderBreakdownEntry[];
+  stale: boolean;
+}
 
-const EVOLUTION_ALL = [
-  { month: 'Oct', OVH: 7820, Hetzner: 11240, AWS: 14180, GCP: 4820 },
-  { month: 'Nov', OVH: 7990, Hetzner: 11480, AWS: 14520, GCP: 4920 },
-  { month: 'Dec', OVH: 8140, Hetzner: 11820, AWS: 14890, GCP: 5010 },
-  { month: 'Jan', OVH: 8310, Hetzner: 12140, AWS: 15180, GCP: 5080 },
-  { month: 'Feb', OVH: 8430, Hetzner: 12490, AWS: 15440, GCP: 5140 },
-  { month: 'Mar', OVH: 8497, Hetzner: 12759, AWS: 15903, GCP: 5286 },
-];
+interface MarketShareData {
+  chains: ChainEntry[];
+  aggregate: {
+    totalNodes: number;
+    providerBreakdown: ProviderBreakdownEntry[];
+  };
+}
 
-const EVOLUTION_BY_CHAIN: Record<string, typeof EVOLUTION_ALL> = {
-  Solana: [
-    { month: 'Oct', OVH: 124, Hetzner: 186, AWS: 162, GCP: 54 },
-    { month: 'Nov', OVH: 131, Hetzner: 191, AWS: 168, GCP: 57 },
-    { month: 'Dec', OVH: 138, Hetzner: 198, AWS: 174, GCP: 59 },
-    { month: 'Jan', OVH: 141, Hetzner: 204, AWS: 180, GCP: 61 },
-    { month: 'Feb', OVH: 144, Hetzner: 209, AWS: 185, GCP: 63 },
-    { month: 'Mar', OVH: 147, Hetzner: 213, AWS: 189, GCP: 64 },
-  ],
-  Ethereum: [
-    { month: 'Oct', OVH: 7640, Hetzner: 11020, AWS: 14010, GCP: 4760 },
-    { month: 'Nov', OVH: 7810, Hetzner: 11240, AWS: 14290, GCP: 4860 },
-    { month: 'Dec', OVH: 7950, Hetzner: 11580, AWS: 14660, GCP: 4950 },
-    { month: 'Jan', OVH: 8110, Hetzner: 11890, AWS: 14940, GCP: 5020 },
-    { month: 'Feb', OVH: 8180, Hetzner: 12240, AWS: 15210, GCP: 5080 },
-    { month: 'Mar', OVH: 8240, Hetzner: 12380, AWS: 15610, GCP: 5180 },
-  ],
-  Avalanche: [
-    { month: 'Oct', OVH: 78, Hetzner: 118, AWS: 86, GCP: 26 },
-    { month: 'Nov', OVH: 81, Hetzner: 122, AWS: 89, GCP: 27 },
-    { month: 'Dec', OVH: 84, Hetzner: 126, AWS: 91, GCP: 28 },
-    { month: 'Jan', OVH: 86, Hetzner: 129, AWS: 94, GCP: 29 },
-    { month: 'Feb', OVH: 87, Hetzner: 131, AWS: 96, GCP: 30 },
-    { month: 'Mar', OVH: 89, Hetzner: 134, AWS: 98, GCP: 31 },
-  ],
-};
+interface EvolutionPoint {
+  month: string;
+  [provider: string]: number | string;
+}
 
-const CHAINS = ['All', 'Solana', 'Ethereum', 'Avalanche'] as const;
+interface EvolutionData {
+  monthly: EvolutionPoint[];
+  providers: string[];
+  weeklyDelta: Record<string, number>;
+}
+
+// ─── Helpers ──────────────────────────────────────────────────────────────────
 
 function fmt(n: number) {
   return n >= 1000 ? `${(n / 1000).toFixed(1)}k` : String(n);
 }
 
+function deltaLabel(delta: number | undefined): { text: string; cls: string } {
+  if (delta === undefined || delta === null) return { text: '—', cls: 'text-white/30' };
+  if (delta > 0) return { text: `↑ +${delta}`, cls: 'text-emerald-400' };
+  if (delta < 0) return { text: `↓ ${delta}`, cls: 'text-red-400' };
+  return { text: '→ 0', cls: 'text-white/30' };
+}
+
+// ─── Component ────────────────────────────────────────────────────────────────
+
 export default function CompetitorBenchmark() {
-  const [activeChain, setActiveChain] = useState<string>('All');
+  const [activeChain, setActiveChain] = useState<string>('all');
+  const [marketData, setMarketData] = useState<MarketShareData | null>(null);
+  const [evolutionData, setEvolutionData] = useState<EvolutionData | null>(null);
+  const [loadingMarket, setLoadingMarket] = useState(true);
+  const [loadingEvolution, setLoadingEvolution] = useState(true);
 
-  const tableRows = activeChain === 'All' ? TABLE_DATA : TABLE_DATA.filter(r => r.chain === activeChain);
-  const evolutionData = activeChain === 'All'
-    ? EVOLUTION_ALL
-    : (EVOLUTION_BY_CHAIN[activeChain] ?? EVOLUTION_ALL);
+  // Fetch market-share data (current snapshot)
+  useEffect(() => {
+    const load = async () => {
+      setLoadingMarket(true);
+      try {
+        const r = await fetch('/api/benchmark/market-share');
+        const json = await r.json() as { success: boolean } & MarketShareData;
+        if (json.success) setMarketData(json);
+      } catch {
+        /* silently degrade */
+      } finally {
+        setLoadingMarket(false);
+      }
+    };
+    void load();
+  }, []);
 
-  const barData = tableRows.map(r => ({
-    name: r.chain,
-    OVH: r.OVH,
-    Hetzner: r.Hetzner,
-    AWS: r.AWS,
-    GCP: r.GCP,
-  }));
+  // Fetch evolution data whenever activeChain changes
+  useEffect(() => {
+    const load = async () => {
+      setLoadingEvolution(true);
+      const param = activeChain === 'all' ? '' : `?chain=${activeChain}`;
+      try {
+        const r = await fetch(`/api/benchmark/evolution${param}`);
+        const json = await r.json() as { success: boolean } & EvolutionData;
+        if (json.success) setEvolutionData(json);
+      } catch {
+        /* silently degrade */
+      } finally {
+        setLoadingEvolution(false);
+      }
+    };
+    void load();
+  }, [activeChain]);
+
+  // Derive display data from marketData
+  const chains: ChainEntry[] = marketData?.chains ?? [];
+  const chainTabs = [{ id: 'all', name: 'All', color: '#FFFFFF' }, ...chains.map(c => ({ id: c.id, name: c.name, color: c.color }))];
+
+  const activeBreakdown: ProviderBreakdownEntry[] =
+    activeChain === 'all'
+      ? (marketData?.aggregate.providerBreakdown ?? [])
+      : (chains.find(c => c.id === activeChain)?.providerBreakdown ?? []);
+
+  const normalizedProviders = normalizeProviders(activeBreakdown, 6);
+
+  // Bar chart data — one bar per chain (or one bar for the active chain)
+  const barRows = activeChain === 'all' ? chains : chains.filter(c => c.id === activeChain);
+  const barData = barRows.map(chain => {
+    const normalized = normalizeProviders(chain.providerBreakdown, 6);
+    const point: Record<string, number | string> = { name: chain.name };
+    for (const p of normalized) {
+      point[p.label] = p.nodeCount;
+    }
+    return point;
+  });
+
+  // All provider labels visible in bar chart
+  const barProviderLabels = Array.from(
+    new Set(normalizedProviders.map(p => p.label))
+  );
+
+  // Provider color map (from normalizedProviders)
+  const providerColorMap: Record<string, string> = {};
+  for (const p of normalizedProviders) {
+    providerColorMap[p.label] = p.color;
+  }
+
+  // Table rows
+  const tableRows = activeChain === 'all' ? chains : chains.filter(c => c.id === activeChain);
+
+  // Weekly delta per chain (from evolution API)
+  const weeklyDelta = evolutionData?.weeklyDelta ?? {};
+
+  // Evolution chart
+  const evolutionMonthly = evolutionData?.monthly ?? [];
+  const evolutionProviders = evolutionData?.providers ?? [];
+  const hasEvolutionData = evolutionMonthly.length > 0;
 
   return (
-    <ComingSoonCard
-      title="Competitor Benchmark"
-      description="Real-time ASN comparison vs Hetzner, AWS, GCP"
-    >
-      <div className="p-5">
-        {/* Header */}
-        <div className="flex items-start justify-between mb-4">
-          <div>
-            <h3 className="text-sm font-black text-white">Competitor Benchmark</h3>
-            <p className="text-white/30 text-[10px] mt-0.5">Nodes detected by provider via ASN</p>
-          </div>
+    <div className="p-5">
+      {/* Header */}
+      <div className="flex items-start justify-between mb-4">
+        <div>
+          <h3 className="text-sm font-black text-white">Competitor Benchmark</h3>
+          <p className="text-white/30 text-[10px] mt-0.5">Nodes detected by provider via ASN (MaxMind)</p>
         </div>
-
-        {/* Chain tabs */}
-        <div className="flex gap-1 mb-5 flex-wrap">
-          {CHAINS.map(chain => (
-            <button
-              key={chain}
-              onClick={() => setActiveChain(chain)}
-              className={`px-2.5 py-1 rounded-md text-[10px] font-bold transition-all ${
-                activeChain === chain
-                  ? 'bg-[#00F0FF]/15 text-[#00F0FF] border border-[#00F0FF]/30'
-                  : 'text-white/30 hover:text-white/60 border border-transparent'
-              }`}
-            >
-              {chain}
-            </button>
-          ))}
-        </div>
-
-        {/* Grouped bar chart */}
-        <div className="mb-6">
-          <p className="text-[9px] text-white/30 uppercase tracking-widest font-bold mb-2">Current distribution</p>
-          <ResponsiveContainer width="100%" height={200}>
-            <BarChart data={barData} margin={{ left: 0, right: 16, top: 4, bottom: 0 }}>
-              <XAxis dataKey="name" tick={{ fontSize: 10, fill: 'rgba(255,255,255,0.4)' }} axisLine={false} tickLine={false} />
-              <YAxis tickFormatter={fmt} tick={{ fontSize: 9, fill: 'rgba(255,255,255,0.3)' }} axisLine={false} tickLine={false} />
-              <Tooltip
-                contentStyle={{ background: '#0a0a0f', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 8, fontSize: 11 }}
-                // @ts-expect-error recharts formatter type
-                formatter={(value: any, name: string) => [fmt(Number(value ?? 0)), name]}
-              />
-              <Legend wrapperStyle={{ fontSize: 10, paddingTop: 8 }} />
-              {Object.keys(PROVIDER_COLORS).map(p => (
-                <Bar key={p} dataKey={p} fill={PROVIDER_COLORS[p]} opacity={p === 'OVH' ? 1 : 0.65} radius={[2, 2, 0, 0]} />
-              ))}
-            </BarChart>
-          </ResponsiveContainer>
-        </div>
-
-        {/* Evolution area chart */}
-        <div className="mb-6">
-          <p className="text-[9px] text-white/30 uppercase tracking-widest font-bold mb-2">6-month evolution</p>
-          <ResponsiveContainer width="100%" height={160}>
-            <AreaChart data={evolutionData} margin={{ left: 0, right: 16, top: 4, bottom: 0 }}>
-              <defs>
-                {Object.entries(PROVIDER_COLORS).map(([name, color]) => (
-                  <linearGradient key={name} id={`grad-${name}`} x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor={color} stopOpacity={0.3} />
-                    <stop offset="95%" stopColor={color} stopOpacity={0} />
-                  </linearGradient>
-                ))}
-              </defs>
-              <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
-              <XAxis dataKey="month" tick={{ fontSize: 9, fill: 'rgba(255,255,255,0.3)' }} axisLine={false} tickLine={false} />
-              <YAxis tickFormatter={fmt} tick={{ fontSize: 9, fill: 'rgba(255,255,255,0.3)' }} axisLine={false} tickLine={false} />
-              <Tooltip
-                contentStyle={{ background: '#0a0a0f', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 8, fontSize: 11 }}
-                // @ts-expect-error recharts formatter type
-                formatter={(value: any, name: string) => [fmt(Number(value ?? 0)), name]}
-              />
-              {Object.entries(PROVIDER_COLORS).map(([name, color]) => (
-                <Area
-                  key={name}
-                  type="monotone"
-                  dataKey={name}
-                  stroke={color}
-                  strokeWidth={name === 'OVH' ? 2 : 1.5}
-                  fill={`url(#grad-${name})`}
-                  opacity={name === 'OVH' ? 1 : 0.7}
-                />
-              ))}
-            </AreaChart>
-          </ResponsiveContainer>
-        </div>
-
-        {/* Data table */}
-        <div className="overflow-x-auto rounded-lg border border-white/5">
-          <table className="w-full text-xs">
-            <thead>
-              <tr className="border-b border-white/5">
-                <th className="px-3 py-2 text-left text-[9px] font-black uppercase tracking-widest text-white/30">Chain</th>
-                {Object.keys(PROVIDER_COLORS).map(p => (
-                  <th key={p} className={`px-3 py-2 text-right text-[9px] font-black uppercase tracking-widest ${p === 'OVH' ? 'text-[#00F0FF]/70' : 'text-white/30'}`}>{p}</th>
-                ))}
-                <th className="px-3 py-2 text-right text-[9px] font-black uppercase tracking-widest text-white/30">Δ OVH /7d</th>
-              </tr>
-            </thead>
-            <tbody>
-              {tableRows.map(row => (
-                <tr key={row.chain} className="border-b border-white/5 hover:bg-white/2 transition-colors">
-                  <td className="px-3 py-2">
-                    <span className="flex items-center gap-2">
-                      <span className="w-2 h-2 rounded-full" style={{ background: row.color }} />
-                      <span className="text-white/70 font-medium">{row.chain}</span>
-                    </span>
-                  </td>
-                  <td className="px-3 py-2 text-right font-bold text-[#00F0FF]">{fmt(row.OVH)}</td>
-                  <td className="px-3 py-2 text-right text-white/50">{fmt(row.Hetzner)}</td>
-                  <td className="px-3 py-2 text-right text-white/50">{fmt(row.AWS)}</td>
-                  <td className="px-3 py-2 text-right text-white/50">{fmt(row.GCP)}</td>
-                  <td className={`px-3 py-2 text-right text-[10px] font-bold ${row.deltaOVH > 0 ? 'text-emerald-400' : row.deltaOVH < 0 ? 'text-red-400' : 'text-white/30'}`}>
-                    {row.deltaOVH > 0 ? `↑ +${row.deltaOVH}` : row.deltaOVH < 0 ? `↓ ${row.deltaOVH}` : '→ 0'}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-        <p className="text-[9px] text-white/20 mt-2 italic">* Simulated data — ASN detection via MaxMind GeoLite2</p>
+        {marketData && chains.some(c => c.stale) && (
+          <span className="text-[9px] text-amber-400/70 font-medium">Partial stale data</span>
+        )}
       </div>
-    </ComingSoonCard>
+
+      {/* Chain tabs */}
+      <div className="flex gap-1 mb-5 flex-wrap">
+        {chainTabs.map(chain => (
+          <button
+            key={chain.id}
+            onClick={() => setActiveChain(chain.id)}
+            className={`px-2.5 py-1 rounded-md text-[10px] font-bold transition-all ${
+              activeChain === chain.id
+                ? 'bg-[#00F0FF]/15 text-[#00F0FF] border border-[#00F0FF]/30'
+                : 'text-white/30 hover:text-white/60 border border-transparent'
+            }`}
+          >
+            {chain.name}
+          </button>
+        ))}
+      </div>
+
+      {/* Loading state */}
+      {loadingMarket && (
+        <div className="text-center py-12 text-white/20 text-xs">Loading provider data…</div>
+      )}
+
+      {!loadingMarket && (
+        <>
+          {/* Grouped bar chart */}
+          <div className="mb-6">
+            <p className="text-[9px] text-white/30 uppercase tracking-widest font-bold mb-2">Current distribution</p>
+            {barData.length === 0 ? (
+              <div className="flex items-center justify-center h-[200px] text-white/20 text-xs">No data</div>
+            ) : (
+              <ResponsiveContainer width="100%" height={200}>
+                <BarChart data={barData} margin={{ left: 0, right: 16, top: 4, bottom: 0 }}>
+                  <XAxis dataKey="name" tick={{ fontSize: 10, fill: 'rgba(255,255,255,0.4)' }} axisLine={false} tickLine={false} />
+                  <YAxis tickFormatter={fmt} tick={{ fontSize: 9, fill: 'rgba(255,255,255,0.3)' }} axisLine={false} tickLine={false} />
+                  <Tooltip
+                    contentStyle={{ background: '#0a0a0f', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 8, fontSize: 11 }}
+                    // @ts-expect-error recharts formatter type
+                    formatter={(value: unknown, name: string) => [fmt(Number(value ?? 0)), name]}
+                  />
+                  <Legend wrapperStyle={{ fontSize: 10, paddingTop: 8 }} />
+                  {barProviderLabels.map(label => (
+                    <Bar
+                      key={label}
+                      dataKey={label}
+                      fill={providerColorMap[label] ?? '#6B7280'}
+                      opacity={label === 'OVHcloud' ? 1 : 0.65}
+                      radius={[2, 2, 0, 0]}
+                    />
+                  ))}
+                </BarChart>
+              </ResponsiveContainer>
+            )}
+          </div>
+
+          {/* Evolution area chart */}
+          <div className="mb-6">
+            <p className="text-[9px] text-white/30 uppercase tracking-widest font-bold mb-2">6-month evolution</p>
+            {loadingEvolution ? (
+              <div className="flex items-center justify-center h-[160px] text-white/20 text-xs">Loading…</div>
+            ) : !hasEvolutionData ? (
+              <div className="flex items-center justify-center h-[160px] text-white/20 text-xs text-center px-4">
+                Historical data will appear here as snapshots accumulate
+              </div>
+            ) : (
+              <ResponsiveContainer width="100%" height={160}>
+                <AreaChart data={evolutionMonthly} margin={{ left: 0, right: 16, top: 4, bottom: 0 }}>
+                  <defs>
+                    {evolutionProviders.map((label, i) => (
+                      <linearGradient key={label} id={`grad-${i}`} x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="5%" stopColor={providerColorMap[label] ?? '#6B7280'} stopOpacity={0.3} />
+                        <stop offset="95%" stopColor={providerColorMap[label] ?? '#6B7280'} stopOpacity={0} />
+                      </linearGradient>
+                    ))}
+                  </defs>
+                  <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
+                  <XAxis dataKey="month" tick={{ fontSize: 9, fill: 'rgba(255,255,255,0.3)' }} axisLine={false} tickLine={false} />
+                  <YAxis tickFormatter={fmt} tick={{ fontSize: 9, fill: 'rgba(255,255,255,0.3)' }} axisLine={false} tickLine={false} />
+                  <Tooltip
+                    contentStyle={{ background: '#0a0a0f', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 8, fontSize: 11 }}
+                    // @ts-expect-error recharts formatter type
+                    formatter={(value: unknown, name: string) => [fmt(Number(value ?? 0)), name]}
+                  />
+                  {evolutionProviders.map((label, i) => (
+                    <Area
+                      key={label}
+                      type="monotone"
+                      dataKey={label}
+                      stroke={providerColorMap[label] ?? '#6B7280'}
+                      strokeWidth={label === 'OVHcloud' ? 2 : 1.5}
+                      fill={`url(#grad-${i})`}
+                      opacity={label === 'OVHcloud' ? 1 : 0.7}
+                    />
+                  ))}
+                </AreaChart>
+              </ResponsiveContainer>
+            )}
+          </div>
+
+          {/* Data table */}
+          <div className="overflow-x-auto rounded-lg border border-white/5">
+            <table className="w-full text-xs">
+              <thead>
+                <tr className="border-b border-white/5">
+                  <th className="px-3 py-2 text-left text-[9px] font-black uppercase tracking-widest text-white/30">Chain</th>
+                  <th className="px-3 py-2 text-right text-[9px] font-black uppercase tracking-widest text-[#00F0FF]/70">OVHcloud</th>
+                  <th className="px-3 py-2 text-right text-[9px] font-black uppercase tracking-widest text-white/30">Total nodes</th>
+                  <th className="px-3 py-2 text-right text-[9px] font-black uppercase tracking-widest text-white/30">OVH %</th>
+                  <th className="px-3 py-2 text-right text-[9px] font-black uppercase tracking-widest text-white/30">Δ OVH /7d</th>
+                </tr>
+              </thead>
+              <tbody>
+                {tableRows.map(row => {
+                  const ovhEntry = row.providerBreakdown.find(
+                    e => e.key === 'ovh' || e.label === 'OVHcloud',
+                  );
+                  const delta = weeklyDelta[row.id];
+                  const { text: deltaText, cls: deltaCls } = deltaLabel(delta);
+                  return (
+                    <tr key={row.id} className="border-b border-white/5 hover:bg-white/2 transition-colors">
+                      <td className="px-3 py-2">
+                        <span className="flex items-center gap-2">
+                          <span className="w-2 h-2 rounded-full" style={{ background: row.color }} />
+                          <span className="text-white/70 font-medium">{row.name}</span>
+                        </span>
+                      </td>
+                      <td className="px-3 py-2 text-right font-bold text-[#00F0FF]">
+                        {fmt(ovhEntry?.nodeCount ?? 0)}
+                      </td>
+                      <td className="px-3 py-2 text-right text-white/50">
+                        {fmt(row.totalNodes)}
+                      </td>
+                      <td className="px-3 py-2 text-right text-white/50">
+                        {ovhEntry ? `${ovhEntry.marketShare.toFixed(1)}%` : '—'}
+                      </td>
+                      <td className={`px-3 py-2 text-right text-[10px] font-bold ${deltaCls}`}>
+                        {deltaText}
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        </>
+      )}
+    </div>
   );
 }
