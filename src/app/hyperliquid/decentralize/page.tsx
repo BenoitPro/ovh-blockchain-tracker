@@ -14,8 +14,66 @@ export default function DecentralizePage() {
                 <h1 className="text-3xl font-black text-white mb-6 uppercase tracking-widest">
                     Help Decentralize <span className="text-[#00E5BE]">Hyperliquid</span>
                 </h1>
+
+                {/* AWS Tokyo reality banner */}
+                <div className="mb-8 rounded-2xl border p-6" style={{ background: 'rgba(255,153,0,0.05)', borderColor: 'rgba(255,153,0,0.25)' }}>
+                    <div className="flex items-center gap-2 mb-3">
+                        <div className="w-2 h-2 rounded-full bg-orange-400 animate-pulse" />
+                        <span className="text-xs font-bold uppercase tracking-widest text-orange-400">Current State — April 2026</span>
+                    </div>
+                    <p className="text-white font-semibold text-lg mb-2">
+                        All 24 validators are on <span className="text-orange-300">AWS Tokyo (ap-northeast-1)</span>
+                    </p>
+                    <p className="text-gray-400 text-sm leading-relaxed">
+                        Hyperliquid made a deliberate architectural choice: co-locating all validators in a single AWS region in Tokyo minimizes consensus latency and enables sub-millisecond order matching — critical for a perpetual futures DEX. The downside is a single point of failure: any AWS ap-northeast-1 outage takes down the entire network. There is no geographic or cloud redundancy today.
+                    </p>
+                </div>
+
+                {/* OVH hybrid opportunity */}
+                <div className="mb-8 rounded-2xl border p-6" style={{ background: 'rgba(0,229,190,0.04)', borderColor: 'rgba(0,229,190,0.2)' }}>
+                    <div className="flex items-center gap-2 mb-3">
+                        <div className="w-2 h-2 rounded-full bg-[#00E5BE] animate-pulse" />
+                        <span className="text-xs font-bold uppercase tracking-widest text-[#00E5BE]">OVH Hybrid Opportunity</span>
+                    </div>
+                    <p className="text-white font-semibold text-lg mb-2">
+                        A first step: OVH gossip nodes alongside AWS validators
+                    </p>
+                    <p className="text-gray-400 text-sm leading-relaxed mb-4">
+                        Hyperliquid separates <strong className="text-white">validators</strong> (consensus, require Tokyo co-location for performance) from <strong className="text-white">non-validator gossip nodes</strong> (sync state, can run anywhere). Deploying OVHcloud Bare Metal servers as gossip nodes in Europe or North America would:
+                    </p>
+                    <ul className="space-y-2 text-sm text-gray-400 mb-4">
+                        <li className="flex items-start gap-3">
+                            <svg className="w-4 h-4 mt-0.5 shrink-0 text-[#00E5BE]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                                <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                            Break the 100% AWS dependency — cloud diversification without touching validator performance
+                        </li>
+                        <li className="flex items-start gap-3">
+                            <svg className="w-4 h-4 mt-0.5 shrink-0 text-[#00E5BE]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                                <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                            Improve data availability for EU/US users — better chain state access from European infrastructure
+                        </li>
+                        <li className="flex items-start gap-3">
+                            <svg className="w-4 h-4 mt-0.5 shrink-0 text-[#00E5BE]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                                <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                            Position OVHcloud as the first non-AWS cloud represented on Hyperliquid infrastructure
+                        </li>
+                        <li className="flex items-start gap-3">
+                            <svg className="w-4 h-4 mt-0.5 shrink-0 text-[#00E5BE]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                                <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                            Lay the groundwork for OVH validators if Hyperliquid extends consensus to multi-region in future versions
+                        </li>
+                    </ul>
+                    <p className="text-xs text-gray-600 italic">
+                        Gossip nodes connect via ports 4001/4002 and sync full chain state. They do not participate in consensus but are essential for data availability and network resilience.
+                    </p>
+                </div>
+
                 <p className="text-gray-400 text-lg mb-8 leading-relaxed">
-                    Hyperliquid is moving towards full decentralization. Running a node requires specific hardware to process state natively without falling behind. OVHcloud offers the perfect Bare Metal match for these high-throughput requirements.
+                    Running a node requires specific hardware to process state natively without falling behind. OVHcloud Bare Metal offers the right match for these high-throughput requirements.
                 </p>
                 
                 {/* Hardware Matchmaker */}

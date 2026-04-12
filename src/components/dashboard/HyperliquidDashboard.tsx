@@ -109,14 +109,33 @@ export default function HyperliquidDashboard({ metrics, cachedAt, isStale }: Hyp
 
                                 <p className="text-gray-400 text-sm leading-relaxed max-w-lg mb-4">
                                     Hyperliquid runs on only {activeValidators} active validators securing{' '}
-                                    {totalStakeHYPE} HYPE tokens in stake. Over{' '}
-                                    {dominantProvider.marketShare.toFixed(0)}% of the validator set is concentrated
-                                    on {dominantProvider.label}, presenting systemic infrastructure risk.
+                                    {totalStakeHYPE} HYPE tokens in stake. All validators are co-located on{' '}
+                                    <span className="text-white font-semibold">AWS Tokyo (ap-northeast-1)</span>{' '}
+                                    — a deliberate design choice to minimize trading latency, but creating single-cloud,
+                                    single-region infrastructure risk.
                                 </p>
 
+                                {/* AWS Tokyo fact box */}
+                                <div
+                                    className="flex items-start gap-3 px-4 py-3 rounded-xl mb-4 border"
+                                    style={{ background: 'rgba(255,153,0,0.06)', borderColor: 'rgba(255,153,0,0.2)' }}
+                                >
+                                    <svg className="w-4 h-4 mt-0.5 shrink-0 text-orange-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                                        <path strokeLinecap="round" strokeLinejoin="round" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                                        <path strokeLinecap="round" strokeLinejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                                    </svg>
+                                    <div>
+                                        <p className="text-xs font-bold text-orange-400 uppercase tracking-wider mb-0.5">Infrastructure Concentration</p>
+                                        <p className="text-xs text-gray-400 leading-relaxed">
+                                            100% of validators on <span className="text-orange-300 font-semibold">AWS ap-northeast-1 (Tokyo)</span>.
+                                            Traders near Tokyo hold a ~200ms latency edge over US/EU participants.
+                                            A cloud failure or regional outage would take down the entire network.
+                                        </p>
+                                    </div>
+                                </div>
+
                                 <p className="text-gray-600 text-xs mb-6 italic">
-                                    Note: provider detection is based on validator name/description matching only —
-                                    the Hyperliquid API does not expose IP addresses. Results are best-effort.
+                                    Note: provider detection is based on validator name/description matching — the Hyperliquid API does not expose node IPs. The AWS concentration above is confirmed by Glassnode research (March 2026).
                                 </p>
 
                                 <a
