@@ -237,4 +237,33 @@ export const USE_CASES_CONFIG: Partial<Record<ChainId, UseCasesChainConfig>> = {
             },
         ],
     },
+    monad: {
+        apiRoute: '/api/monad',
+        techHighlights: [
+            { value: '4.5 GHz+', label: 'Base Clock', sub: 'MonadBFT bare-metal req.' },
+            { value: 'PCIe Gen4', label: 'NVMe Storage', sub: '2.5 TB required' },
+        ],
+        serverSpecs: [
+            {
+                nodeType: 'Validator (MonadBFT)',
+                cpu: '16 cores @ 4.5 GHz+',
+                ram: '32 GB',
+                storage: '2.5 TB NVMe PCIe Gen4',
+                network: '300 Mbps symmetric',
+                ovhServer: 'ADVANCE-3',
+                priceEur: 210,
+                ovhServerUrl: 'https://www.ovhcloud.com/en/bare-metal/advance/adv-3/',
+            },
+            {
+                nodeType: 'RPC / Full node',
+                cpu: '16 cores @ 4.5 GHz+',
+                ram: '32 GB',
+                storage: '2.5 TB NVMe PCIe Gen4',
+                network: '100 Mbps',
+                ovhServer: 'ADVANCE-2',
+                priceEur: 125,
+                ovhServerUrl: 'https://www.ovhcloud.com/en/bare-metal/advance/adv-2/',
+            },
+        ],
+    },
 };
