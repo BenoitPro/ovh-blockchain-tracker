@@ -232,8 +232,13 @@ export async function fetchMonadValidators(): Promise<MonadValidator[]> {
 
     // metadata.secp matches node_id in geo/epoch endpoints
     const nameByNodeId = new Map<string, string>();
+    const logoByNodeId = new Map<string, string>();
+    const websiteByNodeId = new Map<string, string>();
     for (const m of metaData) {
-        if (m.secp && m.name) nameByNodeId.set(m.secp, m.name);
+        if (!m.secp) continue;
+        if (m.name) nameByNodeId.set(m.secp, m.name);
+        if (m.logo) logoByNodeId.set(m.secp, m.logo);
+        if (m.website) websiteByNodeId.set(m.secp, m.website);
     }
 
     logger.info(
@@ -273,7 +278,10 @@ export async function fetchMonadValidators(): Promise<MonadValidator[]> {
             // Use connected status as a binary proxy (connected=true → 100, false/undefined → 0).
             const successRate = geo.connected === true ? 100 : 0; // false or undefined → 0 (unknown = conservative)
 
-            return { name, country, city, stake, successRate, active };
+            const logo = geo.node_id ? (logoByNodeId.get(geo.node_id) ?? undefined) : undefined;
+            const website = geo.node_id ? (websiteByNodeId.get(geo.node_id) ?? undefined) : undefined;
+
+            return { name, country, city, stake, successRate, active, logo, website };
         });
 
         const activeCount = validators.filter((v) => v.active).length;

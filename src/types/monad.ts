@@ -18,6 +18,10 @@ export interface MonadValidator {
     successRate: number;
     /** Whether the validator is in the active set */
     active: boolean;
+    /** Logo URL from gmonads.com metadata (not all validators have one) */
+    logo?: string;
+    /** Website URL from gmonads.com metadata */
+    website?: string;
 }
 
 export interface MonadDashboardMetrics {

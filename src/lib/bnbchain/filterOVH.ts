@@ -34,11 +34,13 @@ export async function categorizeBNBByProvider(nodes: BNBChainNode[]): Promise<Pr
   return categorizeByProvider(nodes, extractIP);
 }
 
-function infraFromASN(asn: string): string {
+function infraFromASN(asn: string, org: string): string {
   for (const [key, info] of Object.entries(PROVIDER_ASN_MAP)) {
     if (info.asns.includes(asn)) return PROVIDER_LABELS[key] ?? key;
   }
-  return 'Other';
+  // Use the actual org name from MaxMind instead of a generic "Other"
+  if (org && org !== 'Unknown') return org;
+  return asn; // last resort: show the ASN itself
 }
 
 /**
@@ -58,7 +60,7 @@ export function enrichProviderResolutions(
     const infraCounts: Record<string, number> = {};
     for (const ip of r.ips) {
       const asnInfo = asnMap.get(ip);
-      const infra = asnInfo ? infraFromASN(asnInfo.asn) : 'Unknown';
+      const infra = asnInfo ? infraFromASN(asnInfo.asn, asnInfo.org) : 'Unknown';
       infraCounts[infra] = (infraCounts[infra] ?? 0) + 1;
     }
     const dominantInfra = Object.entries(infraCounts).sort((a, b) => b[1] - a[1])[0]?.[0] ?? 'Unknown';

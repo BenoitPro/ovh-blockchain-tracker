@@ -1,3 +1,5 @@
+'use client';
+
 import { useNetworkTheme } from '@/components/NetworkThemeProvider';
 import { CHAINS } from '@/lib/chains';
 

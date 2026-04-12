@@ -1,3 +1,5 @@
+'use client';
+
 import { useState } from 'react';
 import { MapPinIcon, ServerIcon, XMarkIcon, ArrowDownTrayIcon } from '@heroicons/react/24/outline';
 import { EnrichedNode } from '@/types';

@@ -1,3 +1,5 @@
+'use client';
+
 import { useState } from 'react';
 import { ServerIcon, ChartPieIcon, InformationCircleIcon, XMarkIcon, ShieldCheckIcon } from '@heroicons/react/24/outline';
 import { formatPercentage } from '@/lib/solana/calculateMetrics';

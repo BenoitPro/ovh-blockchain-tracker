@@ -1,3 +1,10 @@
+/**
+ * Celestia-specific types
+ *
+ * Data sources:
+ *   - Peers: CometBFT /net_info on 5 public RPC endpoints → result.peers[].remote_ip
+ *   - Validator count: GET https://celestia-rest.publicnode.com/cosmos/staking/v1beta1/validators?status=BOND_STATUS_BONDED&pagination.limit=1
+ */
 import { ProviderBreakdownEntry } from '@/types/dashboard';
 
 export interface CelestiaNode {
@@ -14,8 +21,8 @@ export interface CelestiaIPInfo {
     country: string;
     country_name: string;
     city: string;
-    latitude: number;
-    longitude: number;
+    lat: number;
+    lon: number;
 }
 
 export interface CelestiaOVHNode extends CelestiaNode {

@@ -192,6 +192,8 @@ html.monad-theme {
 
 html.celestia-theme {
   --chain-accent: #7B2FBE;
+  --chain-bg-tint: rgba(123, 47, 190, 0.10);
+  --page-bg: #080414;
 }
 
 /* Base styles */
