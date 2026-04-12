@@ -47,23 +47,29 @@ export async function _readBenchmarkEvolution(
   const cutoff = Date.now() - months * 30 * 24 * 60 * 60 * 1000;
 
   const sql = chainId
-    ? `SELECT chain_id,
-              strftime('%Y-%m', datetime(timestamp/1000, 'unixepoch')) AS month,
-              provider_breakdown,
-              total_nodes,
-              MAX(timestamp) AS ts
-       FROM benchmark_snapshots
-       WHERE timestamp > ? AND chain_id = ?
-       GROUP BY chain_id, month
+    ? `SELECT s.chain_id,
+              strftime('%Y-%m', datetime(s.timestamp/1000, 'unixepoch')) AS month,
+              s.provider_breakdown,
+              s.total_nodes
+       FROM benchmark_snapshots s
+       WHERE s.id IN (
+         SELECT MAX(id)
+         FROM benchmark_snapshots
+         WHERE timestamp > ? AND chain_id = ?
+         GROUP BY chain_id, strftime('%Y-%m', datetime(timestamp/1000, 'unixepoch'))
+       )
        ORDER BY month ASC`
-    : `SELECT chain_id,
-              strftime('%Y-%m', datetime(timestamp/1000, 'unixepoch')) AS month,
-              provider_breakdown,
-              total_nodes,
-              MAX(timestamp) AS ts
-       FROM benchmark_snapshots
-       WHERE timestamp > ?
-       GROUP BY chain_id, month
+    : `SELECT s.chain_id,
+              strftime('%Y-%m', datetime(s.timestamp/1000, 'unixepoch')) AS month,
+              s.provider_breakdown,
+              s.total_nodes
+       FROM benchmark_snapshots s
+       WHERE s.id IN (
+         SELECT MAX(id)
+         FROM benchmark_snapshots
+         WHERE timestamp > ?
+         GROUP BY chain_id, strftime('%Y-%m', datetime(timestamp/1000, 'unixepoch'))
+       )
        ORDER BY month ASC`;
 
   const args = chainId ? [cutoff, chainId] : [cutoff];
