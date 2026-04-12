@@ -43,6 +43,8 @@ export interface MonadDashboardMetrics {
     countryBreakdown: MonadCountryEntry[];
     /** Top cities with validator count */
     cityBreakdown: MonadCityEntry[];
+    /** Full list of individual validators — used by the Node Explorer */
+    validators: MonadValidator[];
 
     // ── OVH detection fields ─────────────────────────────────────────────────
     // All optional: OVH IP detection requires a MonadBFT p2p crawler that is not

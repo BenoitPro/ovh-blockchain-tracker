@@ -96,34 +96,23 @@ describe('filterOVHNodes', () => {
         expect(result).toHaveLength(0);
     });
 
-    it('should enrich OVH nodes with geolocation data', async () => {
-        const nodes = [mockSolanaNode('node1', '99.88.77.66')]; // Different IP to avoid cache
+    it('should enrich OVH nodes with geolocation data from MaxMind', async () => {
+        const nodes = [mockSolanaNode('node1', '99.88.77.66')];
 
         vi.mocked(maxmind.isOVHIP).mockReturnValue(true);
         vi.mocked(maxmind.getASNFromMaxMind).mockReturnValue({
             asn: 'AS16276',
             org: 'OVH SAS',
         });
-
-        (global.fetch as any).mockResolvedValueOnce({
-            ok: true,
-            json: async () => ({
-                status: 'success',
-                countryCode: 'DE',
-                country: 'Germany',
-                city: 'Frankfurt',
-                lat: 50.1109,
-                lon: 8.6821,
-            }),
+        vi.mocked(maxmind.getCountryFromMaxMind).mockReturnValue({
+            countryCode: 'DE',
+            country: 'Germany',
         });
 
         const result = await filterOVHNodes(nodes);
 
         expect(result[0].ipInfo.country).toBe('DE');
         expect(result[0].ipInfo.country_name).toBe('Germany');
-        expect(result[0].ipInfo.city).toBe('Frankfurt');
-        expect(result[0].ipInfo.latitude).toBe(50.1109);
-        expect(result[0].ipInfo.longitude).toBe(8.6821);
     });
 });
 

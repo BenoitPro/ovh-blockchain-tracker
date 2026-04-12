@@ -48,6 +48,7 @@ export function calculateMonadMetrics(validators: MonadValidator[]): MonadDashbo
         geoDistribution,
         countryBreakdown,
         cityBreakdown,
+        validators,
         // OVH fields — not available without MonadBFT crawler
         ovhNodes: 0,
         marketShare: 0,

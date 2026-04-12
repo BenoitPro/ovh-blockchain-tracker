@@ -1,5 +1,5 @@
 import { fetchBNBPeers } from '@/lib/bnbchain/fetchPeers';
-import { getOVHBNBNodes, categorizeBNBByProvider } from '@/lib/bnbchain/filterOVH';
+import { getOVHBNBNodes, categorizeBNBByProvider, enrichProviderResolutions } from '@/lib/bnbchain/filterOVH';
 import { calculateBNBMetrics } from '@/lib/bnbchain/calculateMetrics';
 import { writeChainCache } from '@/lib/cache/chain-storage';
 import { initMaxMind } from '@/lib/asn/maxmind';
@@ -23,7 +23,8 @@ export const GET = createCronHandler('BNB', async () => {
         getOVHBNBNodes(nodes),
     ]);
 
-    const metrics = calculateBNBMetrics(ovhNodes, nodes.length, validatorCount, categorization, resolvedProviders);
+    const providerDetails = enrichProviderResolutions(providerResolutions, ovhNodes);
+    const metrics = calculateBNBMetrics(ovhNodes, nodes.length, validatorCount, categorization, resolvedProviders, providerDetails);
     await writeChainCache('bnbchain', metrics, nodes.length);
 
     return {

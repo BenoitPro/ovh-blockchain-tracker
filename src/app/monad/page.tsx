@@ -149,7 +149,7 @@ export default function MonadPage() {
                                 <div className="w-full h-full flex items-center justify-center">
                                     <WorldMap
                                         geoDistribution={metrics.geoDistribution}
-                                        globalGeoDistribution={metrics.globalGeoDistribution || {}}
+                                        globalGeoDistribution={metrics.globalGeoDistribution ?? metrics.geoDistribution}
                                         totalNodes={metrics.totalValidators}
                                         ovhNodes={metrics.ovhNodes ?? 0}
                                         marketShare={metrics.marketShare ?? 0}

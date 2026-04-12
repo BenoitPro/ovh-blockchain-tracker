@@ -47,8 +47,8 @@ describe('calculateMetrics', () => {
         expect(result.totalNodes).toBe(4);
         expect(result.ovhNodes).toBe(2);
         expect(result.marketShare).toBe(50); // 2/4 = 50%
-        expect(result.geoDistribution).toEqual({ France: 1, Germany: 1 });
-        expect(result.providerDistribution).toEqual(providerDistribution);
+        expect(result.geoDistribution).toEqual({ FR: 1, GE: 1 });
+        expect(result.providerDistribution).toEqual(providerDistribution.distribution);
         expect(result.topValidators).toHaveLength(2);
     });
 
@@ -91,7 +91,7 @@ describe('calculateMetrics', () => {
 
         const result = calculateMetrics(allNodes, ovhNodes, ({} as any));
 
-        expect(result.geoDistribution).toEqual({ France: 2 });
+        expect(result.geoDistribution).toEqual({ FR: 2 });
     });
 });
 

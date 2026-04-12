@@ -4,56 +4,85 @@ import { useEffect, useState } from 'react';
 import ParticlesBackground from '@/components/ParticlesBackground';
 import LoadingState from '@/components/dashboard/LoadingState';
 import ErrorState from '@/components/dashboard/ErrorState';
-import { BNBChainDashboardMetrics, BNBChainOVHNode } from '@/types/bnbchain';
+import { BNBChainDashboardMetrics, BNBProviderDetail } from '@/types/bnbchain';
 
 const BNB_GOLD = '#F3BA2F';
 
-function NodeRow({ node }: { node: BNBChainOVHNode }) {
+const TIER_LABELS: Record<string, string> = {
+    official: 'Official',
+    professional: 'Professional',
+    community: 'Community',
+};
+
+const TIER_COLORS: Record<string, string> = {
+    official: '#F3BA2F',
+    professional: '#60A5FA',
+    community: '#9CA3AF',
+};
+
+const INFRA_COLORS: Record<string, string> = {
+    OVHcloud: '#00F0FF',
+    AWS: '#FF9900',
+    'Google Cloud': '#4285F4',
+    Hetzner: '#D50C2D',
+    DigitalOcean: '#0080FF',
+    Cloudflare: '#F38020',
+    Other: '#6B7280',
+    Unknown: '#374151',
+};
+
+function InfraBadge({ infra, isOnOVH }: { infra: string; isOnOVH: boolean }) {
+    const color = isOnOVH ? '#00F0FF' : (INFRA_COLORS[infra] ?? '#6B7280');
     return (
-        <tr className="border-b border-white/5 hover:bg-white/2 transition-colors">
+        <span
+            className="text-xs font-semibold px-2 py-0.5 rounded-md"
+            style={{
+                color,
+                background: `${color}18`,
+                border: `1px solid ${color}40`,
+            }}
+        >
+            {isOnOVH ? 'OVHcloud ✓' : infra}
+        </span>
+    );
+}
+
+function ProviderRow({ detail }: { detail: BNBProviderDetail }) {
+    return (
+        <tr className="border-b border-white/5 hover:bg-white/[0.02] transition-colors">
             <td className="px-5 py-4">
-                <div className="flex items-center gap-2">
-                    <span className="font-mono text-xs text-white/70">{node.ip}</span>
-                    {node.port && (
-                        <span className="text-[10px] text-white/30">:{node.port}</span>
-                    )}
+                <div>
+                    <span className="font-semibold text-white text-sm">{detail.providerName}</span>
+                    <span className="block text-xs text-white/30 font-mono mt-0.5">{detail.hostname}</span>
                 </div>
             </td>
             <td className="px-5 py-4">
                 <span
-                    className="text-xs font-bold px-2 py-1 rounded-lg"
+                    className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full"
                     style={{
-                        color: BNB_GOLD,
-                        background: 'rgba(243, 186, 47, 0.1)',
-                        border: '1px solid rgba(243, 186, 47, 0.25)',
+                        color: TIER_COLORS[detail.tier] ?? '#9CA3AF',
+                        background: `${TIER_COLORS[detail.tier] ?? '#9CA3AF'}15`,
+                        border: `1px solid ${TIER_COLORS[detail.tier] ?? '#9CA3AF'}30`,
                     }}
                 >
-                    {node.provider}
+                    {TIER_LABELS[detail.tier] ?? detail.tier}
                 </span>
             </td>
-            <td className="px-5 py-4 text-white/50 text-xs">
-                {node.ipInfo?.country_name || node.ipInfo?.country || '—'}
+            <td className="px-5 py-4 text-center">
+                {detail.ipCount > 0 ? (
+                    <span className="text-sm text-white/70 font-mono">{detail.ipCount}</span>
+                ) : (
+                    <span className="text-xs text-white/20">DNS fail</span>
+                )}
             </td>
-            <td className="px-5 py-4 text-white/50 text-xs">
-                {node.ipInfo?.asn || '—'}
-            </td>
-            <td className="px-5 py-4 text-white/40 text-xs font-mono truncate max-w-[200px]">
-                {node.version || '—'}
+            <td className="px-5 py-4">
+                <InfraBadge infra={detail.infrastructure} isOnOVH={detail.isOnOVH} />
             </td>
             <td className="px-5 py-4 text-center">
-                {node.isValidator ? (
-                    <span
-                        className="text-[10px] font-black uppercase tracking-wider px-2 py-1 rounded-full"
-                        style={{
-                            color: BNB_GOLD,
-                            background: 'rgba(243, 186, 47, 0.12)',
-                            border: '1px solid rgba(243, 186, 47, 0.3)',
-                        }}
-                    >
-                        Validator
-                    </span>
+                {detail.isOnOVH ? (
+                    <span className="text-xs font-black" style={{ color: '#00F0FF' }}>✓</span>
                 ) : (
-                    <span className="text-[10px] text-white/20">Full node</span>
+                    <span className="text-xs text-white/15">—</span>
                 )}
             </td>
         </tr>
@@ -104,7 +133,17 @@ export default function BNBChainNodesPage() {
         );
     }
 
-    const nodes: BNBChainOVHNode[] = metrics.topNodes ?? [];
+    const details: BNBProviderDetail[] = (metrics.providerDetails ?? [])
+        .sort((a, b) => {
+            // OVH first, then by tier (official > professional > community), then by ipCount
+            if (a.isOnOVH !== b.isOnOVH) return a.isOnOVH ? -1 : 1;
+            const tierOrder = { official: 0, professional: 1, community: 2 };
+            const tierDiff = (tierOrder[a.tier] ?? 3) - (tierOrder[b.tier] ?? 3);
+            if (tierDiff !== 0) return tierDiff;
+            return b.ipCount - a.ipCount;
+        });
+
+    const ovhProviders = details.filter(d => d.isOnOVH);
 
     return (
         <div
@@ -113,20 +152,17 @@ export default function BNBChainNodesPage() {
         >
             <ParticlesBackground />
 
-            <main className="relative z-10 container mx-auto px-6 py-12">
+            <main className="relative z-10 container mx-auto px-6 py-12 max-w-5xl">
                 <div className="mb-8">
                     <h2
                         className="text-3xl font-bold bg-clip-text text-transparent"
-                        style={{
-                            backgroundImage: `linear-gradient(to right, ${BNB_GOLD}, #FFD97D)`,
-                        }}
+                        style={{ backgroundImage: `linear-gradient(to right, ${BNB_GOLD}, #FFD97D)` }}
                     >
-                        BNB Chain — OVHcloud Nodes
+                        BNB Chain — RPC Provider Explorer
                     </h2>
-                    <p className="text-white/50 mt-2">
-                        {nodes.length > 0
-                            ? `${nodes.length} OVH-hosted endpoint${nodes.length !== 1 ? 's' : ''} out of ${metrics.totalTrackedEndpoints.toLocaleString()} tracked RPC endpoints.`
-                            : `No OVHcloud endpoints detected among the ${metrics.totalTrackedEndpoints.toLocaleString()} tracked BSC RPC endpoints.`}
+                    <p className="text-white/50 mt-2 text-sm">
+                        {details.length} professional RPC providers tracked · ~{metrics.coverage.estimatedTrafficCoverage}% of BSC API traffic.
+                        Infrastructure detected via ASN/MaxMind per resolved IP.
                     </p>
                 </div>
 
@@ -134,82 +170,77 @@ export default function BNBChainNodesPage() {
                 <div className="flex flex-wrap gap-4 mb-8">
                     <div
                         className="px-5 py-3 rounded-xl border text-center"
-                        style={{
-                            background: 'rgba(243, 186, 47, 0.06)',
-                            borderColor: 'rgba(243, 186, 47, 0.2)',
-                        }}
+                        style={{ background: 'rgba(243, 186, 47, 0.06)', borderColor: 'rgba(243, 186, 47, 0.2)' }}
                     >
                         <div className="text-2xl font-black" style={{ color: BNB_GOLD }}>
-                            {metrics.totalTrackedEndpoints.toLocaleString()}
+                            {details.length}
                         </div>
-                        <div className="text-xs text-gray-400 mt-0.5">Tracked Endpoints</div>
+                        <div className="text-xs text-gray-400 mt-0.5">Providers Tracked</div>
                     </div>
                     <div
                         className="px-5 py-3 rounded-xl border text-center"
-                        style={{
-                            background: 'rgba(243, 186, 47, 0.06)',
-                            borderColor: 'rgba(243, 186, 47, 0.2)',
-                        }}
+                        style={{ background: 'rgba(243, 186, 47, 0.06)', borderColor: 'rgba(243, 186, 47, 0.2)' }}
                     >
                         <div className="text-2xl font-black" style={{ color: BNB_GOLD }}>
-                            {metrics.ovhEndpoints}
+                            {metrics.totalTrackedEndpoints}
                         </div>
-                        <div className="text-xs text-gray-400 mt-0.5">OVH Endpoints</div>
+                        <div className="text-xs text-gray-400 mt-0.5">IPs Resolved</div>
                     </div>
                     <div
                         className="px-5 py-3 rounded-xl border text-center"
-                        style={{
-                            background: 'rgba(243, 186, 47, 0.06)',
-                            borderColor: 'rgba(243, 186, 47, 0.2)',
-                        }}
+                        style={{ background: 'rgba(0, 240, 255, 0.06)', borderColor: 'rgba(0, 240, 255, 0.2)' }}
+                    >
+                        <div className="text-2xl font-black" style={{ color: '#00F0FF' }}>
+                            {ovhProviders.length > 0 ? ovhProviders.length : '0'}
+                        </div>
+                        <div className="text-xs text-gray-400 mt-0.5">On OVHcloud</div>
+                    </div>
+                    <div
+                        className="px-5 py-3 rounded-xl border text-center"
+                        style={{ background: 'rgba(243, 186, 47, 0.06)', borderColor: 'rgba(243, 186, 47, 0.2)' }}
                     >
                         <div className="text-2xl font-black" style={{ color: BNB_GOLD }}>
                             {metrics.marketShare.toFixed(1)}%
                         </div>
-                        <div className="text-xs text-gray-400 mt-0.5">Market Share</div>
-                    </div>
-                    <div
-                        className="px-5 py-3 rounded-xl border text-center"
-                        style={{
-                            background: 'rgba(243, 186, 47, 0.06)',
-                            borderColor: 'rgba(243, 186, 47, 0.2)',
-                        }}
-                    >
-                        <div className="text-2xl font-black" style={{ color: BNB_GOLD }}>
-                            {metrics.ovhProviders}
-                        </div>
-                        <div className="text-xs text-gray-400 mt-0.5">OVH Providers</div>
+                        <div className="text-xs text-gray-400 mt-0.5">OVH Share</div>
                     </div>
                 </div>
 
-                {nodes.length > 0 ? (
+                {/* Scope note */}
+                <div
+                    className="mb-6 px-4 py-3 rounded-xl border text-xs text-white/40"
+                    style={{ borderColor: 'rgba(255,255,255,0.06)', background: 'rgba(255,255,255,0.02)' }}
+                >
+                    Scope: professional RPC providers only. Validators (~{metrics.totalValidators}) and private nodes
+                    (~{metrics.coverage.totalNetworkEstimate.toLocaleString()}+) use private sentries — IPs not discoverable on BSC.
+                </div>
+
+                {/* Provider table */}
+                {details.length > 0 ? (
                     <div className="overflow-x-auto rounded-2xl border border-white/8">
                         <table className="w-full text-sm">
                             <thead>
-                                <tr className="border-b border-white/8 bg-white/2">
+                                <tr className="border-b border-white/8 bg-white/[0.02]">
                                     <th className="px-5 py-3 text-left text-[9px] font-black uppercase tracking-widest text-white/30">
-                                        IP Address
+                                        RPC Provider
                                     </th>
                                     <th className="px-5 py-3 text-left text-[9px] font-black uppercase tracking-widest text-white/30">
-                                        Provider
-                                    </th>
-                                    <th className="px-5 py-3 text-left text-[9px] font-black uppercase tracking-widest text-white/30">
-                                        Country
-                                    </th>
-                                    <th className="px-5 py-3 text-left text-[9px] font-black uppercase tracking-widest text-white/30">
-                                        ASN
-                                    </th>
-                                    <th className="px-5 py-3 text-left text-[9px] font-black uppercase tracking-widest text-white/30">
-                                        Client Version
+                                        Tier
                                     </th>
                                     <th className="px-5 py-3 text-center text-[9px] font-black uppercase tracking-widest text-white/30">
-                                        Role
+                                        IPs
+                                    </th>
+                                    <th className="px-5 py-3 text-left text-[9px] font-black uppercase tracking-widest text-white/30">
+                                        Infrastructure
+                                    </th>
+                                    <th className="px-5 py-3 text-center text-[9px] font-black uppercase tracking-widest text-white/30">
+                                        OVH
                                     </th>
                                 </tr>
                             </thead>
                             <tbody>
-                                {nodes.map((node) => (
-                                    <NodeRow key={node.ip} node={node} />
+                                {details.map((d) => (
+                                    <ProviderRow key={d.hostname} detail={d} />
                                 ))}
                             </tbody>
                         </table>
@@ -217,17 +248,9 @@ export default function BNBChainNodesPage() {
                 ) : (
                     <div
                         className="rounded-2xl p-12 border text-center"
-                        style={{
-                            background: 'rgba(243, 186, 47, 0.04)',
-                            borderColor: 'rgba(243, 186, 47, 0.15)',
-                        }}
+                        style={{ background: 'rgba(243, 186, 47, 0.04)', borderColor: 'rgba(243, 186, 47, 0.15)' }}
                     >
-                        <p className="text-white/40 text-sm">
-                            No OVHcloud nodes detected in the current BNB Chain peer snapshot.
-                        </p>
-                        <p className="text-white/20 text-xs mt-2">
-                            The worker may need to run again to discover updated peers.
-                        </p>
+                        <p className="text-white/40 text-sm">No provider data yet — run the worker to populate.</p>
                     </div>
                 )}
             </main>

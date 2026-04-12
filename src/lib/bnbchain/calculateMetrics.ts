@@ -1,4 +1,4 @@
-import type { BNBChainOVHNode, BNBChainDashboardMetrics } from '@/types/bnbchain';
+import type { BNBChainOVHNode, BNBChainDashboardMetrics, BNBProviderDetail } from '@/types/bnbchain';
 import type { ProviderCategorizationResult } from '@/lib/shared/filterOVH';
 import type { ProviderBreakdownEntry } from '@/types/dashboard';
 import { PROVIDER_COLORS, PROVIDER_LABELS } from '@/lib/config/constants';
@@ -24,6 +24,7 @@ export function calculateBNBMetrics(
     totalValidators: number,
     categorization: ProviderCategorizationResult,
     resolvedProviders?: number,
+    providerDetails?: BNBProviderDetail[],
 ): BNBChainDashboardMetrics {
     const { distribution, othersBreakdown, globalGeoDistribution } = categorization;
 
@@ -117,6 +118,7 @@ export function calculateBNBMetrics(
         providerBreakdown: eligibleEntries.sort((a, b) => b.nodeCount - a.nodeCount),
         othersBreakdown: newOthersBreakdown,
         topNodes: ovhNodes.slice(0, 10),
+        providerDetails: providerDetails ?? [],
         coverage: {
             ...BSC_COVERAGE_META,
             trackedProviders: resolvedProviders ?? BSC_COVERAGE_META.trackedProviders,

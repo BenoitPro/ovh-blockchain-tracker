@@ -33,7 +33,7 @@ export const CACHE_KEYS = {
     hyperliquid: 'hyperliquid-metrics',
     bnbchain: 'bnbchain-metrics',
     monad: 'monad-metrics',
-    // celestia: 'celestia-metrics',
+    celestia: 'celestia-metrics',
     'solana-prospects': 'solana-prospects-data',
 } as const;
 
@@ -48,6 +48,7 @@ export const CACHE_TTL: Record<ChainId, number> = {
     hyperliquid: 6 * 60 * 60 * 1000, // 6 hours (validator set very stable, ~30 validators)
     bnbchain: 2 * 60 * 60 * 1000,    // 2 hours
     monad: 2 * 60 * 60 * 1000,       // 2 hours
+    celestia: 2 * 60 * 60 * 1000,   // 2 hours
     'solana-prospects': 6 * 60 * 60 * 1000, // 6 hours
 };
 

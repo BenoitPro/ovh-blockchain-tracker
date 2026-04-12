@@ -13,7 +13,7 @@
 require('dotenv').config({ path: '.env.local' });
 import { initMaxMind } from '../src/lib/asn/maxmind';
 import { fetchBNBPeers } from '../src/lib/bnbchain/fetchPeers';
-import { getOVHBNBNodes, categorizeBNBByProvider } from '../src/lib/bnbchain/filterOVH';
+import { getOVHBNBNodes, categorizeBNBByProvider, enrichProviderResolutions } from '../src/lib/bnbchain/filterOVH';
 import { calculateBNBMetrics } from '../src/lib/bnbchain/calculateMetrics';
 import { writeChainCache } from '../src/lib/cache/chain-storage';
 import { logger } from '../src/lib/utils';
@@ -43,10 +43,13 @@ async function run() {
   const pct = nodes.length > 0 ? ((ovhNodes.length / nodes.length) * 100).toFixed(2) : '0';
   logger.info(`[Worker BNB] OVH: ${ovhNodes.length} / ${nodes.length} endpoints (${pct}%)`);
 
-  // 4. Calculate metrics
-  const metrics = calculateBNBMetrics(ovhNodes, nodes.length, validatorCount, categorization, resolvedProviders);
+  // 4. Enrich provider resolutions with infrastructure info (MaxMind already warm)
+  const providerDetails = enrichProviderResolutions(providerResolutions, ovhNodes);
 
-  // 5. Write to cache (key: 'bnbchain-metrics')
+  // 5. Calculate metrics
+  const metrics = calculateBNBMetrics(ovhNodes, nodes.length, validatorCount, categorization, resolvedProviders, providerDetails);
+
+  // 6. Write to cache (key: 'bnbchain-metrics')
   logger.info('[Worker BNB] Writing to cache...');
   await writeChainCache('bnbchain', metrics, nodes.length);
 

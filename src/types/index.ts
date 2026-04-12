@@ -9,3 +9,4 @@ export * from './tron';
 export * from './hyperliquid';
 export * from './bnbchain';
 export * from './monad';
+export * from './celestia';

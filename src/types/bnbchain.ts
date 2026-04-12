@@ -38,6 +38,19 @@ export interface BNBChainOVHNode extends BNBChainNode {
   isValidator?: boolean;
 }
 
+/**
+ * One tracked BSC RPC provider with resolved infrastructure info.
+ * This is the business-relevant view: "Ankr runs on AWS — potential OVH win-back."
+ */
+export interface BNBProviderDetail {
+  providerName: string;                              // "Ankr", "NodeReal", "BNB Chain (Binance)"
+  hostname: string;                                  // "rpc.ankr.com"
+  tier: 'official' | 'professional' | 'community';  // provider tier
+  ipCount: number;                                   // IPs resolved via DNS (0 = DNS failed)
+  infrastructure: string;                            // "AWS", "Cloudflare", "OVHcloud", "Other"
+  isOnOVH: boolean;                                  // true if ≥1 IP is on OVH infrastructure
+}
+
 /** Metadata about what this dataset covers — shown in UI for transparency */
 export interface BNBCoverageMeta {
   trackedProviders: number;
@@ -70,6 +83,12 @@ export interface BNBChainDashboardMetrics {
   othersBreakdown?: Record<string, number>;
 
   topNodes: BNBChainOVHNode[];
+
+  /**
+   * Per-provider detail for the Explorer page.
+   * Primary identity is the BSC provider (Ankr, NodeReal…), not the infra (AWS, Cloudflare…).
+   */
+  providerDetails: BNBProviderDetail[];
 
   /** Coverage metadata — always shown in UI for transparency */
   coverage: BNBCoverageMeta;
