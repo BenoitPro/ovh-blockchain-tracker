@@ -27,12 +27,20 @@ function formatLastUpdated(timestamp: number): string {
 }
 
 export default function HyperliquidDashboard({ metrics, cachedAt, isStale }: HyperliquidDashboardProps) {
-    const { activeValidators, ovhValidators, marketShare, providerBreakdown, totalStake } = metrics;
+    const { activeValidators, ovhValidators, marketShare, providerBreakdown, totalStake, allValidators } = metrics;
 
     // Format total stake as HYPE tokens (raw unit / 1e8)
     const totalStakeHYPE = (totalStake / 1e8).toLocaleString('en-US', {
         maximumFractionDigits: 0,
     });
+
+    const jailedCount = (allValidators ?? []).filter(v => v.isJailed).length;
+
+    const avgUptime = (() => {
+        const withUptime = (allValidators ?? []).filter(v => typeof v.dailyUptime === 'number' && v.isActive);
+        if (withUptime.length === 0) return null;
+        return withUptime.reduce((s, v) => s + (v.dailyUptime ?? 0), 0) / withUptime.length;
+    })();
 
     // Find the dominant provider for the marketing hook
     const dominantProvider = providerBreakdown[0] ?? null;
@@ -163,6 +171,34 @@ export default function HyperliquidDashboard({ metrics, cachedAt, isStale }: Hyp
                                         {ovhValidators > 0 ? `${marketShare.toFixed(1)}%` : 'N/A'}
                                     </div>
                                     <div className="text-xs text-gray-400 mt-1">OVH Market Share</div>
+                                </div>
+
+                                <div
+                                    className="px-6 py-4 rounded-xl border text-center"
+                                    style={{ background: 'rgba(255,200,50,0.05)', borderColor: 'rgba(255,200,50,0.2)' }}
+                                >
+                                    <div className="text-2xl font-black text-yellow-400">{jailedCount}</div>
+                                    <div className="text-xs text-gray-400 mt-1">Jailed Validators</div>
+                                </div>
+
+                                {avgUptime !== null && (
+                                    <div
+                                        className="px-6 py-4 rounded-xl border text-center"
+                                        style={{ background: 'rgba(0, 229, 190, 0.05)', borderColor: 'rgba(0, 229, 190, 0.2)' }}
+                                    >
+                                        <div className="text-2xl font-black text-[#00E5BE]">
+                                            {(avgUptime * 100).toFixed(1)}%
+                                        </div>
+                                        <div className="text-xs text-gray-400 mt-1">Avg Daily Uptime</div>
+                                    </div>
+                                )}
+
+                                <div
+                                    className="px-6 py-4 rounded-xl border text-center"
+                                    style={{ background: 'rgba(0, 229, 190, 0.05)', borderColor: 'rgba(0, 229, 190, 0.2)' }}
+                                >
+                                    <div className="text-2xl font-black text-[#00E5BE]">{totalStakeHYPE}</div>
+                                    <div className="text-xs text-gray-400 mt-1">HYPE Staked</div>
                                 </div>
                             </div>
                         </div>

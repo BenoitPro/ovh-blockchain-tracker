@@ -1,24 +1,17 @@
-'use client';
-
 import Header from '@/components/dashboard/Header';
 import ParticlesBackground from '@/components/ParticlesBackground';
+import HyperliquidValidatorExplorer from '@/components/nodes/HyperliquidValidatorExplorer';
 
 export default function HyperliquidNodes() {
     return (
         <div className="relative min-h-screen">
             <ParticlesBackground />
-        <main className="relative z-10 p-4 lg:p-8 xl:p-10 mb-20 max-w-[1600px] mx-auto">
-            <Header network="Hyperliquid" subtitle="Node Explorer" />
-            <div className="mt-8">
-                <div className="bg-[#00E5BE]/5 border border-[#00E5BE]/20 rounded-2xl p-8 backdrop-blur-xl">
-                    <h2 className="text-xl font-bold text-white mb-4">Explorer in Development</h2>
-                    <p className="text-gray-400">
-                        Hyperliquid currently operates with a small set of 24 validator nodes. 
-                        A full explorer will be deployed as the network decentralizes further and expands its validator set.
-                    </p>
+            <main className="relative z-10 p-4 lg:p-8 xl:p-10 mb-20 max-w-[1600px] mx-auto">
+                <Header network="Hyperliquid" subtitle="Validator Explorer — Infrastructure Prospecting" />
+                <div className="mt-8">
+                    <HyperliquidValidatorExplorer />
                 </div>
-            </div>
-        </main>
+            </main>
         </div>
     );
 }
