@@ -13,7 +13,8 @@
         { "path": "/api/cron/sui-refresh",  "schedule": "0 3 * * *" },
         { "path": "/api/cron/tron-refresh", "schedule": "0 4 * * *" },
         { "path": "/api/cron/hyperliquid-refresh", "schedule": "0 5 * * *" },
-        { "path": "/api/cron/bnb-refresh", "schedule": "0 */2 * * *" }
+        { "path": "/api/cron/bnb-refresh", "schedule": "0 */2 * * *" },
+        { "path": "/api/cron/monad-refresh", "schedule": "0 6 * * *" }
     ],
     "functions": {
         "src/app/api/cron/**/*.ts": {
