@@ -113,10 +113,12 @@ export default function WorldMap({
     }, []);
 
     const rotationTimerRef = useRef<NodeJS.Timeout>(null);
-    
+    const animFrameRef = useRef<number>(0);
+
     useEffect(() => {
         return () => {
             if (rotationTimerRef.current) clearTimeout(rotationTimerRef.current);
+            if (animFrameRef.current) cancelAnimationFrame(animFrameRef.current);
         };
     }, []);
 
@@ -246,11 +248,41 @@ export default function WorldMap({
                         onGlobeReady={() => {
                             if (globeRef.current) {
                                 globeRef.current.pointOfView({ altitude: 1.98, lat: 25, lng: -10 }, 1500);
+                                // Variable-speed rotation: faster over Pacific Ocean, normal over land masses
                                 (rotationTimerRef as any).current = setTimeout(() => {
-                                    if (globeRef.current) {
-                                        globeRef.current.controls().autoRotate = true;
-                                        globeRef.current.controls().autoRotateSpeed = 0.8;
-                                    }
+                                    if (!globeRef.current) return;
+                                    const controls = globeRef.current.controls();
+                                    controls.autoRotate = true;
+                                    controls.autoRotateSpeed = 0.8;
+
+                                    const BASE_SPEED = 0.8;
+                                    const FAST_SPEED = 4.8;
+                                    // Pacific Ocean: roughly longitude 150°E to -120°W (i.e. 150 to 240 in 0-360)
+                                    const PACIFIC_CENTER = 195; // middle of the Pacific
+                                    const PACIFIC_HALF_WIDTH = 50; // degrees from center considered "deep ocean"
+                                    let currentSpeed = BASE_SPEED;
+
+                                    const tick = () => {
+                                        if (!globeRef.current) return;
+                                        const pov = globeRef.current.pointOfView();
+                                        // Normalize longitude to 0-360 range
+                                        let lng = ((pov.lng % 360) + 360) % 360;
+
+                                        // Distance from Pacific center (wrapping around 360°)
+                                        let dist = Math.abs(lng - PACIFIC_CENTER);
+                                        if (dist > 180) dist = 360 - dist;
+
+                                        // Smooth interpolation: 0 at center of Pacific → 1 at edges
+                                        const landFactor = Math.min(1, dist / PACIFIC_HALF_WIDTH);
+                                        const targetSpeed = FAST_SPEED + (BASE_SPEED - FAST_SPEED) * landFactor;
+
+                                        // Smooth easing toward target speed
+                                        currentSpeed += (targetSpeed - currentSpeed) * 0.04;
+                                        controls.autoRotateSpeed = currentSpeed;
+
+                                        animFrameRef.current = requestAnimationFrame(tick);
+                                    };
+                                    animFrameRef.current = requestAnimationFrame(tick);
                                 }, 1550);
                             }
                         }}

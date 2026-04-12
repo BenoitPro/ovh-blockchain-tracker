@@ -1,6 +1,7 @@
 'use client';
 
-import { motion } from 'framer-motion';
+import { useState } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import ParticlesBackground from '@/components/ParticlesBackground';
 const ACCENT = '#00F0FF';
 
@@ -433,6 +434,328 @@ function SecurityChart() {
     );
 }
 
+/* ─── §6 — GTM Strategy & Ecosystem Segmentation ─────────────────────── */
+
+const PYRAMID_TIERS = [
+    {
+        label: 'Foundations',
+        shortDesc: '1 deal → entire ecosystem',
+        actors: 'Solana Foundation, Celestia Labs, Polygon Labs, dYdX…',
+        why: 'One partnership = official "recommended hosting" status. All operators downstream follow the foundation\'s docs and templates. Co-branded guides, pre-configured images, "Powered by OVHcloud" in their documentation.',
+        priority: 'Highest priority',
+        color: '#00F0FF',
+        // Trapezoid: top-left%, top-right%, bottom-right%, bottom-left%
+        clip: 'polygon(32% 0%, 68% 0%, 76% 100%, 24% 100%)',
+        glow: 'rgba(0,240,255,0.25)',
+    },
+    {
+        label: 'Institutional StaaS',
+        shortDesc: '100s of servers per contract',
+        actors: 'Figment, Chorus One, P2P.org, Kiln…',
+        why: 'Fleet buyers managing billions in stake across 30–40+ chains. One contract = hundreds of recurring bare-metal servers with geo-redundancy requirements. These operators need multi-region resilience — a natural fit for OVH.',
+        priority: 'Very high',
+        color: '#9945FF',
+        clip: 'polygon(24% 0%, 76% 0%, 86% 100%, 14% 100%)',
+        glow: 'rgba(153,69,255,0.2)',
+    },
+    {
+        label: 'Infra Consumers',
+        shortDesc: 'Always-on, high bandwidth',
+        actors: 'RPC providers (Alchemy, Infura), indexers, block explorers, oracle operators…',
+        why: 'Always-on, high-bandwidth workloads. Full nodes and query-heavy services that need dedicated hardware 24/7 — volume play with predictable recurring revenue. Steady fleet that never turns off.',
+        priority: 'Medium–high',
+        color: '#627EEA',
+        clip: 'polygon(14% 0%, 86% 0%, 94% 100%, 6% 100%)',
+        glow: 'rgba(98,126,234,0.15)',
+    },
+    {
+        label: 'Community Operators',
+        shortDesc: '1–2 machines each',
+        actors: 'Independent validators, solo SPOs, small staking setups…',
+        why: 'Long tail — hundreds of actors with 1–2 machines each. Useful for visibility and community credibility, but doesn\'t scale as a primary GTM motion. Good for brand awareness, not for revenue.',
+        priority: 'Lower',
+        color: '#64748b',
+        clip: 'polygon(6% 0%, 94% 0%, 98% 100%, 2% 100%)',
+        glow: 'rgba(100,116,139,0.1)',
+    },
+];
+
+const TRANSVERSAL_LAYERS = [
+    {
+        label: 'ZK Provers',
+        shortDesc: 'GPU/FPGA premium',
+        desc: 'GPU/FPGA-heavy proof generation for zkEVMs (Polygon zkEVM, Scroll, zkSync). Premium hardware margins. The next wave of compute-intensive demand.',
+        color: '#F59E0B',
+        horizon: '2026+',
+    },
+    {
+        label: 'Restaking',
+        shortDesc: 'EigenLayer AVSs',
+        desc: 'Operators running multiple Actively Validated Services on shared infra. Same institutional operators, more modules per machine — multiplicative demand.',
+        color: '#EF4444',
+        horizon: 'Now → 2026',
+    },
+    {
+        label: 'DA Layers',
+        shortDesc: '25+ TiB NVMe',
+        desc: 'Celestia Bridge nodes need 25+ TiB NVMe with massive bandwidth. Explosive growth as rollups multiply. Storage-intensive, bandwidth-hungry workloads.',
+        color: '#22C55E',
+        horizon: 'Now → 2026',
+    },
+];
+
+function GTMChart() {
+    const [hoveredTier, setHoveredTier] = useState<number | null>(null);
+    const [hoveredTransversal, setHoveredTransversal] = useState<number | null>(null);
+
+    return (
+        <div className="max-w-4xl w-full mx-auto space-y-8">
+            {/* Main layout: pyramid left, transversal right */}
+            <div className="flex gap-6 items-stretch">
+                {/* ── Pyramid ── */}
+                <div className="flex-1 min-w-0">
+                    <div
+                        className="relative"
+                        style={{ perspective: '900px' }}
+                    >
+                        <div
+                            className="flex flex-col items-center gap-[3px]"
+                            style={{
+                                transformStyle: 'preserve-3d',
+                                transform: 'rotateX(6deg)',
+                            }}
+                        >
+                            {PYRAMID_TIERS.map((tier, i) => {
+                                const isHovered = hoveredTier === i;
+                                const isFaded = hoveredTier !== null && hoveredTier !== i;
+                                return (
+                                    <motion.div
+                                        key={tier.label}
+                                        className="w-full relative cursor-pointer"
+                                        style={{ zIndex: isHovered ? 20 : 10 - i }}
+                                        onMouseEnter={() => setHoveredTier(i)}
+                                        onMouseLeave={() => setHoveredTier(null)}
+                                        animate={{
+                                            translateZ: isHovered ? 40 : 0,
+                                            translateY: isHovered ? -6 : 0,
+                                            scale: isHovered ? 1.03 : 1,
+                                            opacity: isFaded ? 0.4 : 1,
+                                        }}
+                                        transition={{ type: 'spring', stiffness: 300, damping: 25 }}
+                                    >
+                                        {/* Tier shape */}
+                                        <div
+                                            className="relative overflow-visible"
+                                            style={{ clipPath: tier.clip }}
+                                        >
+                                            {/* Background */}
+                                            <div
+                                                className="relative px-8 py-5"
+                                                style={{
+                                                    background: isHovered
+                                                        ? `linear-gradient(135deg, ${tier.color}25 0%, ${tier.color}08 50%, rgba(10,10,25,0.9) 100%)`
+                                                        : `linear-gradient(135deg, ${tier.color}12 0%, rgba(10,10,25,0.95) 40%, rgba(10,10,25,0.85) 100%)`,
+                                                    borderTop: `1px solid ${tier.color}${isHovered ? '50' : '20'}`,
+                                                    transition: 'all 0.3s ease',
+                                                }}
+                                            >
+                                                {/* Glow effect on hover */}
+                                                {isHovered && (
+                                                    <div
+                                                        className="absolute inset-0 pointer-events-none"
+                                                        style={{
+                                                            boxShadow: `inset 0 0 40px ${tier.glow}, 0 0 60px ${tier.glow}`,
+                                                        }}
+                                                    />
+                                                )}
+
+                                                {/* Content */}
+                                                <div className="relative z-10 text-center">
+                                                    <div className="font-black text-sm tracking-wide" style={{ color: isHovered ? tier.color : 'rgba(255,255,255,0.85)' }}>
+                                                        {tier.label}
+                                                    </div>
+                                                    <div className="text-[11px] mt-0.5" style={{ color: isHovered ? 'rgba(255,255,255,0.6)' : 'rgba(255,255,255,0.3)' }}>
+                                                        {tier.shortDesc}
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        {/* Priority indicator — small dot on the left edge */}
+                                        <div
+                                            className="absolute top-1/2 -translate-y-1/2 -left-3 w-1.5 h-1.5 rounded-full transition-all duration-300"
+                                            style={{
+                                                backgroundColor: tier.color,
+                                                opacity: isHovered ? 1 : 0.3,
+                                                boxShadow: isHovered ? `0 0 8px ${tier.color}` : 'none',
+                                            }}
+                                        />
+                                    </motion.div>
+                                );
+                            })}
+                        </div>
+
+                        {/* Pyramid side labels */}
+                        <div className="flex justify-between mt-3 px-4 text-[9px] text-white/20 uppercase tracking-[0.15em]">
+                            <span>← Fewer actors</span>
+                            <span>More actors →</span>
+                        </div>
+                    </div>
+                </div>
+
+                {/* ── Transversal layers (right column) ── */}
+                <div className="w-44 shrink-0 flex flex-col gap-2">
+                    <div className="text-[9px] font-bold uppercase tracking-[0.2em] text-white/25 mb-1 text-center">
+                        Cross-cutting
+                    </div>
+
+                    {/* Connecting line from pyramid */}
+                    <div className="relative flex-1 flex flex-col gap-2">
+                        {/* Vertical dashed line on the left */}
+                        <div className="absolute left-0 top-2 bottom-2 w-px border-l border-dashed border-white/10" />
+
+                        {TRANSVERSAL_LAYERS.map((layer, i) => {
+                            const isHovered = hoveredTransversal === i;
+                            return (
+                                <motion.div
+                                    key={layer.label}
+                                    className="relative pl-3 cursor-pointer"
+                                    onMouseEnter={() => setHoveredTransversal(i)}
+                                    onMouseLeave={() => setHoveredTransversal(null)}
+                                    animate={{
+                                        x: isHovered ? 4 : 0,
+                                        scale: isHovered ? 1.02 : 1,
+                                    }}
+                                    transition={{ type: 'spring', stiffness: 300, damping: 25 }}
+                                >
+                                    {/* Horizontal tick */}
+                                    <div className="absolute left-0 top-1/2 -translate-y-1/2 w-2.5 h-px" style={{ backgroundColor: `${layer.color}40` }} />
+
+                                    <div
+                                        className="rounded-lg p-3 relative overflow-hidden transition-all duration-300"
+                                        style={{
+                                            background: isHovered
+                                                ? `linear-gradient(135deg, ${layer.color}15 0%, rgba(10,10,25,0.9) 100%)`
+                                                : 'rgba(255,255,255,0.03)',
+                                            border: `1px solid ${layer.color}${isHovered ? '40' : '15'}`,
+                                            boxShadow: isHovered ? `0 0 20px ${layer.color}15` : 'none',
+                                        }}
+                                    >
+                                        <div className="flex items-center gap-1.5 mb-1">
+                                            <div
+                                                className="w-1.5 h-1.5 rounded-full shrink-0"
+                                                style={{ backgroundColor: layer.color }}
+                                            />
+                                            <span className="font-bold text-[11px] text-white/80">{layer.label}</span>
+                                        </div>
+                                        <div className="text-[10px] text-white/30">{layer.shortDesc}</div>
+                                        <div
+                                            className="text-[8px] font-bold uppercase tracking-widest mt-1.5"
+                                            style={{ color: `${layer.color}90` }}
+                                        >
+                                            {layer.horizon}
+                                        </div>
+                                    </div>
+                                </motion.div>
+                            );
+                        })}
+                    </div>
+                </div>
+            </div>
+
+            {/* ── Hover detail panel ── */}
+            <AnimatePresence mode="wait">
+                {hoveredTier !== null && (
+                    <motion.div
+                        key={`tier-${hoveredTier}`}
+                        initial={{ opacity: 0, y: 8 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -4 }}
+                        transition={{ duration: 0.2 }}
+                        className="rounded-xl p-5 relative overflow-hidden"
+                        style={{
+                            background: `linear-gradient(135deg, ${PYRAMID_TIERS[hoveredTier].color}08 0%, rgba(10,10,25,0.95) 50%)`,
+                            border: `1px solid ${PYRAMID_TIERS[hoveredTier].color}25`,
+                        }}
+                    >
+                        <div className="flex items-start justify-between gap-4">
+                            <div className="flex-1">
+                                <div className="flex items-center gap-3 mb-2">
+                                    <span className="font-black text-base" style={{ color: PYRAMID_TIERS[hoveredTier].color }}>
+                                        {PYRAMID_TIERS[hoveredTier].label}
+                                    </span>
+                                    <span
+                                        className="text-[9px] font-black uppercase tracking-widest px-2 py-0.5 rounded-full"
+                                        style={{
+                                            background: `${PYRAMID_TIERS[hoveredTier].color}15`,
+                                            color: PYRAMID_TIERS[hoveredTier].color,
+                                        }}
+                                    >
+                                        {PYRAMID_TIERS[hoveredTier].priority}
+                                    </span>
+                                </div>
+                                <div className="text-white/50 text-[12px] mb-2 font-medium">{PYRAMID_TIERS[hoveredTier].actors}</div>
+                                <div className="text-white/35 text-[12px] leading-relaxed">{PYRAMID_TIERS[hoveredTier].why}</div>
+                            </div>
+                        </div>
+                    </motion.div>
+                )}
+
+                {hoveredTransversal !== null && hoveredTier === null && (
+                    <motion.div
+                        key={`trans-${hoveredTransversal}`}
+                        initial={{ opacity: 0, y: 8 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -4 }}
+                        transition={{ duration: 0.2 }}
+                        className="rounded-xl p-5 relative overflow-hidden"
+                        style={{
+                            background: `linear-gradient(135deg, ${TRANSVERSAL_LAYERS[hoveredTransversal].color}08 0%, rgba(10,10,25,0.95) 50%)`,
+                            border: `1px solid ${TRANSVERSAL_LAYERS[hoveredTransversal].color}25`,
+                        }}
+                    >
+                        <div className="flex items-center gap-2 mb-2">
+                            <div
+                                className="w-2 h-2 rounded-full"
+                                style={{ backgroundColor: TRANSVERSAL_LAYERS[hoveredTransversal].color }}
+                            />
+                            <span className="font-black text-base" style={{ color: TRANSVERSAL_LAYERS[hoveredTransversal].color }}>
+                                {TRANSVERSAL_LAYERS[hoveredTransversal].label}
+                            </span>
+                            <span
+                                className="text-[9px] font-black uppercase tracking-widest px-2 py-0.5 rounded-full"
+                                style={{
+                                    background: `${TRANSVERSAL_LAYERS[hoveredTransversal].color}15`,
+                                    color: TRANSVERSAL_LAYERS[hoveredTransversal].color,
+                                }}
+                            >
+                                {TRANSVERSAL_LAYERS[hoveredTransversal].horizon}
+                            </span>
+                        </div>
+                        <div className="text-white/40 text-[12px] leading-relaxed">{TRANSVERSAL_LAYERS[hoveredTransversal].desc}</div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
+
+            {/* ── Strategic takeaway ── */}
+            <div className="p-4 rounded-xl border border-[#00F0FF]/15 bg-[#00F0FF]/[0.03]">
+                <div className="text-[#00F0FF] font-bold text-xs mb-2">Strategic takeaway</div>
+                <div className="text-white/40 text-[12px] leading-relaxed space-y-2">
+                    <p>
+                        <strong className="text-white/60">Short term:</strong> Target institutional StaaS operators and chain foundations. One enterprise deal replaces hundreds of individual node runner contracts.
+                    </p>
+                    <p>
+                        <strong className="text-white/60">Medium term:</strong> Develop official foundation partnerships — co-branded guides, pre-configured images, recommended hosting status.
+                    </p>
+                    <p>
+                        <strong className="text-white/60">Long term:</strong> Position on emerging cross-cutting segments — ZK provers, DA nodes, and EigenLayer AVSs.
+                    </p>
+                </div>
+            </div>
+        </div>
+    );
+}
+
 /* ─── Page ─────────────────────────────────────────────────────────────── */
 export default function MethodologyPage() {
 
@@ -466,6 +789,12 @@ export default function MethodologyPage() {
             title: 'Security & Access Control',
             subtitle: 'Authentication is handled entirely in-house — no third-party service. A cryptographically signed session token protects all sensitive pages, verified before any content is rendered.',
             chart: <SecurityChart />,
+        },
+        {
+            number: '6',
+            title: 'GTM Strategy & Ecosystem Segmentation',
+            subtitle: 'The blockchain infrastructure market is not homogeneous. Understanding where the volume and revenue concentrate — and who the real decision-makers are — shapes how this dashboard is built and who it targets.',
+            chart: <GTMChart />,
         },
     ];
 
