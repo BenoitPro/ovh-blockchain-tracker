@@ -16,6 +16,7 @@ import { filterOVHTronNodes, categorizeTronNodesByProvider } from '../src/lib/tr
 import { calculateTronMetrics } from '../src/lib/tron/calculateMetrics';
 import { writeChainCache } from '../src/lib/cache/chain-storage';
 import { initMaxMind } from '../src/lib/asn/maxmind';
+import { writeBenchmarkSnapshot } from '../src/lib/benchmark/snapshotRepository';
 
 async function runTronWorker() {
     console.log('🔴 [Tron Worker] Starting Tron data collection...');
@@ -50,6 +51,14 @@ async function runTronWorker() {
         // 6. Cache (key: 'tron-metrics' — isolated from other chains)
         console.log('💾 [Tron Worker] Writing to cache...');
         await writeChainCache('tron', metrics, allNodes.length);
+
+        try {
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            await writeBenchmarkSnapshot('tron', metrics.totalNodes, (metrics as any).providerBreakdown ?? []);
+            console.log('📸 [Tron Worker] Benchmark snapshot saved');
+        } catch (snapErr) {
+            console.warn('⚠️  [Tron Worker] Failed to save benchmark snapshot:', snapErr);
+        }
 
         const elapsed = ((Date.now() - startTime) / 1000).toFixed(2);
         console.log(`✅ [Tron Worker] Done in ${elapsed}s`);

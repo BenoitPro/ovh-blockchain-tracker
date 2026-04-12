@@ -16,6 +16,7 @@ import { filterOVHSuiNodes, categorizeSuiNodesByProvider } from '../src/lib/sui/
 import { calculateSuiMetrics } from '../src/lib/sui/calculateMetrics';
 import { writeChainCache } from '../src/lib/cache/chain-storage';
 import { initMaxMind } from '../src/lib/asn/maxmind';
+import { writeBenchmarkSnapshot } from '../src/lib/benchmark/snapshotRepository';
 
 async function runSuiWorker() {
     console.log('💧 [Sui Worker] Starting Sui data collection...');
@@ -50,6 +51,14 @@ async function runSuiWorker() {
         // 6. Cache (key: 'sui-metrics' — isolated from other chains)
         console.log('💾 [Sui Worker] Writing to cache...');
         await writeChainCache('sui', metrics, allValidators.length);
+
+        try {
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            await writeBenchmarkSnapshot('sui', metrics.totalNodes, (metrics as any).providerBreakdown ?? []);
+            console.log('📸 [Sui Worker] Benchmark snapshot saved');
+        } catch (snapErr) {
+            console.warn('⚠️  [Sui Worker] Failed to save benchmark snapshot:', snapErr);
+        }
 
         const elapsed = ((Date.now() - startTime) / 1000).toFixed(2);
         console.log(`✅ [Sui Worker] Done in ${elapsed}s`);

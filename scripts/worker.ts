@@ -26,6 +26,7 @@ import { writeChainCache } from '../src/lib/cache/chain-storage';
 import { initMaxMind, getASNFromMaxMind } from '../src/lib/asn/maxmind';
 import { MetricsRepository } from '../src/lib/db/metrics-repository';
 import { identifyProvider } from '../src/lib/shared/providers';
+import { writeBenchmarkSnapshot } from '../src/lib/benchmark/snapshotRepository';
 import { ProspectEntry } from '../src/types/dashboard';
 
 // NO LIMIT - Fetch ALL nodes to get accurate market share
@@ -108,6 +109,14 @@ async function runWorker() {
         await writeChainCache('solana', metrics, allNodes.length);
         await writeChainCache('solana-prospects', { topProspects }, topProspects.length);
         console.log(`💾 [Worker] Saved ${topProspects.length} prospects to cache`);
+
+        // Save provider breakdown snapshot for historical benchmark tracking
+        try {
+            await writeBenchmarkSnapshot('solana', metrics.totalNodes, metrics.providerBreakdown ?? []);
+            console.log('📸 [Worker] Benchmark snapshot saved');
+        } catch (snapErr) {
+            console.warn('⚠️  [Worker] Failed to save benchmark snapshot (cache still valid):', snapErr);
+        }
 
         // Step 6: Save to database (historical metrics)
         console.log('📊 [Worker] Saving to historical database...');

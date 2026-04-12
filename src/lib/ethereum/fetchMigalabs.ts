@@ -19,6 +19,7 @@ import { calculateEthMetrics } from '@/lib/ethereum/calculateEthMetrics';
 import { getDatabase } from '@/lib/db/database';
 import { PROVIDER_ASN_MAP } from '@/lib/config/constants';
 import { identifyProvider } from '@/lib/shared/providers';
+import { writeBenchmarkSnapshot } from '@/lib/benchmark/snapshotRepository';
 import { logger } from '@/lib/utils/logger';
 
 const MIGALABS_BASE = 'https://www.migalabs.io/api/eth/v1/nodes/consensus/all';
@@ -176,6 +177,14 @@ export async function runEthRefresh(): Promise<EthRefreshResult> {
     });
 
     logger.info('[MigaLabs] Snapshot saved.');
+
+    // Benchmark snapshot for provider evolution tracking
+    try {
+        await writeBenchmarkSnapshot('ethereum', metrics.totalNodes, metrics.providerBreakdown ?? []);
+        logger.info('[MigaLabs] Benchmark snapshot saved.');
+    } catch (snapErr) {
+        logger.warn('[MigaLabs] Failed to save benchmark snapshot (main snapshot still valid):', snapErr);
+    }
 
     const ovhNodes = distribution.ovh || 0;
     const ovhSharePct = totalNodes > 0 ? (ovhNodes / totalNodes) * 100 : 0;

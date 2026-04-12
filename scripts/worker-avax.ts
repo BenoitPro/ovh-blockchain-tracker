@@ -16,6 +16,7 @@ import { filterOVHAvalancheNodes, categorizeAvalancheNodesByProvider } from '../
 import { calculateAvalancheMetrics } from '../src/lib/avalanche/calculateMetrics';
 import { writeChainCache } from '../src/lib/cache/chain-storage';
 import { initMaxMind } from '../src/lib/asn/maxmind';
+import { writeBenchmarkSnapshot } from '../src/lib/benchmark/snapshotRepository';
 
 async function runAvaxWorker() {
     console.log('🔺 [AVAX Worker] Starting Avalanche data collection...');
@@ -53,6 +54,14 @@ async function runAvaxWorker() {
         // 6. Cache (key: 'avalanche-metrics' — isolated from Solana)
         console.log('💾 [AVAX Worker] Writing to cache...');
         await writeChainCache('avalanche', metrics, allNodes.length);
+
+        try {
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            await writeBenchmarkSnapshot('avalanche', metrics.totalNodes, (metrics as any).providerBreakdown ?? []);
+            console.log('📸 [AVAX Worker] Benchmark snapshot saved');
+        } catch (snapErr) {
+            console.warn('⚠️  [AVAX Worker] Failed to save benchmark snapshot:', snapErr);
+        }
 
         const elapsed = ((Date.now() - startTime) / 1000).toFixed(2);
         console.log(`✅ [AVAX Worker] Done in ${elapsed}s`);
