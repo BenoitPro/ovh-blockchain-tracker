@@ -96,6 +96,19 @@ async function initializeSchema(database: Client): Promise<void> {
             );
         `;
 
+        // Benchmark provider snapshots — one row per worker run per chain
+        schema += `
+            CREATE TABLE IF NOT EXISTS benchmark_snapshots (
+                id                 INTEGER PRIMARY KEY AUTOINCREMENT,
+                timestamp          INTEGER NOT NULL,
+                chain_id           TEXT NOT NULL,
+                total_nodes        INTEGER NOT NULL,
+                provider_breakdown TEXT NOT NULL
+            );
+            CREATE INDEX IF NOT EXISTS idx_bs_chain_ts
+                ON benchmark_snapshots(chain_id, timestamp);
+        `;
+
         // Split standard schema by statements
         const statements = schema.split(';').map(s => s.trim()).filter(s => s.length > 0);
 
