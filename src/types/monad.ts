@@ -8,7 +8,7 @@
 export interface MonadValidator {
     /** Validator display name */
     name: string;
-    /** Country name (e.g. "United States") */
+    /** ISO 3166-1 alpha-2 code (e.g. "US") when available from API, otherwise full country name */
     country: string;
     /** City name (e.g. "Ashburn") */
     city: string;

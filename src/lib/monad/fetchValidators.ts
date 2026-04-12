@@ -164,14 +164,15 @@ interface GmonadsApiResponse<T> {
 // ── Helpers ────────────────────────────────────────────────────────────────────
 
 /**
- * Fetch one gmonads endpoint with a shared AbortSignal timeout and error handling.
+ * Fetch one gmonads endpoint with an independent AbortSignal timeout and error handling.
  * Returns an empty array on failure so callers can degrade gracefully.
+ * Each call creates its own signal so a timeout on one endpoint does not cancel the others.
  */
 async function fetchEndpoint<T>(
     path: string,
     label: string,
-    signal: AbortSignal
 ): Promise<T[]> {
+    const signal = AbortSignal.timeout(30_000);
     const url = `${BASE_URL}/${path}?network=${NETWORK}`;
 
     try {
@@ -216,13 +217,11 @@ async function fetchEndpoint<T>(
 export async function fetchMonadValidators(): Promise<MonadValidator[]> {
     logger.info('[Monad] Fetching validators from gmonads.com...');
 
-    const signal = AbortSignal.timeout(30_000);
-
-    // Fetch all three endpoints in parallel
+    // Fetch all three endpoints in parallel — each gets its own independent timeout
     const [geoData, epochData, metaData] = await Promise.all([
-        fetchEndpoint<RawGeoValidator>('validators/geolocations', 'geolocations', signal),
-        fetchEndpoint<RawEpochValidator>('validators/epoch', 'epoch', signal),
-        fetchEndpoint<RawMetadataValidator>('validators/metadata', 'metadata', signal),
+        fetchEndpoint<RawGeoValidator>('validators/geolocations', 'geolocations'),
+        fetchEndpoint<RawEpochValidator>('validators/epoch', 'epoch'),
+        fetchEndpoint<RawMetadataValidator>('validators/metadata', 'metadata'),
     ]);
 
     // Build lookup maps keyed by node_id (hex pubkey)
@@ -259,7 +258,7 @@ export async function fetchMonadValidators(): Promise<MonadValidator[]> {
             // Stake: geolocations provides it as a number; epoch provides it as a string
             const stake =
                 geo.stake ??
-                (epoch?.stake ? parseInt(epoch.stake, 10) : 0);
+                (epoch?.stake ? parseInt(epoch.stake, 10) || 0 : 0);
 
             // Active: validator_set_type "active" or "consensus" → active
             const geoType = geo.validator_set_type?.toLowerCase() ?? '';
@@ -271,8 +270,8 @@ export async function fetchMonadValidators(): Promise<MonadValidator[]> {
                 epochType === 'consensus';
 
             // successRate: gmonads.com does not expose uptime/success rate in public endpoints.
-            // Use connected status as a binary proxy (connected=true → 100, false/unknown → 0).
-            const successRate = geo.connected === true ? 100 : geo.connected === false ? 0 : 100;
+            // Use connected status as a binary proxy (connected=true → 100, false/undefined → 0).
+            const successRate = geo.connected === true ? 100 : 0; // false or undefined → 0 (unknown = conservative)
 
             return { name, country, city, stake, successRate, active };
         });
