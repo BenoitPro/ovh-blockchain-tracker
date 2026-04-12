@@ -53,8 +53,7 @@ async function runSuiWorker() {
         await writeChainCache('sui', metrics, allValidators.length);
 
         try {
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            await writeBenchmarkSnapshot('sui', metrics.totalNodes, (metrics as any).providerBreakdown ?? []);
+            await writeBenchmarkSnapshot('sui', metrics.totalNodes, metrics.providerBreakdown ?? []);
             console.log('📸 [Sui Worker] Benchmark snapshot saved');
         } catch (snapErr) {
             console.warn('⚠️  [Sui Worker] Failed to save benchmark snapshot:', snapErr);

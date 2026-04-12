@@ -53,8 +53,7 @@ async function runTronWorker() {
         await writeChainCache('tron', metrics, allNodes.length);
 
         try {
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            await writeBenchmarkSnapshot('tron', metrics.totalNodes, (metrics as any).providerBreakdown ?? []);
+            await writeBenchmarkSnapshot('tron', metrics.totalNodes, metrics.providerBreakdown ?? []);
             console.log('📸 [Tron Worker] Benchmark snapshot saved');
         } catch (snapErr) {
             console.warn('⚠️  [Tron Worker] Failed to save benchmark snapshot:', snapErr);

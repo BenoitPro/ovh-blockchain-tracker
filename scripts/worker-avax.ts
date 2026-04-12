@@ -56,8 +56,7 @@ async function runAvaxWorker() {
         await writeChainCache('avalanche', metrics, allNodes.length);
 
         try {
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            await writeBenchmarkSnapshot('avalanche', metrics.totalNodes, (metrics as any).providerBreakdown ?? []);
+            await writeBenchmarkSnapshot('avalanche', metrics.totalNodes, metrics.providerBreakdown ?? []);
             console.log('📸 [AVAX Worker] Benchmark snapshot saved');
         } catch (snapErr) {
             console.warn('⚠️  [AVAX Worker] Failed to save benchmark snapshot:', snapErr);
