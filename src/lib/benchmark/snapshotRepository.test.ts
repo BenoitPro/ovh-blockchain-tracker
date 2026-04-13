@@ -98,6 +98,17 @@ describe('_readBenchmarkEvolution', () => {
     expect(result.monthly[0]['OVHcloud']).toBe(100);
     expect(result.monthly[0]['AWS']).toBeUndefined();
   });
+
+  it('aggregates multiple chains for the same month', async () => {
+    const db = await freshDb();
+    const solanaOVH: ProviderBreakdownEntry = { key: 'ovh', label: 'OVHcloud', nodeCount: 100, marketShare: 10, color: '#00F0FF' };
+    const ethOVH: ProviderBreakdownEntry = { key: 'ovh', label: 'OVHcloud', nodeCount: 8000, marketShare: 15, color: '#00F0FF' };
+    await _writeBenchmarkSnapshot(db, 'solana', 1000, [solanaOVH]);
+    await _writeBenchmarkSnapshot(db, 'ethereum', 50000, [ethOVH]);
+    const result = await _readBenchmarkEvolution(db); // no chainId = aggregate
+    expect(result.monthly).toHaveLength(1);
+    expect(result.monthly[0]['OVHcloud']).toBe(8100); // 100 + 8000
+  });
 });
 
 describe('_readWeeklyDelta', () => {

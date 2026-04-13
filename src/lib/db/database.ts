@@ -109,9 +109,6 @@ async function initializeSchema(database: Client): Promise<void> {
                 ON benchmark_snapshots(chain_id, timestamp);
         `;
 
-        // Split standard schema by statements
-        const statements = schema.split(';').map(s => s.trim()).filter(s => s.length > 0);
-
         // Execute batch transaction
         await database.executeMultiple(schema);
 

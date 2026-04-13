@@ -124,6 +124,8 @@ export default function CompetitorBenchmark() {
       providerColorMap[p.label] = p.color;
     }
   }
+  // Always highlight OVHcloud in evolution chart even if absent from current bar data
+  providerColorMap['OVHcloud'] = '#00F0FF';
 
   // Table rows
   const tableRows = activeChain === 'all' ? chains : chains.filter(c => c.id === activeChain);

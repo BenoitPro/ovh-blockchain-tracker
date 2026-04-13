@@ -8,7 +8,8 @@ export async function GET(req: NextRequest) {
   try {
     const { searchParams } = new URL(req.url);
     const chainId = searchParams.get('chain') ?? undefined;
-    const months = Math.min(parseInt(searchParams.get('months') ?? '6', 10) || 6, 12);
+    const parsed = parseInt(searchParams.get('months') ?? '6', 10);
+    const months = Math.min(Number.isNaN(parsed) || parsed < 1 ? 6 : parsed, 12);
 
     const [evolution, weeklyDelta] = await Promise.all([
       readBenchmarkEvolution(chainId, months),
