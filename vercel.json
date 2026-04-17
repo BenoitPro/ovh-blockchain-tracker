@@ -8,8 +8,7 @@
     ],
     "crons": [
         { "path": "/api/cron/refresh",          "schedule": "0 0 * * *" },
-        { "path": "/api/cron/eth-refresh",      "schedule": "0 1 * * *" },
-        { "path": "/api/cron/celestia-refresh", "schedule": "0 7 * * *" }
+        { "path": "/api/cron/eth-refresh",      "schedule": "0 1 * * *" }
     ],
     "functions": {
         "src/app/api/cron/**/*.ts": {
