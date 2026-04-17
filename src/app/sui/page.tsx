@@ -19,6 +19,7 @@ export default function SuiPage() {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [cachedAt, setCachedAt] = useState<number | null>(null);
+    const [viewMode, setViewMode] = useState<'ovh' | 'global'>('global');
 
     useScrollReveal(!loading && !!metrics);
 
@@ -88,10 +89,11 @@ export default function SuiPage() {
                     
                     {/* Animated Tagline (Sui specific) */}
                     <AnimatedTagline
-                        title={
-                            <>Distribution of Sui Nodes on <span style={{ color: SUI_BLUE, textShadow: `0 0 20px ${SUI_BLUE}80` }}>OVHcloud</span></>
-                        }
+                        title={<>Distribution of Sui Nodes</>}
                         subtitle="Ensuring a decentralized and resilient future for Sui Mainnet"
+                        viewMode={viewMode}
+                        onViewModeChange={setViewMode}
+                        accentColor={SUI_BLUE}
                     />
 
                     {cachedAt && (
@@ -113,6 +115,7 @@ export default function SuiPage() {
                                         totalNodes={metrics.totalNodes}
                                         ovhNodes={metrics.ovhNodes}
                                         marketShare={metrics.marketShare}
+                                        viewMode={viewMode}
                                     />
                                 </div>
                             </section>

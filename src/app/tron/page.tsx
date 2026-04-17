@@ -19,6 +19,7 @@ export default function TronPage() {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [cachedAt, setCachedAt] = useState<number | null>(null);
+    const [viewMode, setViewMode] = useState<'ovh' | 'global'>('global');
 
     useScrollReveal(!loading && !!metrics);
 
@@ -92,10 +93,11 @@ export default function TronPage() {
 
                     {/* Animated Tagline (Tron specific) */}
                     <AnimatedTagline
-                        title={
-                            <>Distribution of Tron Nodes on <span style={{ color: TRON_RED, textShadow: `0 0 20px ${TRON_RED}80` }}>OVHcloud</span></>
-                        }
+                        title={<>Distribution of Tron Nodes</>}
                         subtitle="Mapping OVHcloud's infrastructure footprint across the TRON network"
+                        viewMode={viewMode}
+                        onViewModeChange={setViewMode}
+                        accentColor={TRON_RED}
                     />
 
                     <div className="flex-1 flex flex-col items-center justify-center overflow-hidden">
@@ -109,6 +111,7 @@ export default function TronPage() {
                                         totalNodes={metrics.totalNodes}
                                         ovhNodes={metrics.ovhNodes}
                                         marketShare={metrics.marketShare}
+                                        viewMode={viewMode}
                                     />
                                 </div>
                             </section>

@@ -42,6 +42,8 @@ interface WorldMapProps {
     totalNodes?: number;
     ovhNodes?: number;
     marketShare?: number;
+    /** Controlled view mode — when provided, the internal toggle is hidden */
+    viewMode?: 'ovh' | 'global';
 }
 
 // Keys are ISO 3166-1 alpha-2 codes (same as MaxMind countryCode)
@@ -76,13 +78,16 @@ export default function WorldMap({
     onCountryClick,
     totalNodes,
     ovhNodes,
-    marketShare
+    marketShare,
+    viewMode: controlledViewMode
 }: WorldMapProps) {
     const globeRef = useRef<any>(null);
     const containerRef = useRef<HTMLDivElement>(null);
     const { theme } = useNetworkTheme();
-    // Default to 'global' if totalNodes is missing (meaning we are on network overview rather than ovh specific view)
-    const [viewMode, setViewMode] = useState<'ovh' | 'global'>('global');
+    // Use controlled viewMode from parent if provided, otherwise fall back to internal state
+    const [internalViewMode, setInternalViewMode] = useState<'ovh' | 'global'>('global');
+    const viewMode = controlledViewMode ?? internalViewMode;
+    const setViewMode = setInternalViewMode;
     const [dimensions, setDimensions] = useState({ width: 0, height: 0 });
     const [countriesGeoJson, setCountriesGeoJson] = useState<any>({ features: [] });
     const [hoveredPolygon, setHoveredPolygon] = useState<any>(null);
@@ -486,8 +491,8 @@ export default function WorldMap({
                     )}
                 </div>
 
-                {/* OVH / GLOBAL toggle */}
-                {globalGeoDistribution && (
+                {/* OVH / GLOBAL toggle — only shown when viewMode is NOT controlled from parent */}
+                {!controlledViewMode && globalGeoDistribution && (
                     <div className="flex items-center p-1.5 rounded-full backdrop-blur-2xl shadow-2xl border pointer-events-auto bg-[#050510]/90 border-white/20">
                         <button
                             onClick={theme === 'ethereum' ? undefined : () => setViewMode('ovh')}

@@ -16,6 +16,7 @@
     "worker:tron": "tsx scripts/worker-tron.ts",
     "worker:sui": "tsx scripts/worker-sui.ts",
     "worker:monad": "tsx scripts/worker-monad.ts",
+    "worker:celestia": "tsx scripts/worker-celestia.ts",
     "worker:dev": "tsx scripts/worker.ts"
   },
   "dependencies": {

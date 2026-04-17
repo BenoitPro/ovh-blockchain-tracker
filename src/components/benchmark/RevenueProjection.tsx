@@ -61,30 +61,26 @@ const LIVE_CHAINS: LiveChainConfig[] = [
     server: 'SCALE-A1', priceEur: 370, confidence: 30,
     confidenceReason: "Name-matching only (no IP geolocation). Very low reliability.",
   },
+  {
+    id: 'celestia', label: 'Celestia', color: '#7B2FBE',
+    apiPath: '/api/celestia', nodeField: 'ovhNodes',
+    server: 'SCALE-A3 + 4×NVMe', priceEur: 686, confidence: 65,
+    confidenceReason: 'IP detection via /net_info peers — may include sentry/bridge nodes alongside validators',
+  },
 ];
 
 const COMING_SOON_CHAINS: ComingSoonChainConfig[] = [
   { label: 'Polkadot',   color: '#E6007A', server: 'ADVANCE-2', priceEur: 125 },
   { label: 'Aptos',      color: '#2DD8A3', server: 'SCALE-A2',  priceEur: 390 },
-  { label: 'Celestia',   color: '#7B2FBE', server: 'SCALE-A3',  priceEur: 450 },
   { label: 'Near',       color: '#00C08B', server: 'ADVANCE-2', priceEur: 125 },
   { label: 'Cosmos Hub', color: '#5C6BC0', server: 'ADVANCE-2', priceEur: 125 },
   { label: 'BNB Chain',  color: '#F0B90B', server: 'SCALE-A1',  priceEur: 370 },
   { label: 'Cardano',    color: '#0033AD', server: 'ADVANCE-1', priceEur: 90  },
 ];
 
-// ─── Historical data ──────────────────────────────────────────────────────────
+// ─── Projection months ───────────────────────────────────────────────────────
 
-const MONTHS = ['Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec', 'Jan', 'Feb', 'Mar'];
-
-const HISTORICAL = [
-  { month: "Oct'25", mrr: 1089 },
-  { month: "Nov'25", mrr: 1148 },
-  { month: "Dec'25", mrr: 1198 },
-  { month: "Jan'26", mrr: 1242 },
-  { month: "Feb'26", mrr: 1288 },
-  { month: "Mar'26", mrr: 1332 },
-];
+const MONTHS = ['May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec', 'Jan', 'Feb', 'Mar', 'Apr'];
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -214,10 +210,10 @@ export default function RevenueProjection() {
   const deltaArr = projectedArr - currentArr;
   const deltaArrPct = Math.round((deltaArr / currentArr) * 100);
 
+  const mrrK = Math.round(currentMrr / 1000);
   const chartData = [
-    ...HISTORICAL.map(h => ({ month: h.month, actual: h.mrr, projected: null as number | null, baseline: null as number | null })),
-    { month: "Mar'26*", actual: Math.round(currentMrr / 1000), projected: Math.round(currentMrr / 1000), baseline: Math.round(currentMrr / 1000) },
-    ...projectionData.map(p => ({ month: p.month, actual: null as number | null, projected: Math.round(p.projected / 1000), baseline: Math.round(p.baseline / 1000) })),
+    { month: "Apr'26", projected: mrrK, baseline: mrrK },
+    ...projectionData.map(p => ({ month: p.month, projected: Math.round(p.projected / 1000), baseline: Math.round(p.baseline / 1000) })),
   ];
 
   return (
@@ -513,10 +509,6 @@ export default function RevenueProjection() {
           <ResponsiveContainer width="100%" height={220}>
             <AreaChart data={chartData} margin={{ left: 0, right: 16, top: 8, bottom: 0 }}>
               <defs>
-                <linearGradient id="gradActual" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="#00F0FF" stopOpacity={0.25} />
-                  <stop offset="95%" stopColor="#00F0FF" stopOpacity={0} />
-                </linearGradient>
                 <linearGradient id="gradProjected" x1="0" y1="0" x2="0" y2="1">
                   <stop offset="5%" stopColor="#00F0FF" stopOpacity={0.45} />
                   <stop offset="95%" stopColor="#00F0FF" stopOpacity={0.05} />
@@ -533,18 +525,16 @@ export default function RevenueProjection() {
                 contentStyle={{ background: '#0a0a0f', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 8, fontSize: 11 }}
                 // @ts-expect-error recharts formatter type
                 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                formatter={(value: any, name: string) => value ? [`€${value}k/mo`, name === 'actual' ? 'Historical' : name === 'projected' ? 'Projection scenario' : 'Market growth only'] : ['-']}
+                formatter={(value: any, name: string) => value != null ? [`€${value}k/mo`, name === 'projected' ? 'Projection scenario' : 'Market growth only'] : ['-']}
               />
-              <ReferenceLine x="Mar'26*" stroke="rgba(255,255,255,0.15)" strokeDasharray="4 4" label={{ value: 'Now', fill: 'rgba(255,255,255,0.3)', fontSize: 9 }} />
-              <Area type="monotone" dataKey="actual" stroke="#00F0FF" strokeWidth={2} fill="url(#gradActual)" connectNulls={false} dot={false} />
-              <Area type="monotone" dataKey="baseline" stroke="#6B7280" strokeWidth={1} strokeDasharray="4 4" fill="url(#gradBaseline)" connectNulls={false} dot={false} />
-              <Area type="monotone" dataKey="projected" stroke="#00F0FF" strokeWidth={2} strokeDasharray="6 3" fill="url(#gradProjected)" connectNulls={false} dot={false} />
+              <ReferenceLine x="Apr'26" stroke="rgba(255,255,255,0.15)" strokeDasharray="4 4" label={{ value: 'Now', fill: 'rgba(255,255,255,0.3)', fontSize: 9 }} />
+              <Area type="monotone" dataKey="baseline" stroke="#6B7280" strokeWidth={1} strokeDasharray="4 4" fill="url(#gradBaseline)" dot={false} />
+              <Area type="monotone" dataKey="projected" stroke="#00F0FF" strokeWidth={2} fill="url(#gradProjected)" dot={false} />
             </AreaChart>
           </ResponsiveContainer>
 
           <div className="flex gap-4 mt-2">
-            <span className="flex items-center gap-1.5 text-[9px] text-white/30"><span className="w-4 h-0.5 bg-[#00F0FF] inline-block" />Historical</span>
-            <span className="flex items-center gap-1.5 text-[9px] text-white/30"><span className="w-4 h-0.5 bg-[#00F0FF] inline-block opacity-60" />Projection scenario</span>
+            <span className="flex items-center gap-1.5 text-[9px] text-white/30"><span className="w-4 h-0.5 bg-[#00F0FF] inline-block" />Projection scenario</span>
             <span className="flex items-center gap-1.5 text-[9px] text-white/30"><span className="w-4 h-0.5 bg-gray-500 inline-block opacity-60" />Market growth only</span>
           </div>
         </div>

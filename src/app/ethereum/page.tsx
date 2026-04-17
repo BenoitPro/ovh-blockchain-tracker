@@ -10,7 +10,6 @@ import MethodologyModal from '@/components/dashboard/MethodologyModal';
 import { EthSnapshotMetrics } from '@/types';
 import { useScrollReveal } from '@/hooks/useScrollReveal';
 import ParticlesBackground from '@/components/ParticlesBackground';
-import BlockchainCubes from '@/components/BlockchainCubes';
 
 export default function EthereumPage() {
     const [metrics, setMetrics] = useState<EthSnapshotMetrics | null>(null);
@@ -46,8 +45,7 @@ export default function EthereumPage() {
     if (loading) {
         return (
             <div className="min-h-screen relative" style={dashBg}>
-                <BlockchainCubes opacity={0.28} count={12} />
-                <ParticlesBackground />
+                                <ParticlesBackground />
                 <div className="relative z-10 flex items-center justify-center min-h-screen">
                     <LoadingState />
                 </div>
@@ -60,8 +58,7 @@ export default function EthereumPage() {
     if (error || !metrics) {
         return (
             <div className="min-h-screen relative" style={dashBg}>
-                <BlockchainCubes opacity={0.28} count={12} />
-                <ParticlesBackground />
+                                <ParticlesBackground />
                 <ErrorState message={error || 'No data available'} onRetry={fetchData} />
             </div>
         );
@@ -72,9 +69,7 @@ export default function EthereumPage() {
 
     return (
         <div className="min-h-screen relative overflow-x-hidden overflow-y-auto" style={dashBg}>
-            {/* Animated Blockchain Cubes Background (Subtle for Eth) */}
-            <BlockchainCubes opacity={0.28} count={12} />
-
+            
             {/* Floating Starry Points Background */}
             <ParticlesBackground />
 
@@ -82,9 +77,7 @@ export default function EthereumPage() {
                 <main className="flex-1 flex flex-col p-2 md:p-4 w-full max-w-7xl mx-auto">
 
                     <AnimatedTagline
-                        title={
-                            <>Distribution of Ethereum Nodes on <span style={{ color: 'var(--chain-accent)' }}>OVHcloud</span></>
-                        }
+                        title={<>Distribution of Ethereum Nodes</>}
                         subtitle="Empowering the decentralized network"
                     />
 
@@ -93,8 +86,8 @@ export default function EthereumPage() {
                         {Object.keys(metrics.geoDistribution).length > 0 && (
                             <section className="flex-1 flex flex-col fade-in-up relative z-10 w-full h-[600px] md:h-[700px]">
                                 <div className="w-full h-full flex items-center justify-center">
-                                    <WorldMap 
-                                        geoDistribution={metrics.geoDistribution} 
+                                    <WorldMap
+                                        geoDistribution={metrics.geoDistribution}
                                         globalGeoDistribution={metrics.geoDistribution}
                                         totalNodes={metrics.totalNodes}
                                         ovhNodes={ovhCount}

@@ -237,6 +237,35 @@ export const USE_CASES_CONFIG: Partial<Record<ChainId, UseCasesChainConfig>> = {
             },
         ],
     },
+    celestia: {
+        apiRoute: '/api/celestia',
+        techHighlights: [
+            { value: 'GFNI+SHA-NI', label: 'CPU Required', sub: 'CometBFT DA consensus req.' },
+            { value: '15 TB+', label: 'NVMe Storage', sub: 'Bridge node data availability' },
+        ],
+        serverSpecs: [
+            {
+                nodeType: 'Validator',
+                cpu: '16c (GFNI+SHA-NI)',
+                ram: '32 GB',
+                storage: '4× 3.84 TB NVMe',
+                network: '1 Gbps symmetric',
+                ovhServer: 'SCALE-A3 + 4× 3.84 TB NVMe',
+                priceEur: 686,
+                ovhServerUrl: 'https://www.ovhcloud.com/en/bare-metal/scale/scale-3/',
+            },
+            {
+                nodeType: 'Bridge / Full Storage',
+                cpu: '16c (GFNI+SHA-NI)',
+                ram: '64 GB',
+                storage: '4× 7.68 TB NVMe',
+                network: '1 Gbps symmetric',
+                ovhServer: 'SCALE-A3 + 4× 7.68 TB NVMe',
+                priceEur: 870,
+                ovhServerUrl: 'https://www.ovhcloud.com/en/bare-metal/scale/scale-3/',
+            },
+        ],
+    },
     monad: {
         apiRoute: '/api/monad',
         techHighlights: [

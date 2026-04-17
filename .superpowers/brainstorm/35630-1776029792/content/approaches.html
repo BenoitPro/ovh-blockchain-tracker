@@ -1,0 +1,45 @@
+<h2>3 approches possibles</h2>
+<p class="subtitle">Fusion Ecosystem + améliorations Analytics</p>
+
+<div class="options">
+
+  <div class="option" data-choice="A" onclick="toggleSelect(this)">
+    <div class="letter">A</div>
+    <div class="content">
+      <h3>Réorganisation légère <span style="color:#00F0FF; font-size:11px; margin-left:8px;">★ recommandée</span></h3>
+      <p><strong>Ecosystem :</strong> fusionner use-cases + guide en une seule page <code>/ecosystem</code> avec sticky anchor nav (2 sections : Who Builds → Run a Node). Les anciennes routes redirigent vers la nouvelle. Minimum de nouveau code, on réutilise les composants existants.</p>
+      <p><strong>Analytics :</strong> toggle pie/bar sur ProviderComparison · trend chart étendu à toutes les chains · widget "Top OVH Operators" (acteurs les + présents, cliquable vers leur fiche node).</p>
+      <div class="pros-cons">
+        <div class="pros"><h4>Pour</h4><ul><li>Rapide à implémenter</li><li>Réutilise 95% du code existant</li><li>Impact UX immédiat</li></ul></div>
+        <div class="cons"><h4>Contre</h4><ul><li>Layout Who Builds = même grille qu'aujourd'hui</li></ul></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="option" data-choice="B" onclick="toggleSelect(this)">
+    <div class="letter">B</div>
+    <div class="content">
+      <h3>Redesign + Ecosystem hub</h3>
+      <p><strong>Ecosystem :</strong> idem A, mais "Who Builds" gagne un <strong>filtre par chain</strong> (afficher seulement les acteurs Avalanche, ou multi-chain). "Run a Node" devient un accordéon step-by-step avec des blocs de code copiables.</p>
+      <p><strong>Analytics :</strong> idem A + la géo distribution passe en carte monde interactive (react-simple-maps) plutôt que barres horizontales.</p>
+      <div class="pros-cons">
+        <div class="pros"><h4>Pour</h4><ul><li>UX plus riche</li><li>Filtre utile quand tu ajoutes des chains</li></ul></div>
+        <div class="cons"><h4>Contre</h4><ul><li>+2–3 jours de dev</li><li>Filtre peu utile si peu de case studies par chain</li></ul></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="option" data-choice="C" onclick="toggleSelect(this)">
+    <div class="letter">C</div>
+    <div class="content">
+      <h3>Ecosystem = social proof uniquement, guide absorbé dans Dashboard</h3>
+      <p><strong>Ecosystem :</strong> la page ne garde que "Who Builds" (case studies + verified residents). Le guide technique (hardware, deploy) disparaît en tant que page et est transformé en <strong>side panel / drawer</strong> accessible depuis le Dashboard.</p>
+      <p><strong>Analytics :</strong> idem A.</p>
+      <div class="pros-cons">
+        <div class="pros"><h4>Pour</h4><ul><li>Ecosystem = page propre, 100% focalisée social proof</li></ul></div>
+        <div class="cons"><h4>Contre</h4><ul><li>Le guide technique dans un drawer = moins visible</li><li>Casse la mémoire de navigation des utilisateurs actuels</li></ul></div>
+      </div>
+    </div>
+  </div>
+
+</div>

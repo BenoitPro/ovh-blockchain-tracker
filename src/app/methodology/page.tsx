@@ -438,307 +438,541 @@ function SecurityChart() {
 
 const PYRAMID_TIERS = [
     {
-        label: 'Foundations',
-        shortDesc: '1 deal → entire ecosystem',
-        actors: 'Solana Foundation, Celestia Labs, Polygon Labs, dYdX…',
-        why: 'One partnership = official "recommended hosting" status. All operators downstream follow the foundation\'s docs and templates. Co-branded guides, pre-configured images, "Powered by OVHcloud" in their documentation.',
-        priority: 'Highest priority',
+        label: 'Chain Core Teams',
+        shortDesc: 'Define specs, few servers',
+        actors: 'Solana Foundation, Polygon Labs, Celestia Labs, Ava Labs, Mysten Labs (Sui)…',
+        why: 'Run reference validators, sequencers, boot nodes, public RPCs and testnets. Moderate bare-metal volume per org — but they define the hardware specs everyone else follows. One official partnership cascades to every operator on the network.',
+        priority: 'Strategic',
         color: '#00F0FF',
-        // Trapezoid: top-left%, top-right%, bottom-right%, bottom-left%
-        clip: 'polygon(32% 0%, 68% 0%, 76% 100%, 24% 100%)',
-        glow: 'rgba(0,240,255,0.25)',
+        darkColor: '#007A80',
+        lightColor: '#33F5FF',
     },
     {
-        label: 'Institutional StaaS',
+        label: 'Institutional Operators',
         shortDesc: '100s of servers per contract',
-        actors: 'Figment, Chorus One, P2P.org, Kiln…',
-        why: 'Fleet buyers managing billions in stake across 30–40+ chains. One contract = hundreds of recurring bare-metal servers with geo-redundancy requirements. These operators need multi-region resilience — a natural fit for OVH.',
-        priority: 'Very high',
+        actors: 'Figment, Chorus One, P2P.org, Kiln, Blockdaemon, Everstake…',
+        why: 'Run geo-redundant validator fleets across 30–40+ chains. Largest bare-metal consumers by volume — one contract means hundreds of high-spec dedicated servers (32–64 cores, 128–512 GB RAM, NVMe) with multi-region failover requirements.',
+        priority: 'Highest volume',
         color: '#9945FF',
-        clip: 'polygon(24% 0%, 76% 0%, 86% 100%, 14% 100%)',
-        glow: 'rgba(153,69,255,0.2)',
+        darkColor: '#5A2899',
+        lightColor: '#B370FF',
     },
     {
-        label: 'Infra Consumers',
-        shortDesc: 'Always-on, high bandwidth',
-        actors: 'RPC providers (Alchemy, Infura), indexers, block explorers, oracle operators…',
-        why: 'Always-on, high-bandwidth workloads. Full nodes and query-heavy services that need dedicated hardware 24/7 — volume play with predictable recurring revenue. Steady fleet that never turns off.',
-        priority: 'Medium–high',
+        label: 'RPC & Data Infra',
+        shortDesc: 'Always-on full-node fleets',
+        actors: 'Alchemy, Infura, QuickNode, Chainstack, The Graph, Chainlink, Etherscan…',
+        why: 'Run always-on full-node fleets serving API queries 24/7. Bandwidth-heavy, low-latency workloads. Predictable recurring demand — these servers never turn off. High total volume across dozens of providers.',
+        priority: 'High volume',
         color: '#627EEA',
-        clip: 'polygon(14% 0%, 86% 0%, 94% 100%, 6% 100%)',
-        glow: 'rgba(98,126,234,0.15)',
+        darkColor: '#3A4C8C',
+        lightColor: '#8DA0F0',
     },
     {
-        label: 'Community Operators',
+        label: 'Solo Validators',
         shortDesc: '1–2 machines each',
-        actors: 'Independent validators, solo SPOs, small staking setups…',
-        why: 'Long tail — hundreds of actors with 1–2 machines each. Useful for visibility and community credibility, but doesn\'t scale as a primary GTM motion. Good for brand awareness, not for revenue.',
-        priority: 'Lower',
-        color: '#64748b',
-        clip: 'polygon(6% 0%, 94% 0%, 98% 100%, 2% 100%)',
-        glow: 'rgba(100,116,139,0.1)',
+        actors: 'Independent Solana validators, Ethereum home stakers, Avalanche node runners…',
+        why: 'Long tail — hundreds of operators with 1–2 bare-metal servers each. Good for community credibility and brand visibility among builders, but doesn\'t scale as a primary sales motion.',
+        priority: 'Long tail',
+        color: '#64748B',
+        darkColor: '#3B4453',
+        lightColor: '#8E99AB',
     },
 ];
 
 const TRANSVERSAL_LAYERS = [
     {
         label: 'ZK Provers',
-        shortDesc: 'GPU/FPGA premium',
-        desc: 'GPU/FPGA-heavy proof generation for zkEVMs (Polygon zkEVM, Scroll, zkSync). Premium hardware margins. The next wave of compute-intensive demand.',
+        shortDesc: 'GPU-intensive',
+        desc: 'Proof generation for zkEVMs and ZK rollups (Polygon zkEVM, Scroll, zkSync, Starknet). Requires GPU/FPGA-accelerated bare metal — high margins, premium hardware. Run by L2 core teams, specialized prover services, and increasingly decentralized prover networks.',
         color: '#F59E0B',
-        horizon: '2026+',
+        hwProfile: 'GPU / FPGA',
     },
     {
-        label: 'Restaking',
-        shortDesc: 'EigenLayer AVSs',
-        desc: 'Operators running multiple Actively Validated Services on shared infra. Same institutional operators, more modules per machine — multiplicative demand.',
+        label: 'Restaking / AVSs',
+        shortDesc: 'Multi-service CPU',
+        desc: 'EigenLayer operators running multiple Actively Validated Services (oracles, bridges, DA, sequencing) on shared infrastructure. The same institutional operators adding modules — multiplicative bare-metal demand on top of their existing validator fleets.',
         color: '#EF4444',
-        horizon: 'Now → 2026',
+        hwProfile: 'CPU + Memory',
     },
     {
-        label: 'DA Layers',
-        shortDesc: '25+ TiB NVMe',
-        desc: 'Celestia Bridge nodes need 25+ TiB NVMe with massive bandwidth. Explosive growth as rollups multiply. Storage-intensive, bandwidth-hungry workloads.',
+        label: 'DA Nodes',
+        shortDesc: 'Storage-intensive',
+        desc: 'Celestia Bridge/Light nodes, EigenDA operators, Avail nodes. Require 6–25+ TiB NVMe with high sustained bandwidth. Volume growing fast as the number of rollups posting data multiplies.',
         color: '#22C55E',
-        horizon: 'Now → 2026',
+        hwProfile: 'NVMe + Bandwidth',
     },
 ];
 
+/* Pyramid SVG geometry helpers */
+const ISO = { dx: 20, dy: -12 };
+const PYR_CX = 210;
+const TIER_HEIGHT = 56;
+const TIER_GAP = 3;
+const PYR_Y0 = 26;
+const PYR_BASE_W = 360;
+const PYR_TOP_RATIO = 0.28;
+const TRANS_X = 500;
+const TRANS_W = 140;
+const TRANS_CARD_H = 56;
+const TRANS_CARD_GAP = 14;
+const TRANS_Y0 = 32;
+
+function computePyramidGeo() {
+    const N = PYRAMID_TIERS.length;
+    const widths = Array.from({ length: N + 1 }, (_, i) =>
+        (PYR_TOP_RATIO + (1 - PYR_TOP_RATIO) * (i / N)) * PYR_BASE_W
+    );
+
+    return widths.slice(0, N).map((tw, i) => {
+        const bw = widths[i + 1];
+        const y = PYR_Y0 + i * (TIER_HEIGHT + TIER_GAP);
+        const ftl: [number, number] = [PYR_CX - tw / 2, y];
+        const ftr: [number, number] = [PYR_CX + tw / 2, y];
+        const fbr: [number, number] = [PYR_CX + bw / 2, y + TIER_HEIGHT];
+        const fbl: [number, number] = [PYR_CX - bw / 2, y + TIER_HEIGHT];
+        const pts = (arr: [number, number][]) => 'M' + arr.map(p => p[0].toFixed(1) + ',' + p[1].toFixed(1)).join(' L') + 'Z';
+
+        return {
+            front: pts([ftl, ftr, fbr, fbl]),
+            side: pts([ftr, [ftr[0] + ISO.dx, ftr[1] + ISO.dy], [fbr[0] + ISO.dx, fbr[1] + ISO.dy], fbr]),
+            top: i === 0 ? pts([[ftl[0] + ISO.dx, ftl[1] + ISO.dy], [ftr[0] + ISO.dx, ftr[1] + ISO.dy], ftr, ftl]) : null,
+            cx: PYR_CX,
+            cy: y + TIER_HEIGHT / 2,
+            rightMidX: (ftr[0] + fbr[0]) / 2 + ISO.dx * 0.6,
+            rightMidY: y + TIER_HEIGHT / 2,
+        };
+    });
+}
+
+function computeTransGeo() {
+    return TRANSVERSAL_LAYERS.map((_, i) => ({
+        x: TRANS_X,
+        y: TRANS_Y0 + i * (TRANS_CARD_H + TRANS_CARD_GAP),
+        w: TRANS_W,
+        h: TRANS_CARD_H,
+        cy: TRANS_Y0 + i * (TRANS_CARD_H + TRANS_CARD_GAP) + TRANS_CARD_H / 2,
+    }));
+}
+
+const PYRAMID_GEO = computePyramidGeo();
+const TRANS_GEO = computeTransGeo();
+const SVG_W = 660;
+const SVG_H = PYR_Y0 + PYRAMID_TIERS.length * (TIER_HEIGHT + TIER_GAP) - TIER_GAP + 20;
+
 function GTMChart() {
-    const [hoveredTier, setHoveredTier] = useState<number | null>(null);
-    const [hoveredTransversal, setHoveredTransversal] = useState<number | null>(null);
+    const [hovered, setHovered] = useState<number | null>(null);
+    const [hoveredTrans, setHoveredTrans] = useState<number | null>(null);
 
     return (
         <div className="max-w-4xl w-full mx-auto space-y-8">
-            {/* Main layout: pyramid left, transversal right */}
-            <div className="flex gap-6 items-stretch">
-                {/* ── Pyramid ── */}
-                <div className="flex-1 min-w-0">
+            {/* ── SVG Visualization ── */}
+            <div className="relative">
+                {/* Ambient glow blobs behind the SVG */}
+                {PYRAMID_TIERS.map((t, i) => (
                     <div
-                        className="relative"
-                        style={{ perspective: '900px' }}
-                    >
-                        <div
-                            className="flex flex-col items-center gap-[3px]"
-                            style={{
-                                transformStyle: 'preserve-3d',
-                                transform: 'rotateX(6deg)',
-                            }}
-                        >
-                            {PYRAMID_TIERS.map((tier, i) => {
-                                const isHovered = hoveredTier === i;
-                                const isFaded = hoveredTier !== null && hoveredTier !== i;
-                                return (
-                                    <motion.div
-                                        key={tier.label}
-                                        className="w-full relative cursor-pointer"
-                                        style={{ zIndex: isHovered ? 20 : 10 - i }}
-                                        onMouseEnter={() => setHoveredTier(i)}
-                                        onMouseLeave={() => setHoveredTier(null)}
-                                        animate={{
-                                            translateZ: isHovered ? 40 : 0,
-                                            translateY: isHovered ? -6 : 0,
-                                            scale: isHovered ? 1.03 : 1,
-                                            opacity: isFaded ? 0.4 : 1,
-                                        }}
-                                        transition={{ type: 'spring', stiffness: 300, damping: 25 }}
-                                    >
-                                        {/* Tier shape */}
-                                        <div
-                                            className="relative overflow-visible"
-                                            style={{ clipPath: tier.clip }}
-                                        >
-                                            {/* Background */}
-                                            <div
-                                                className="relative px-8 py-5"
-                                                style={{
-                                                    background: isHovered
-                                                        ? `linear-gradient(135deg, ${tier.color}25 0%, ${tier.color}08 50%, rgba(10,10,25,0.9) 100%)`
-                                                        : `linear-gradient(135deg, ${tier.color}12 0%, rgba(10,10,25,0.95) 40%, rgba(10,10,25,0.85) 100%)`,
-                                                    borderTop: `1px solid ${tier.color}${isHovered ? '50' : '20'}`,
-                                                    transition: 'all 0.3s ease',
-                                                }}
-                                            >
-                                                {/* Glow effect on hover */}
-                                                {isHovered && (
-                                                    <div
-                                                        className="absolute inset-0 pointer-events-none"
-                                                        style={{
-                                                            boxShadow: `inset 0 0 40px ${tier.glow}, 0 0 60px ${tier.glow}`,
-                                                        }}
-                                                    />
-                                                )}
+                        key={`glow-${i}`}
+                        className="absolute rounded-full pointer-events-none transition-opacity duration-700"
+                        style={{
+                            width: 180 + i * 30,
+                            height: 90 + i * 15,
+                            left: `${10 + i * 8}%`,
+                            top: `${10 + i * 20}%`,
+                            background: `radial-gradient(ellipse, ${t.color}18 0%, transparent 70%)`,
+                            opacity: hovered === i ? 1 : 0.4,
+                            filter: 'blur(30px)',
+                        }}
+                    />
+                ))}
 
-                                                {/* Content */}
-                                                <div className="relative z-10 text-center">
-                                                    <div className="font-black text-sm tracking-wide" style={{ color: isHovered ? tier.color : 'rgba(255,255,255,0.85)' }}>
-                                                        {tier.label}
-                                                    </div>
-                                                    <div className="text-[11px] mt-0.5" style={{ color: isHovered ? 'rgba(255,255,255,0.6)' : 'rgba(255,255,255,0.3)' }}>
-                                                        {tier.shortDesc}
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
+                {/* Noise texture overlay */}
+                <div
+                    className="absolute inset-0 pointer-events-none z-20 rounded-xl"
+                    style={{
+                        opacity: 0.035,
+                        mixBlendMode: 'overlay',
+                        backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")`,
+                        backgroundSize: '128px 128px',
+                    }}
+                />
 
-                                        {/* Priority indicator — small dot on the left edge */}
-                                        <div
-                                            className="absolute top-1/2 -translate-y-1/2 -left-3 w-1.5 h-1.5 rounded-full transition-all duration-300"
-                                            style={{
-                                                backgroundColor: tier.color,
-                                                opacity: isHovered ? 1 : 0.3,
-                                                boxShadow: isHovered ? `0 0 8px ${tier.color}` : 'none',
-                                            }}
-                                        />
-                                    </motion.div>
-                                );
-                            })}
-                        </div>
+                <svg
+                    viewBox={`0 0 ${SVG_W} ${SVG_H}`}
+                    className="w-full relative z-10"
+                    style={{ overflow: 'visible' }}
+                >
+                    <defs>
+                        {/* Gradient strokes per tier */}
+                        {PYRAMID_TIERS.map((t, i) => (
+                            <linearGradient key={`gs-${i}`} id={`tier-stroke-${i}`} x1="0%" y1="0%" x2="100%" y2="100%">
+                                <stop offset="0%" stopColor={t.lightColor} stopOpacity={0.8} />
+                                <stop offset="50%" stopColor={t.color} stopOpacity={0.4} />
+                                <stop offset="100%" stopColor={t.color} stopOpacity={0.1} />
+                            </linearGradient>
+                        ))}
 
-                        {/* Pyramid side labels */}
-                        <div className="flex justify-between mt-3 px-4 text-[9px] text-white/20 uppercase tracking-[0.15em]">
-                            <span>← Fewer actors</span>
-                            <span>More actors →</span>
-                        </div>
-                    </div>
-                </div>
+                        {/* Glow filter */}
+                        <filter id="tier-glow" x="-20%" y="-20%" width="140%" height="140%">
+                            <feGaussianBlur in="SourceGraphic" stdDeviation="6" result="blur" />
+                            <feMerge>
+                                <feMergeNode in="blur" />
+                                <feMergeNode in="SourceGraphic" />
+                            </feMerge>
+                        </filter>
 
-                {/* ── Transversal layers (right column) ── */}
-                <div className="w-44 shrink-0 flex flex-col gap-2">
-                    <div className="text-[9px] font-bold uppercase tracking-[0.2em] text-white/25 mb-1 text-center">
-                        Cross-cutting
-                    </div>
+                        {/* Shimmer gradient — sweeping light on top tier */}
+                        <linearGradient id="shimmer-sweep" gradientUnits="userSpaceOnUse" x1="0" y1="0" x2="200" y2="0">
+                            <stop offset="0%" stopColor="white" stopOpacity="0" />
+                            <stop offset="40%" stopColor="white" stopOpacity="0" />
+                            <stop offset="50%" stopColor="white" stopOpacity="0.07" />
+                            <stop offset="60%" stopColor="white" stopOpacity="0" />
+                            <stop offset="100%" stopColor="white" stopOpacity="0" />
+                            <animateTransform
+                                attributeName="gradientTransform"
+                                type="translate"
+                                from="-300 0"
+                                to="500 0"
+                                dur="3.5s"
+                                repeatCount="indefinite"
+                            />
+                        </linearGradient>
 
-                    {/* Connecting line from pyramid */}
-                    <div className="relative flex-1 flex flex-col gap-2">
-                        {/* Vertical dashed line on the left */}
-                        <div className="absolute left-0 top-2 bottom-2 w-px border-l border-dashed border-white/10" />
+                        {/* Clip paths for shimmer */}
+                        <clipPath id="tier0-clip">
+                            <path d={PYRAMID_GEO[0].front} />
+                        </clipPath>
 
-                        {TRANSVERSAL_LAYERS.map((layer, i) => {
-                            const isHovered = hoveredTransversal === i;
-                            return (
-                                <motion.div
-                                    key={layer.label}
-                                    className="relative pl-3 cursor-pointer"
-                                    onMouseEnter={() => setHoveredTransversal(i)}
-                                    onMouseLeave={() => setHoveredTransversal(null)}
-                                    animate={{
-                                        x: isHovered ? 4 : 0,
-                                        scale: isHovered ? 1.02 : 1,
-                                    }}
-                                    transition={{ type: 'spring', stiffness: 300, damping: 25 }}
-                                >
-                                    {/* Horizontal tick */}
-                                    <div className="absolute left-0 top-1/2 -translate-y-1/2 w-2.5 h-px" style={{ backgroundColor: `${layer.color}40` }} />
+                        {/* Card glow filter */}
+                        <filter id="card-glow" x="-10%" y="-10%" width="120%" height="120%">
+                            <feGaussianBlur stdDeviation="4" />
+                        </filter>
+                    </defs>
 
-                                    <div
-                                        className="rounded-lg p-3 relative overflow-hidden transition-all duration-300"
+                    {/* ── Pyramid tiers ── */}
+                    {PYRAMID_GEO.map((g, i) => {
+                        const tier = PYRAMID_TIERS[i];
+                        const isHov = hovered === i;
+                        const isFaded = hovered !== null && hovered !== i;
+
+                        return (
+                            <g
+                                key={`tier-${i}`}
+                                onMouseEnter={() => setHovered(i)}
+                                onMouseLeave={() => setHovered(null)}
+                                style={{ cursor: 'pointer' }}
+                            >
+                                {/* Hover glow layer (behind everything) */}
+                                {isHov && (
+                                    <path
+                                        d={g.front}
+                                        fill={`${tier.color}15`}
+                                        stroke={tier.color}
+                                        strokeWidth={2}
+                                        filter="url(#tier-glow)"
+                                        style={{ transition: 'all 0.3s ease' }}
+                                    />
+                                )}
+
+                                {/* Top face — only tier 0 */}
+                                {g.top && (
+                                    <path
+                                        d={g.top}
+                                        fill={`${tier.color}${isHov ? '18' : '0A'}`}
+                                        stroke={`url(#tier-stroke-${i})`}
+                                        strokeWidth={0.5}
                                         style={{
-                                            background: isHovered
-                                                ? `linear-gradient(135deg, ${layer.color}15 0%, rgba(10,10,25,0.9) 100%)`
-                                                : 'rgba(255,255,255,0.03)',
-                                            border: `1px solid ${layer.color}${isHovered ? '40' : '15'}`,
-                                            boxShadow: isHovered ? `0 0 20px ${layer.color}15` : 'none',
+                                            opacity: isFaded ? 0.25 : 1,
+                                            transition: 'all 0.4s ease',
+                                            transform: isHov ? 'translate(-3px, -5px)' : 'translate(0, 0)',
                                         }}
-                                    >
-                                        <div className="flex items-center gap-1.5 mb-1">
-                                            <div
-                                                className="w-1.5 h-1.5 rounded-full shrink-0"
-                                                style={{ backgroundColor: layer.color }}
-                                            />
-                                            <span className="font-bold text-[11px] text-white/80">{layer.label}</span>
-                                        </div>
-                                        <div className="text-[10px] text-white/30">{layer.shortDesc}</div>
-                                        <div
-                                            className="text-[8px] font-bold uppercase tracking-widest mt-1.5"
-                                            style={{ color: `${layer.color}90` }}
-                                        >
-                                            {layer.horizon}
-                                        </div>
-                                    </div>
-                                </motion.div>
-                            );
-                        })}
-                    </div>
-                </div>
+                                    />
+                                )}
+
+                                {/* Side face (isometric depth) */}
+                                <path
+                                    d={g.side}
+                                    fill={`${tier.darkColor}${isHov ? '50' : '30'}`}
+                                    stroke={`${tier.color}15`}
+                                    strokeWidth={0.5}
+                                    style={{
+                                        opacity: isFaded ? 0.25 : 1,
+                                        transition: 'all 0.4s ease',
+                                        transform: isHov ? 'translate(-3px, -5px)' : 'translate(0, 0)',
+                                    }}
+                                />
+
+                                {/* Front face */}
+                                <path
+                                    d={g.front}
+                                    fill={`${tier.color}${isHov ? '14' : '0A'}`}
+                                    stroke={`url(#tier-stroke-${i})`}
+                                    strokeWidth={isHov ? 1.5 : 0.7}
+                                    style={{
+                                        opacity: isFaded ? 0.25 : 1,
+                                        transition: 'all 0.4s ease',
+                                        transform: isHov ? 'translate(-3px, -5px)' : 'translate(0, 0)',
+                                    }}
+                                />
+
+                                {/* Shimmer sweep — top tier only */}
+                                {i === 0 && (
+                                    <rect
+                                        x="0" y="0"
+                                        width={SVG_W} height={SVG_H}
+                                        fill="url(#shimmer-sweep)"
+                                        clipPath="url(#tier0-clip)"
+                                        style={{ pointerEvents: 'none' }}
+                                    />
+                                )}
+
+                                {/* Label */}
+                                <text
+                                    x={g.cx}
+                                    y={g.cy - 7}
+                                    textAnchor="middle"
+                                    fill={isHov ? tier.color : 'rgba(255,255,255,0.85)'}
+                                    fontSize={13}
+                                    fontWeight={800}
+                                    letterSpacing="0.03em"
+                                    style={{
+                                        opacity: isFaded ? 0.25 : 1,
+                                        transition: 'all 0.4s ease',
+                                        transform: isHov ? 'translate(-3px, -5px)' : 'translate(0, 0)',
+                                        pointerEvents: 'none',
+                                    }}
+                                >
+                                    {tier.label}
+                                </text>
+                                <text
+                                    x={g.cx}
+                                    y={g.cy + 10}
+                                    textAnchor="middle"
+                                    fill={isHov ? `${tier.color}CC` : 'rgba(255,255,255,0.3)'}
+                                    fontSize={9.5}
+                                    fontWeight={500}
+                                    style={{
+                                        opacity: isFaded ? 0.25 : 1,
+                                        transition: 'all 0.4s ease',
+                                        transform: isHov ? 'translate(-3px, -5px)' : 'translate(0, 0)',
+                                        pointerEvents: 'none',
+                                    }}
+                                >
+                                    {tier.shortDesc}
+                                </text>
+                            </g>
+                        );
+                    })}
+
+                    {/* ── Vertical bracket spanning full pyramid height ── */}
+                    {(() => {
+                        const bracketX = TRANS_X - 22;
+                        const topY = PYR_Y0;
+                        const botY = PYR_Y0 + PYRAMID_TIERS.length * (TIER_HEIGHT + TIER_GAP) - TIER_GAP;
+                        const midY = (topY + botY) / 2;
+                        return (
+                            <g>
+                                {/* Vertical line */}
+                                <line
+                                    x1={bracketX} y1={topY + 6}
+                                    x2={bracketX} y2={botY - 6}
+                                    stroke="rgba(255,255,255,0.08)"
+                                    strokeWidth={1}
+                                    strokeDasharray="3 4"
+                                />
+                                {/* Top tick */}
+                                <line x1={bracketX - 4} y1={topY + 6} x2={bracketX + 4} y2={topY + 6} stroke="rgba(255,255,255,0.12)" strokeWidth={1} />
+                                {/* Bottom tick */}
+                                <line x1={bracketX - 4} y1={botY - 6} x2={bracketX + 4} y2={botY - 6} stroke="rgba(255,255,255,0.12)" strokeWidth={1} />
+                                {/* "All tiers" label */}
+                                <text
+                                    x={bracketX}
+                                    y={midY}
+                                    textAnchor="middle"
+                                    fill="rgba(255,255,255,0.12)"
+                                    fontSize={7}
+                                    fontWeight={600}
+                                    letterSpacing="0.15em"
+                                    transform={`rotate(-90, ${bracketX}, ${midY})`}
+                                >
+                                    SPANS ALL TIERS
+                                </text>
+                            </g>
+                        );
+                    })()}
+
+                    {/* ── Transversal layer cards (SVG) ── */}
+                    {TRANS_GEO.map((g, i) => {
+                        const layer = TRANSVERSAL_LAYERS[i];
+                        const isHov = hoveredTrans === i;
+                        return (
+                            <g
+                                key={`trans-${i}`}
+                                onMouseEnter={() => setHoveredTrans(i)}
+                                onMouseLeave={() => setHoveredTrans(null)}
+                                style={{ cursor: 'pointer' }}
+                            >
+                                {/* Card glow */}
+                                {isHov && (
+                                    <rect
+                                        x={g.x - 4}
+                                        y={g.y - 4}
+                                        width={g.w + 8}
+                                        height={g.h + 8}
+                                        rx={12}
+                                        fill={`${layer.color}08`}
+                                        stroke={layer.color}
+                                        strokeWidth={1}
+                                        strokeOpacity={0.3}
+                                        filter="url(#card-glow)"
+                                    />
+                                )}
+                                {/* Card background */}
+                                <rect
+                                    x={g.x}
+                                    y={g.y}
+                                    width={g.w}
+                                    height={g.h}
+                                    rx={8}
+                                    fill={isHov ? `${layer.color}0A` : 'rgba(255,255,255,0.02)'}
+                                    stroke={layer.color}
+                                    strokeWidth={isHov ? 1 : 0.5}
+                                    strokeOpacity={isHov ? 0.4 : 0.15}
+                                    style={{ transition: 'all 0.3s ease' }}
+                                />
+                                {/* Color accent bar */}
+                                <rect
+                                    x={g.x}
+                                    y={g.y}
+                                    width={3}
+                                    height={g.h}
+                                    rx={1.5}
+                                    fill={layer.color}
+                                    opacity={isHov ? 0.8 : 0.4}
+                                    style={{ transition: 'opacity 0.3s ease' }}
+                                />
+                                {/* Label */}
+                                <text
+                                    x={g.x + 14}
+                                    y={g.cy - 8}
+                                    fill={isHov ? layer.color : 'rgba(255,255,255,0.8)'}
+                                    fontSize={11}
+                                    fontWeight={700}
+                                    style={{ transition: 'fill 0.3s ease' }}
+                                >
+                                    {layer.label}
+                                </text>
+                                {/* Sub-label */}
+                                <text
+                                    x={g.x + 14}
+                                    y={g.cy + 5}
+                                    fill="rgba(255,255,255,0.3)"
+                                    fontSize={9}
+                                >
+                                    {layer.shortDesc}
+                                </text>
+                                {/* Hardware profile badge */}
+                                <text
+                                    x={g.x + 14}
+                                    y={g.cy + 19}
+                                    fill={`${layer.color}90`}
+                                    fontSize={7.5}
+                                    fontWeight={700}
+                                    letterSpacing="0.08em"
+                                >
+                                    {layer.hwProfile.toUpperCase()}
+                                </text>
+                            </g>
+                        );
+                    })}
+
+                    {/* Cross-cutting label */}
+                    <text x={TRANS_X + TRANS_W / 2} y={TRANS_Y0 - 12} textAnchor="middle" fill="rgba(255,255,255,0.2)" fontSize={7.5} fontWeight={700} letterSpacing="0.18em">
+                        CROSS-CUTTING
+                    </text>
+                </svg>
             </div>
 
-            {/* ── Hover detail panel ── */}
+            {/* ── Hover detail panel (glassmorphism) ── */}
             <AnimatePresence mode="wait">
-                {hoveredTier !== null && (
+                {hovered !== null && (
                     <motion.div
-                        key={`tier-${hoveredTier}`}
-                        initial={{ opacity: 0, y: 8 }}
+                        key={`tier-${hovered}`}
+                        initial={{ opacity: 0, y: 10 }}
                         animate={{ opacity: 1, y: 0 }}
-                        exit={{ opacity: 0, y: -4 }}
-                        transition={{ duration: 0.2 }}
+                        exit={{ opacity: 0, y: -6 }}
+                        transition={{ duration: 0.25 }}
                         className="rounded-xl p-5 relative overflow-hidden"
                         style={{
-                            background: `linear-gradient(135deg, ${PYRAMID_TIERS[hoveredTier].color}08 0%, rgba(10,10,25,0.95) 50%)`,
-                            border: `1px solid ${PYRAMID_TIERS[hoveredTier].color}25`,
+                            background: 'rgba(10,10,25,0.65)',
+                            backdropFilter: 'blur(20px)',
+                            WebkitBackdropFilter: 'blur(20px)',
+                            border: `1px solid ${PYRAMID_TIERS[hovered].color}30`,
+                            boxShadow: `0 0 40px ${PYRAMID_TIERS[hovered].color}08`,
                         }}
                     >
-                        <div className="flex items-start justify-between gap-4">
-                            <div className="flex-1">
-                                <div className="flex items-center gap-3 mb-2">
-                                    <span className="font-black text-base" style={{ color: PYRAMID_TIERS[hoveredTier].color }}>
-                                        {PYRAMID_TIERS[hoveredTier].label}
-                                    </span>
-                                    <span
-                                        className="text-[9px] font-black uppercase tracking-widest px-2 py-0.5 rounded-full"
-                                        style={{
-                                            background: `${PYRAMID_TIERS[hoveredTier].color}15`,
-                                            color: PYRAMID_TIERS[hoveredTier].color,
-                                        }}
-                                    >
-                                        {PYRAMID_TIERS[hoveredTier].priority}
-                                    </span>
-                                </div>
-                                <div className="text-white/50 text-[12px] mb-2 font-medium">{PYRAMID_TIERS[hoveredTier].actors}</div>
-                                <div className="text-white/35 text-[12px] leading-relaxed">{PYRAMID_TIERS[hoveredTier].why}</div>
-                            </div>
-                        </div>
-                    </motion.div>
-                )}
-
-                {hoveredTransversal !== null && hoveredTier === null && (
-                    <motion.div
-                        key={`trans-${hoveredTransversal}`}
-                        initial={{ opacity: 0, y: 8 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        exit={{ opacity: 0, y: -4 }}
-                        transition={{ duration: 0.2 }}
-                        className="rounded-xl p-5 relative overflow-hidden"
-                        style={{
-                            background: `linear-gradient(135deg, ${TRANSVERSAL_LAYERS[hoveredTransversal].color}08 0%, rgba(10,10,25,0.95) 50%)`,
-                            border: `1px solid ${TRANSVERSAL_LAYERS[hoveredTransversal].color}25`,
-                        }}
-                    >
-                        <div className="flex items-center gap-2 mb-2">
-                            <div
-                                className="w-2 h-2 rounded-full"
-                                style={{ backgroundColor: TRANSVERSAL_LAYERS[hoveredTransversal].color }}
-                            />
-                            <span className="font-black text-base" style={{ color: TRANSVERSAL_LAYERS[hoveredTransversal].color }}>
-                                {TRANSVERSAL_LAYERS[hoveredTransversal].label}
+                        <div className="flex items-center gap-3 mb-2">
+                            <span className="font-black text-base" style={{ color: PYRAMID_TIERS[hovered].color }}>
+                                {PYRAMID_TIERS[hovered].label}
                             </span>
                             <span
                                 className="text-[9px] font-black uppercase tracking-widest px-2 py-0.5 rounded-full"
                                 style={{
-                                    background: `${TRANSVERSAL_LAYERS[hoveredTransversal].color}15`,
-                                    color: TRANSVERSAL_LAYERS[hoveredTransversal].color,
+                                    background: `${PYRAMID_TIERS[hovered].color}15`,
+                                    color: PYRAMID_TIERS[hovered].color,
                                 }}
                             >
-                                {TRANSVERSAL_LAYERS[hoveredTransversal].horizon}
+                                {PYRAMID_TIERS[hovered].priority}
                             </span>
                         </div>
-                        <div className="text-white/40 text-[12px] leading-relaxed">{TRANSVERSAL_LAYERS[hoveredTransversal].desc}</div>
+                        <div className="text-white/50 text-[12px] mb-2 font-medium">{PYRAMID_TIERS[hovered].actors}</div>
+                        <div className="text-white/35 text-[12px] leading-relaxed">{PYRAMID_TIERS[hovered].why}</div>
+                    </motion.div>
+                )}
+
+                {hoveredTrans !== null && hovered === null && (
+                    <motion.div
+                        key={`trans-${hoveredTrans}`}
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -6 }}
+                        transition={{ duration: 0.25 }}
+                        className="rounded-xl p-5 relative overflow-hidden"
+                        style={{
+                            background: 'rgba(10,10,25,0.65)',
+                            backdropFilter: 'blur(20px)',
+                            WebkitBackdropFilter: 'blur(20px)',
+                            border: `1px solid ${TRANSVERSAL_LAYERS[hoveredTrans].color}30`,
+                            boxShadow: `0 0 40px ${TRANSVERSAL_LAYERS[hoveredTrans].color}08`,
+                        }}
+                    >
+                        <div className="flex items-center gap-2 mb-2">
+                            <div className="w-2 h-2 rounded-full" style={{ backgroundColor: TRANSVERSAL_LAYERS[hoveredTrans].color }} />
+                            <span className="font-black text-base" style={{ color: TRANSVERSAL_LAYERS[hoveredTrans].color }}>
+                                {TRANSVERSAL_LAYERS[hoveredTrans].label}
+                            </span>
+                            <span
+                                className="text-[9px] font-black uppercase tracking-widest px-2 py-0.5 rounded-full"
+                                style={{
+                                    background: `${TRANSVERSAL_LAYERS[hoveredTrans].color}15`,
+                                    color: TRANSVERSAL_LAYERS[hoveredTrans].color,
+                                }}
+                            >
+                                {TRANSVERSAL_LAYERS[hoveredTrans].hwProfile}
+                            </span>
+                        </div>
+                        <div className="text-white/40 text-[12px] leading-relaxed">{TRANSVERSAL_LAYERS[hoveredTrans].desc}</div>
                     </motion.div>
                 )}
             </AnimatePresence>
 
             {/* ── Strategic takeaway ── */}
-            <div className="p-4 rounded-xl border border-[#00F0FF]/15 bg-[#00F0FF]/[0.03]">
+            <div
+                className="p-4 rounded-xl relative overflow-hidden"
+                style={{
+                    background: 'rgba(0,240,255,0.02)',
+                    backdropFilter: 'blur(10px)',
+                    border: '1px solid rgba(0,240,255,0.12)',
+                }}
+            >
                 <div className="text-[#00F0FF] font-bold text-xs mb-2">Strategic takeaway</div>
                 <div className="text-white/40 text-[12px] leading-relaxed space-y-2">
                     <p>
@@ -792,8 +1026,8 @@ export default function MethodologyPage() {
         },
         {
             number: '6',
-            title: 'GTM Strategy & Ecosystem Segmentation',
-            subtitle: 'The blockchain infrastructure market is not homogeneous. Understanding where the volume and revenue concentrate — and who the real decision-makers are — shapes how this dashboard is built and who it targets.',
+            title: 'Bare-Metal Demand Map',
+            subtitle: 'Who actually consumes dedicated servers in blockchain — and how much. This segmentation focuses specifically on bare-metal infrastructure buyers, not the broader ecosystem (exchanges, wallets, DeFi protocols have different infra patterns). Width = number of actors, height = strategic impact per deal.',
             chart: <GTMChart />,
         },
     ];

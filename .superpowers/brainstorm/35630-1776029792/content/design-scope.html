@@ -1,0 +1,90 @@
+<h2>Périmètre — ce qui change, ce qui ne change pas</h2>
+<p class="subtitle">Vue d'ensemble avant d'écrire le plan d'implémentation</p>
+
+<div class="section">
+  <h3>Fichiers supprimés / remplacés</h3>
+  <div style="display:flex; flex-direction:column; gap:5px; font-family:monospace; font-size:11px;">
+    <div style="padding:8px 12px; background:#ff000010; border:1px solid #ff000025; border-radius:6px; color:#ff6b6b;">
+      ✕ src/app/{chain}/use-cases/page.tsx  <span style="color:#ffffff30;">(× 8 chains)</span>
+    </div>
+    <div style="padding:8px 12px; background:#ff000010; border:1px solid #ff000025; border-radius:6px; color:#ff6b6b;">
+      ✕ src/app/{chain}/guide/page.tsx  <span style="color:#ffffff30;">(× 8 chains)</span>
+    </div>
+  </div>
+</div>
+
+<div class="section">
+  <h3>Fichiers créés</h3>
+  <div style="display:flex; flex-direction:column; gap:5px; font-family:monospace; font-size:11px;">
+    <div style="padding:8px 12px; background:#00ff0010; border:1px solid #00ff0025; border-radius:6px; color:#6bffb8;">
+      + src/app/{chain}/ecosystem/page.tsx  <span style="color:#ffffff30;">(× 8 chains, depuis un template commun)</span>
+    </div>
+    <div style="padding:8px 12px; background:#00ff0010; border:1px solid #00ff0025; border-radius:6px; color:#6bffb8;">
+      + src/components/dashboard/EcosystemPage.tsx  <span style="color:#ffffff30;">(composant générique réutilisé par toutes les chains)</span>
+    </div>
+    <div style="padding:8px 12px; background:#00ff0010; border:1px solid #00ff0025; border-radius:6px; color:#6bffb8;">
+      + src/components/dashboard/TopOVHOperators.tsx  <span style="color:#ffffff30;">(nouveau widget Analytics)</span>
+    </div>
+  </div>
+</div>
+
+<div class="section">
+  <h3>Fichiers modifiés</h3>
+  <div style="display:flex; flex-direction:column; gap:5px; font-family:monospace; font-size:11px;">
+    <div style="padding:8px 12px; background:#ffff0008; border:1px solid #ffff0020; border-radius:6px; color:#ffd76b;">
+      ~ src/components/dashboard/ProviderComparison.tsx  <span style="color:#ffffff30;">(+ toggle bar/pie, localStorage)</span>
+    </div>
+    <div style="padding:8px 12px; background:#ffff0008; border:1px solid #ffff0020; border-radius:6px; color:#ffd76b;">
+      ~ src/components/dashboard/TrendChart.tsx  <span style="color:#ffffff30;">(chainId prop, requête /api/trends?chain=x)</span>
+    </div>
+    <div style="padding:8px 12px; background:#ffff0008; border:1px solid #ffff0020; border-radius:6px; color:#ffd76b;">
+      ~ src/app/api/trends/route.ts  <span style="color:#ffffff30;">(+ param chain=, actuellement solana-only)</span>
+    </div>
+    <div style="padding:8px 12px; background:#ffff0008; border:1px solid #ffff0020; border-radius:6px; color:#ffd76b;">
+      ~ src/app/{chain}/analytics/page.tsx  <span style="color:#ffffff30;">(+ TrendChart + TopOVHOperators)</span>
+    </div>
+    <div style="padding:8px 12px; background:#ffff0008; border:1px solid #ffff0020; border-radius:6px; color:#ffd76b;">
+      ~ src/components/dashboard/Sidebar.tsx  <span style="color:#ffffff30;">(lien "Use Cases" + "Guide" → "Ecosystem")</span>
+    </div>
+    <div style="padding:8px 12px; background:#ffff0008; border:1px solid #ffff0020; border-radius:6px; color:#ffd76b;">
+      ~ src/lib/chains.ts  <span style="color:#ffffff30;">(route ecosystem enregistrée)</span>
+    </div>
+  </div>
+</div>
+
+<div class="section">
+  <h3>Redirects Next.js</h3>
+  <div style="background:#ffffff04; border:1px solid #ffffff10; border-radius:8px; padding:14px; font-family:monospace; font-size:11px; color:#ffffff60;">
+    <div style="color:#ffffff30; margin-bottom:6px;">// next.config.ts — redirects()</div>
+    <div>{ source: '/:chain/use-cases', destination: '/:chain/ecosystem', permanent: true }</div>
+    <div>{ source: '/:chain/guide', destination: '/:chain/ecosystem', permanent: true }</div>
+  </div>
+</div>
+
+<div class="section">
+  <h3>Ce qui ne change pas</h3>
+  <ul style="font-size:12px; color:#ffffff60;">
+    <li>Toutes les APIs backend — aucune modification</li>
+    <li>Les workers et le cache — intacts</li>
+    <li>Les pages Dashboard, Nodes, Analytics existantes — seules les nouvelles sections sont ajoutées à Analytics</li>
+    <li>Les composants <code>UseCasesHero</code>, <code>OVHServerSpecs</code>, <code>VerifiedResidentsGrid</code> — réutilisés tels quels dans <code>EcosystemPage</code></li>
+  </ul>
+</div>
+
+<div class="section">
+  <h3>Phasing suggéré</h3>
+  <div style="display:flex; flex-direction:column; gap:8px; font-size:11px;">
+    <div style="padding:10px 14px; background:#00F0FF08; border:1px solid #00F0FF20; border-radius:8px;">
+      <strong style="color:#00F0FF;">Phase 1</strong> <span style="color:#ffffff50; margin-left:8px;">— Ecosystem page (fusion use-cases + guide)</span>
+      <div style="color:#ffffff35; font-size:10px; margin-top:4px;">Créer EcosystemPage.tsx · pages par chain · redirects · sidebar</div>
+    </div>
+    <div style="padding:10px 14px; background:#00F0FF08; border:1px solid #00F0FF20; border-radius:8px;">
+      <strong style="color:#00F0FF;">Phase 2</strong> <span style="color:#ffffff50; margin-left:8px;">— Analytics : toggle pie/bar + TopOVHOperators</span>
+      <div style="color:#ffffff35; font-size:10px; margin-top:4px;">Données déjà disponibles, pas de dépendances backend</div>
+    </div>
+    <div style="padding:10px 14px; background:#ffffff05; border:1px solid #ffffff10; border-radius:8px;">
+      <strong style="color:#ffffff40;">Phase 3</strong> <span style="color:#ffffff30; margin-left:8px;">— Trend multi-chain (après vérif workers metrics_history)</span>
+      <div style="color:#ffffff25; font-size:10px; margin-top:4px;">Conditionné à ce que les workers écrivent l'historique pour chaque chain</div>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,60 @@
+<h2>Comment naviguer dans la page fusionnée ?</h2>
+<p class="subtitle">Use Cases + Guide regroupés — quelle structure de navigation ?</p>
+
+<div class="cards">
+
+  <div class="card" data-choice="tabs" onclick="toggleSelect(this)">
+    <div class="card-image" style="padding: 16px; background: #0d1117; border-radius: 8px;">
+      <div style="display:flex; gap:6px; margin-bottom:12px;">
+        <div style="padding:6px 14px; background:#00F0FF20; border:1px solid #00F0FF60; border-radius:6px; color:#00F0FF; font-size:11px; font-weight:700; font-family:monospace;">WHO BUILDS</div>
+        <div style="padding:6px 14px; background:#ffffff08; border:1px solid #ffffff15; border-radius:6px; color:#ffffff50; font-size:11px; font-weight:700; font-family:monospace;">DEPLOY</div>
+        <div style="padding:6px 14px; background:#ffffff08; border:1px solid #ffffff15; border-radius:6px; color:#ffffff50; font-size:11px; font-weight:700; font-family:monospace;">HARDWARE</div>
+      </div>
+      <div style="background:#ffffff05; border:1px solid #ffffff08; border-radius:8px; padding:14px; font-size:11px; color:#ffffff60; font-family:monospace;">
+        → Contenu de l'onglet actif
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>Onglets horizontaux</h3>
+      <p>3 onglets : "Who Builds", "Deploy", "Hardware" — navigation rapide, chaque section isolée. Idéal si les profils sont vraiment distincts.</p>
+    </div>
+  </div>
+
+  <div class="card" data-choice="scroll" onclick="toggleSelect(this)">
+    <div class="card-image" style="padding: 16px; background: #0d1117; border-radius: 8px;">
+      <div style="font-family:monospace; font-size:10px; color:#ffffff40; margin-bottom:8px;">↓ scroll</div>
+      <div style="display:flex; flex-direction:column; gap:6px;">
+        <div style="background:#00F0FF10; border-left:3px solid #00F0FF; border-radius:4px; padding:8px 10px; font-size:11px; color:#00F0FF; font-family:monospace; font-weight:700;">WHO BUILDS ON OVH</div>
+        <div style="background:#ffffff05; border-left:3px solid #ffffff15; border-radius:4px; padding:8px 10px; font-size:11px; color:#ffffff50; font-family:monospace;">Case studies · Témoignages</div>
+        <div style="background:#ffffff05; border-left:3px solid #ffffff15; border-radius:4px; padding:8px 10px; font-size:11px; color:#ffffff50; font-family:monospace;">Nodes détectés on-chain</div>
+        <div style="background:#ffffff05; border-left:3px solid #ffffff15; border-radius:4px; padding:8px 10px; font-size:11px; color:#ffffff50; font-family:monospace;">Hardware & Deploy guide</div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>Page scrollable avec ancres</h3>
+      <p>Une seule page longue avec des sections ancrées. Le menu sidebar (ou sticky top) permet de sauter directement à une section. Plus naturel pour lire en continu.</p>
+    </div>
+  </div>
+
+  <div class="card" data-choice="split" onclick="toggleSelect(this)">
+    <div class="card-image" style="padding: 16px; background: #0d1117; border-radius: 8px;">
+      <div style="display:flex; gap:8px; height:80px;">
+        <div style="width:35%; background:#00F0FF08; border:1px solid #00F0FF20; border-radius:6px; padding:8px; font-size:9px; color:#00F0FF80; font-family:monospace; font-weight:700;">
+          WHO BUILDS<br/><br/>
+          <span style="color:#ffffff30">· Bware Labs</span><br/>
+          <span style="color:#ffffff30">· Everstake</span><br/>
+          <span style="color:#ffffff30">· Stakely</span>
+        </div>
+        <div style="flex:1; background:#ffffff05; border:1px solid #ffffff10; border-radius:6px; padding:8px; font-size:9px; color:#ffffff50; font-family:monospace;">
+          DETAIL<br/><br/>
+          Fiche détaillée<br/>+ Deploy guide<br/>+ Hardware
+        </div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>Layout deux colonnes</h3>
+      <p>Liste des acteurs à gauche, détail + guide à droite. Façon "master-detail". Plus complexe à coder mais très lisible pour comparer.</p>
+    </div>
+  </div>
+
+</div>

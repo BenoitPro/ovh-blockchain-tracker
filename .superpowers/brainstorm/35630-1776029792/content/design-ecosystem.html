@@ -1,0 +1,101 @@
+<h2>Design — Page Ecosystem</h2>
+<p class="subtitle">Remplace /use-cases et /guide sur chaque chain</p>
+
+<div class="mockup">
+  <div class="mockup-header">/{chain}/ecosystem — Avalanche exemple</div>
+  <div class="mockup-body" style="padding:0; font-family:monospace; font-size:11px;">
+
+    <!-- Sticky anchor nav -->
+    <div style="position:relative; background:#0d0505; border-bottom:1px solid #E8414225; display:flex; align-items:stretch; padding:0 24px; gap:0;">
+      <div style="padding:13px 20px; border-bottom:2px solid #E84142; color:#E84142; font-weight:800; font-size:10px; letter-spacing:0.15em; cursor:pointer;">WHO BUILDS</div>
+      <div style="padding:13px 20px; border-bottom:2px solid transparent; color:#ffffff35; font-weight:700; font-size:10px; letter-spacing:0.15em; cursor:pointer; transition:color 0.2s;">RUN A NODE</div>
+      <div style="margin-left:auto; display:flex; align-items:center; padding-right:4px;">
+        <span style="font-size:9px; color:#ffffff20; letter-spacing:0.1em;">↕ scroll · clique pour sauter</span>
+      </div>
+    </div>
+
+    <!-- Hero title -->
+    <div style="padding:28px 24px 20px; border-bottom:1px solid #ffffff06;">
+      <div style="font-size:9px; color:#E84142; font-weight:800; letter-spacing:0.2em; margin-bottom:8px;">AVALANCHE ECOSYSTEM</div>
+      <div style="font-size:20px; font-weight:900; color:#fff; line-height:1.2; margin-bottom:6px;">Who builds on OVHcloud<br/><span style="color:#E84142;">Avalanche</span> infrastructure</div>
+      <div style="font-size:10px; color:#ffffff40;">Case studies · On-chain verified operators · Deploy guide</div>
+    </div>
+
+    <!-- §1 WHO BUILDS -->
+    <div style="padding:20px 24px; border-bottom:1px solid #ffffff06;">
+      <div style="font-size:9px; font-weight:800; color:#ffffff30; letter-spacing:0.2em; margin-bottom:14px; display:flex; align-items:center; gap:8px;">
+        <span style="color:#E84142;">§01</span> WHO BUILDS
+      </div>
+
+      <!-- Case studies grid -->
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-bottom:14px;">
+        <div style="background:#E8414208; border:1px solid #E8414225; border-radius:10px; padding:12px;">
+          <div style="font-weight:800; color:#fff; font-size:11px; margin-bottom:2px;">Everstake</div>
+          <div style="font-size:9px; color:#E84142; letter-spacing:0.1em; margin-bottom:6px;">MULTI-CHAIN VALIDATOR</div>
+          <div style="font-size:9px; color:#ffffff40; line-height:1.5;">$7B+ staked · 80+ PoS networks · 99.98% reliability</div>
+        </div>
+        <div style="background:#E8414208; border:1px solid #E8414225; border-radius:10px; padding:12px;">
+          <div style="font-weight:800; color:#fff; font-size:11px; margin-bottom:2px;">Stakely</div>
+          <div style="font-size:9px; color:#E84142; letter-spacing:0.1em; margin-bottom:6px;">NON-CUSTODIAL STAKING</div>
+          <div style="font-size:9px; color:#ffffff40; line-height:1.5;">40+ PoS · Water-cooled · Anti-DDoS 1.3Tbit/s</div>
+        </div>
+      </div>
+
+      <!-- Verified residents -->
+      <div style="background:#ffffff04; border:1px solid #ffffff08; border-radius:8px; padding:10px 14px; display:flex; align-items:center; justify-content:space-between;">
+        <div>
+          <div style="font-size:9px; color:#ffffff50; letter-spacing:0.15em; font-weight:700;">ON-CHAIN VERIFIED OPERATORS</div>
+          <div style="font-size:9px; color:#ffffff25; margin-top:2px;">Détectés automatiquement via ASN lookup</div>
+        </div>
+        <div style="font-size:18px; font-weight:900; color:#E84142;">12</div>
+      </div>
+    </div>
+
+    <!-- §2 RUN A NODE -->
+    <div style="padding:20px 24px;">
+      <div style="font-size:9px; font-weight:800; color:#ffffff30; letter-spacing:0.2em; margin-bottom:14px; display:flex; align-items:center; gap:8px;">
+        <span style="color:#E84142;">§02</span> RUN A NODE
+      </div>
+
+      <!-- Hardware specs -->
+      <div style="margin-bottom:12px;">
+        <div style="font-size:9px; color:#ffffff35; letter-spacing:0.12em; font-weight:700; margin-bottom:8px;">HARDWARE RECOMMANDÉ</div>
+        <div style="display:flex; gap:6px; flex-wrap:wrap;">
+          <div style="background:#ffffff06; border:1px solid #ffffff10; border-radius:6px; padding:6px 10px; font-size:9px; color:#ffffff60;">ADVANCE-2</div>
+          <div style="background:#ffffff06; border:1px solid #ffffff10; border-radius:6px; padding:6px 10px; font-size:9px; color:#ffffff60;">8 cores · 32 GB RAM</div>
+          <div style="background:#ffffff06; border:1px solid #ffffff10; border-radius:6px; padding:6px 10px; font-size:9px; color:#ffffff60;">NVMe 2TB · &gt;3000 IOPS</div>
+        </div>
+      </div>
+
+      <!-- Deploy steps (accordion style) -->
+      <div style="font-size:9px; color:#ffffff35; letter-spacing:0.12em; font-weight:700; margin-bottom:8px;">ÉTAPES DE DÉPLOIEMENT</div>
+      <div style="display:flex; flex-direction:column; gap:5px;">
+        <div style="background:#ffffff05; border:1px solid #ffffff08; border-radius:6px; padding:8px 12px; display:flex; gap:10px; align-items:center;">
+          <div style="width:16px; height:16px; background:#E8414215; border:1px solid #E8414240; border-radius:50%; text-align:center; line-height:16px; font-size:9px; font-weight:800; color:#E84142; flex-shrink:0;">1</div>
+          <span style="color:#ffffff55; font-size:10px;">Provision ADVANCE-2 · Ubuntu 22.04 LTS</span>
+        </div>
+        <div style="background:#ffffff05; border:1px solid #ffffff08; border-radius:6px; padding:8px 12px; display:flex; gap:10px; align-items:center;">
+          <div style="width:16px; height:16px; background:#E8414215; border:1px solid #E8414240; border-radius:50%; text-align:center; line-height:16px; font-size:9px; font-weight:800; color:#E84142; flex-shrink:0;">2</div>
+          <span style="color:#ffffff55; font-size:10px;">Download AvalancheGo · config mainnet / Fuji</span>
+        </div>
+        <div style="background:#ffffff05; border:1px solid #ffffff08; border-radius:6px; padding:8px 12px; display:flex; gap:10px; align-items:center;">
+          <div style="width:16px; height:16px; background:#E8414215; border:1px solid #E8414240; border-radius:50%; text-align:center; line-height:16px; font-size:9px; font-weight:800; color:#E84142; flex-shrink:0;">3</div>
+          <span style="color:#ffffff55; font-size:10px;">Ouvrir TCP/UDP 9651 · bootstrap (24–72h)</span>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<div class="section">
+  <h3>Routing</h3>
+  <ul>
+    <li><code>/{chain}/ecosystem</code> → nouvelle page (Ecosystem)</li>
+    <li><code>/{chain}/use-cases</code> → redirect 301 vers <code>/{chain}/ecosystem</code></li>
+    <li><code>/{chain}/guide</code> → redirect 301 vers <code>/{chain}/ecosystem#run-a-node</code></li>
+    <li>La nav sidebar est mise à jour pour pointer vers <code>/ecosystem</code></li>
+  </ul>
+</div>
+
+<p style="text-align:center; color:#ffffff40; font-size:11px;">Cette section te semble correcte ?</p>

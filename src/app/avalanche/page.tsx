@@ -42,6 +42,7 @@ export default function AvalanchePage() {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [cachedAt, setCachedAt] = useState<number | null>(null);
+    const [viewMode, setViewMode] = useState<'ovh' | 'global'>('global');
 
     useScrollReveal(!loading && !!metrics);
 
@@ -110,10 +111,11 @@ export default function AvalanchePage() {
                 <main className="flex-1 flex flex-col p-2 md:p-4 w-full max-w-7xl mx-auto">
 
                     <AnimatedTagline
-                        title={
-                            <>Distribution of Avalanche Nodes on <span style={{ color: AVAX_RED, textShadow: `0 0 20px ${AVAX_RED}80` }}>OVHcloud</span></>
-                        }
+                        title={<>Distribution of Avalanche Nodes</>}
                         subtitle="Tracking validators on the fastest smart contracts platform"
+                        viewMode={viewMode}
+                        onViewModeChange={setViewMode}
+                        accentColor={AVAX_RED}
                     />
 
                     {cachedAt && (
@@ -166,6 +168,7 @@ export default function AvalanchePage() {
                                         totalNodes={metrics.totalNodes}
                                         ovhNodes={ovhCount}
                                         marketShare={metrics.marketShare}
+                                        viewMode={viewMode}
                                     />
                                 </div>
                             </section>

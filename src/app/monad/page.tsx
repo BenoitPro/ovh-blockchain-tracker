@@ -19,6 +19,7 @@ export default function MonadPage() {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [cachedAt, setCachedAt] = useState<number | null>(null);
+    const [viewMode, setViewMode] = useState<'ovh' | 'global'>('global');
 
     useScrollReveal(!loading && !!metrics);
 
@@ -83,10 +84,11 @@ export default function MonadPage() {
                 <main className="flex-1 flex flex-col p-2 md:p-4 w-full max-w-7xl mx-auto">
 
                     <AnimatedTagline
-                        title={
-                            <>Distribution of Monad Validators on <span style={{ color: ACCENT, textShadow: `0 0 20px ${ACCENT}80` }}>OVHcloud</span></>
-                        }
+                        title={<>Distribution of Monad Validators</>}
                         subtitle="Tracking validators on the high-performance EVM-compatible blockchain"
+                        viewMode={viewMode}
+                        onViewModeChange={setViewMode}
+                        accentColor={ACCENT}
                     />
 
                     {cachedAt && (
@@ -153,6 +155,7 @@ export default function MonadPage() {
                                         totalNodes={metrics.totalValidators}
                                         ovhNodes={metrics.ovhNodes ?? 0}
                                         marketShare={metrics.marketShare ?? 0}
+                                        viewMode={viewMode}
                                     />
                                 </div>
                             </section>
